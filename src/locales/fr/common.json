@@ -71,7 +71,8 @@
     "toTutorial": "Viens, je te fais visiter",
     "toPractice": "Maintenant, ton propre chantier",
     "connectGithub": "Pour le faire pour de vrai, le bureau de chantier a besoin de ta clé GitHub : lance gh auth login, puis recharge.",
-    "rankDone": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant."
+    "rankDone": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant.",
+    "fold": "Replier Mémé"
   },
   "skills": {
     "title": "Compétences",
@@ -124,6 +125,17 @@
       "goal": "Sors ton issue de la première colonne de ton tableau.",
       "lesson": "Un travail commencé va dans la colonne suivante. Le tableau doit dire la vérité.",
       "done": "Ça avance. Ton tableau dit la vérité."
+    }
+  },
+  "practice": {
+    "found": {
+      "open": "Fonder mon chantier"
+    },
+    "write": {
+      "open": "Écrire une issue"
+    },
+    "take": {
+      "open": "Prendre une issue"
     }
   }
 }

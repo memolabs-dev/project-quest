@@ -13,8 +13,9 @@ export default function App() {
   const load = useQuest((s) => s.load);
   const site = useQuest((s) => s.site);
   const refresh = useQuest((s) => s.refresh);
+  const refreshLevels = useQuest((s) => s.refreshLevels);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { void refresh(); void refreshLevels(); }, [refresh, refreshLevels]);
 
   // E opens the pallet in front of the player
   useEffect(() => {

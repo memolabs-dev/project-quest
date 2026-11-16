@@ -1,5 +1,10 @@
 // The game's calls to its own server. The server alone talks to GitHub.
-import type { ApiError, ApplyResponse, LoggedActionView, PreparedMove, SiteResponse } from "../shared/api.ts";
+import type {
+  ApiError, ApplyResponse, LevelsView, LoggedActionView, PracticeApplyResponse, PreparedMove, PreparedPractice, SiteResponse,
+} from "../shared/api.ts";
+import type { PreparedFound, PreparedIssue, PreparedTake } from "../shared/gestures/practice.ts";
+import type { TutorialEvent } from "../shared/levels/types.ts";
+import { siteKindFromUrl } from "./levels.ts";
 
 export class ApiFailure extends Error {
   readonly status: number;
@@ -23,9 +28,20 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
   return json as T;
 }
 
+/** On the practice site (?site=practice), the site and its moves are the player's own board. */
+const practice = () => siteKindFromUrl(location.search) === "practice";
+const moves = () => (practice() ? "/api/practice/moves" : "/api/moves");
+
 export const api = {
-  site: () => call<SiteResponse>("/api/site"),
-  prepareMove: (itemId: string, toZone: string) => call<PreparedMove>("/api/moves/prepare", { itemId, toZone }),
-  applyMove: (prepared: PreparedMove) => call<ApplyResponse>("/api/moves/apply", prepared),
+  site: () => call<SiteResponse>(practice() ? "/api/site?site=practice" : "/api/site"),
+  prepareMove: (itemId: string, toZone: string) => call<PreparedMove>(`${moves()}/prepare`, { itemId, toZone }),
+  applyMove: (prepared: PreparedMove) => call<ApplyResponse>(`${moves()}/apply`, prepared),
   log: () => call<LoggedActionView[]>("/api/log"),
+  levels: () => call<LevelsView>("/api/levels"),
+  checkLevels: () => call<LevelsView>("/api/levels/check", {}),
+  levelEvent: (event: TutorialEvent) => call<LevelsView>("/api/levels/event", { event }),
+  prepareFound: (visibility: "PUBLIC" | "PRIVATE") => call<PreparedFound>("/api/practice/found/prepare", { visibility }),
+  prepareIssue: (title: string, body: string) => call<PreparedIssue>("/api/practice/issue/prepare", { title, body }),
+  prepareTake: (issueNumber: number, comment: string) => call<PreparedTake>("/api/practice/take/prepare", { issueNumber, comment }),
+  applyPractice: (p: PreparedPractice) => call<PracticeApplyResponse>(`/api/practice/${p.kind}/apply`, p),
 };

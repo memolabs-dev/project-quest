@@ -1,8 +1,10 @@
 // Game state: the site, what the player is near, the open card and the move waiting for confirmation.
 import { create } from "zustand";
-import type { PreparedMove, SiteResponse } from "../shared/api.ts";
+import type { LevelsView, PreparedMove, SiteResponse } from "../shared/api.ts";
+import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Site } from "../shared/site.ts";
 import { ApiFailure, api } from "./api.ts";
+import { siteKindFromUrl, type SiteKind } from "./levels.ts";
 
 type Load = { status: "loading" } | { status: "ready" } | { status: "error"; failure: ApiFailure | Error };
 
@@ -15,14 +17,27 @@ interface QuestState {
   nearPallet: number | null;
   openCard: number | null;
   pending: PreparedMove | null;
+  /** Which site is played, from the page address. */
+  siteKind: SiteKind;
+  levels: LevelsView | null;
+  /** The previous levels view, so the mentor can cheer what was just stamped. */
+  levelsBefore: LevelsView | null;
   refresh(): Promise<void>;
+  refreshLevels(check?: boolean): Promise<void>;
+  /** Tutorial events count only on the tutorial site, and only once each. */
+  sendEvent(e: TutorialEvent): void;
+  /** The practice gesture dialog open, if any. */
+  practiceDialog: "found" | "write" | "take" | null;
+  openPractice(d: "found" | "write" | "take" | null): void;
   setSite(site: Site): void;
   setNear(n: number | null): void;
   open(n: number | null): void;
   setPending(p: PreparedMove | null): void;
 }
 
-export const useQuest = create<QuestState>((set) => ({
+const sent = new Set<TutorialEvent>();
+
+export const useQuest = create<QuestState>((set, get) => ({
   load: { status: "loading" },
   site: null,
   viewer: null,
@@ -31,6 +46,24 @@ export const useQuest = create<QuestState>((set) => ({
   nearPallet: null,
   openCard: null,
   pending: null,
+  siteKind: typeof location === "undefined" ? "main" : siteKindFromUrl(location.search),
+  levels: null,
+  levelsBefore: null,
+  practiceDialog: null,
+  openPractice: (practiceDialog) => set({ practiceDialog }),
+  async refreshLevels(check = false) {
+    try {
+      const v = await (check ? api.checkLevels() : api.levels());
+      set((s) => ({ levelsBefore: s.levels, levels: v }));
+    } catch {
+      // The levels are a layer over the site: if they cannot be read, the site still plays.
+    }
+  },
+  sendEvent(e) {
+    if (get().siteKind !== "demo" || sent.has(e)) return;
+    sent.add(e);
+    void api.levelEvent(e).then((v) => set((s) => ({ levelsBefore: s.levels, levels: v }))).catch(() => sent.delete(e));
+  },
   async refresh() {
     try {
       const r = await api.site();

@@ -25,6 +25,7 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
   const target = useRef(new THREE.Vector3());
   const setNear = useQuest((s) => s.setNear);
   const cardOpen = useQuest((s) => s.openCard !== null);
+  const sendEvent = useQuest((s) => s.sendEvent);
   // ecctrl 2 does not read the keyboard itself: the keys are handed to it every frame.
   const [, getKeys] = useKeyboardControls();
 
@@ -32,6 +33,7 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
     const h = ref.current;
     if (!h) return;
     h.setMovement(cardOpen ? {} : getKeys());
+    if (h.isMoving && h.moveSpeed > 0.4) sendEvent("walked"); // the store sends it once
     const pos = h.currPos;
     if (arrival.current <= 0) {
       const k = reduceMotion ? 1 : 1 - Math.exp(-4 * delta);

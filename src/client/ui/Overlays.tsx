@@ -6,15 +6,19 @@ import { ApiFailure, api } from "../api.ts";
 import { zoneLabel } from "../i18n.ts";
 import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
+import { Mentor } from "./Mentor.tsx";
+import { SkillBook } from "./SkillBook.tsx";
 
 function PalletCard({ number }: { number: number }) {
   const { t } = useTranslation();
   const site = useQuest((s) => s.site);
   const open = useQuest((s) => s.open);
   const setPending = useQuest((s) => s.setPending);
+  const sendEvent = useQuest((s) => s.sendEvent);
+  const reading = useQuest((s) => s.siteKind === "demo" && s.levels?.current === "a2-read-issue");
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => { closeRef.current?.focus(); }, []);
+  useEffect(() => { closeRef.current?.focus(); sendEvent("card-opened"); }, [sendEvent]);
   const pallet = site?.pallets.find((p) => p.number === number);
   if (!site || !pallet) return null;
   const workers = site.workers.filter((w) => w.carrying.includes(pallet.number));
@@ -57,6 +61,7 @@ function PalletCard({ number }: { number: number }) {
         </>
       )}
       {error && <p className="error" role="alert">{error}</p>}
+      {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
       <div className="card-foot">
         <a href={pallet.url} target="_blank" rel="noreferrer">{t("card.openGitHub")}</a>
         <button ref={closeRef} type="button" onClick={() => open(null)}>{t("card.close")}</button>
@@ -72,6 +77,8 @@ function ConfirmMove() {
   const setSite = useQuest((s) => s.setSite);
   const refresh = useQuest((s) => s.refresh);
   const open = useQuest((s) => s.open);
+  const sendEvent = useQuest((s) => s.sendEvent);
+  const refreshLevels = useQuest((s) => s.refreshLevels);
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [notice, setNotice] = useState<string | null>(null);
   const sendRef = useRef<HTMLButtonElement>(null);
@@ -87,6 +94,8 @@ function ConfirmMove() {
         else await refresh();
         open(null);
         setNotice(t("confirm.done", { to: zoneLabel(pending.to) }));
+        sendEvent("pallet-moved");
+        if (useQuest.getState().siteKind === "practice") void refreshLevels(true);
       } else if (r.reason === "stale") {
         setPending(null);
         await refresh();
@@ -190,8 +199,10 @@ export function Overlays() {
     <>
       <div className="top-right">
         <LanguageSwitch />
+        <SkillBook />
         <Logbook />
       </div>
+      <Mentor />
       {openCard !== null && <PalletCard key={openCard} number={openCard} />}
       <ConfirmMove />
       <ErrorScreen />

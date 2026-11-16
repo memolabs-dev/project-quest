@@ -115,10 +115,61 @@
 .error-screen pre { margin: 0 auto; padding: 8px 14px; background: var(--ink); color: var(--sand); border-radius: 8px; font-size: 16px; }
 .error-screen a { color: var(--accent-ink); font-weight: 800; }
 
+/* Mémé Truelle: bottom right, out of the card's way */
+.mentor {
+  position: absolute; z-index: 22; right: 16px; bottom: 56px; width: min(340px, calc(100vw - 32px));
+  background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: 6px 6px 0 var(--ink);
+  padding: 10px 14px 12px; font-size: 15px; line-height: 1.35;
+}
+.mentor p { margin: 6px 0 0; }
+.mentor-head { display: flex; align-items: center; gap: 8px; }
+.mentor-face {
+  width: 34px; height: 34px; border-radius: 50%; border: var(--line); background: var(--accent);
+  display: grid; place-items: center; font-weight: 900;
+}
+.mentor-fold { margin-left: auto; min-width: 44px; min-height: 44px; border: none; background: none; font-size: 22px; font-weight: 800; cursor: pointer; color: var(--ink); }
+.mentor-goal { font-weight: 800; }
+.mentor-notyet { color: var(--warn); font-weight: 700; }
+.mentor-cheer { font-weight: 800; }
+.mentor-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.mentor-actions a, .mentor-actions button, .mentor-tab, .got-it {
+  min-height: 44px; padding: 0 14px; border: var(--line); border-radius: 10px; background: #fff; color: var(--ink);
+  font-weight: 800; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; text-decoration: none;
+}
+.mentor-actions .primary, .got-it { background: var(--accent); }
+.mentor-tab { position: absolute; z-index: 22; right: 16px; bottom: 56px; border-radius: 999px; box-shadow: var(--shadow); }
+.got-it { margin-top: 10px; }
+.stamp {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: 50%;
+  border: 2.5px dashed #9a9a9a; color: #fff; font-weight: 900; font-size: 14px;
+}
+.mentor-cheer .stamp, .skill-panel .earned .stamp { background: var(--ok); border: 2.5px solid var(--ink); animation: stamp 0.35s var(--ease); }
+
+/* The skill book */
+.skillbook { position: relative; }
+.skillbook > button {
+  min-height: 44px; padding: 0 14px; border: var(--line); border-radius: 999px; background: var(--paper);
+  box-shadow: var(--shadow); font-weight: 800; font-size: 16px; color: var(--ink); cursor: pointer;
+}
+.skill-panel {
+  position: absolute; right: 0; top: 52px; width: min(340px, calc(100vw - 24px)); max-height: 60vh; overflow: auto;
+  background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px 14px;
+}
+.skill-panel h2 { margin: 0 0 8px; font-size: 17px; }
+.skill-panel ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.skill-panel li { display: flex; gap: 10px; align-items: flex-start; }
+.skill-panel .outline { color: #5f5f5f; }
+.skill-text { display: grid; min-width: 0; }
+.skill-text small { font-size: 13px; overflow-wrap: anywhere; }
+.skill-text a { color: var(--accent-ink); font-weight: 800; }
+
 @keyframes pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+@keyframes stamp { from { transform: scale(1.8) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .card, .stamp { animation: none !important; } }
 @media (max-width: 600px) {
   .controls { display: none; }
   .card { left: 8px; right: 8px; bottom: 8px; width: auto; }
   .banner { top: 64px; font-size: 14px; }
+  .mentor { right: 8px; left: 8px; width: auto; top: 118px; bottom: auto; max-height: 40vh; overflow: auto; }
+  .mentor-tab { top: 118px; bottom: auto; right: 8px; }
 }

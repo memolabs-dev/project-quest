@@ -71,7 +71,8 @@
     "toTutorial": "Come, I'll show you round",
     "toPractice": "Now, your own site",
     "connectGithub": "To do it for real, the site office needs your GitHub key: run gh auth login, then reload.",
-    "rankDone": "That's the Apprentice rank. You know your way around now."
+    "rankDone": "That's the Apprentice rank. You know your way around now.",
+    "fold": "Fold Mémé away"
   },
   "skills": {
     "title": "Skills",
@@ -124,6 +125,17 @@
       "goal": "Push your issue out of the first column of your board.",
       "lesson": "Work you've started belongs in the next column. The board must say what's true.",
       "done": "Moving on. Your board tells the truth."
+    }
+  },
+  "practice": {
+    "found": {
+      "open": "Found my site"
+    },
+    "write": {
+      "open": "Write an issue"
+    },
+    "take": {
+      "open": "Take an issue"
     }
   }
 }
