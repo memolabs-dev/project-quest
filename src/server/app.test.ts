@@ -1,0 +1,76 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { loadConfig } from "../shared/config.ts";
+import { prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
+import type { BoardSnapshot } from "../shared/site.ts";
+import { createApp } from "./app.ts";
+import { memoryActionLog } from "./db/log.ts";
+import type { Deps } from "./deps.ts";
+import { GitHubAuthError } from "./github/client.ts";
+import type { ApplyResult } from "./github/move-item.ts";
+
+const read = (p: string) => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8")) as unknown;
+const config = loadConfig(read("../../quest.config.json"));
+const demo = read("../shared/demo/demo-board.json") as BoardSnapshot;
+const item = demo.items.find((i) => i.status === "Backlog" && !i.isEpic && i.state === "OPEN")!;
+
+const deps = (apply: (p: PreparedMove) => Promise<ApplyResult>, extra: Partial<Deps> = {}): Deps => ({
+  mode: "live",
+  config,
+  readBoard: async () => demo,
+  applyMove: apply,
+  log: memoryActionLog(),
+  viewer: async () => ({ login: "fictif-lead", avatarUrl: "https://example.org/a.png" }),
+  ...extra,
+});
+const post = (body: unknown) => ({ method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json" } });
+
+describe("API", () => {
+  it("serves the site with its zones in order", async () => {
+    const res = await createApp(deps(async () => ({ ok: true, board: demo }))).request("/api/site");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { site: { zones: { name: string }[] }; mode: string; viewer: { login: string } };
+    expect(body.site.zones.map((z) => z.name)).toEqual(config.zones);
+    expect(body).toMatchObject({ mode: "live", viewer: { login: "fictif-lead" } });
+  });
+
+  it("prepares a move, and rejects a request without a target zone", async () => {
+    const app = createApp(deps(async () => ({ ok: true, board: demo })));
+    const ok = await app.request("/api/moves/prepare", post({ itemId: item.itemId, toZone: "Ready" }));
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toEqual(prepareMove(demo, item.itemId, "Ready"));
+    const bad = await app.request("/api/moves/prepare", post({ itemId: item.itemId }));
+    expect(bad.status).toBe(400);
+  });
+
+  it("logs every outcome of an applied move", async () => {
+    const outcomes: ApplyResult[] = [
+      { ok: true, board: demo },
+      { ok: false, reason: "stale", current: { status: "Done", updatedAt: "x" } },
+      { ok: false, reason: "github", message: "nope" },
+    ];
+    const d = deps(async () => outcomes.shift()!);
+    const app = createApp(d);
+    const prepared = prepareMove(demo, item.itemId, "Ready");
+    for (let i = 0; i < 3; i++) await app.request("/api/moves/apply", post(prepared));
+    const log = await d.log.latest(3);
+    expect(log.map((l) => l.result)).toEqual(["failed", "stale", "applied"]);
+    expect(log[2]).toMatchObject({ playerLogin: "fictif-lead", gesture: "move", target: `#${item.number}`, payload: prepared.mutation });
+  });
+
+  it("explains missing GitHub access instead of failing blankly", async () => {
+    const app = createApp(deps(async () => ({ ok: true, board: demo }), {
+      readBoard: async () => { throw new GitHubAuthError("No GitHub access"); },
+    }));
+    const res = await app.request("/api/site");
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "github-auth", hint: "gh auth login" });
+  });
+
+  it("returns the action log", async () => {
+    const d = deps(async () => ({ ok: true, board: demo }));
+    await d.log.record({ playerLogin: "fictif-lead", gesture: "move", target: "#1", payload: {}, result: "applied" });
+    const res = await createApp(d).request("/api/log");
+    expect(((await res.json()) as unknown[]).length).toBe(1);
+  });
+});
