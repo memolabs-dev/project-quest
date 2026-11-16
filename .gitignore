@@ -31,3 +31,6 @@ dist-ssr
 # raw GitHub API descriptions (npm run api:download)
 docs/github-api/schema.docs.graphql
 docs/github-api/rest-api.json
+
+# brainstorm mockups
+.superpowers/
