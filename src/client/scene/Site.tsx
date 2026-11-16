@@ -17,7 +17,7 @@ import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
-import { newlyLaid, termiteSpots, workerSpots } from "./show.ts";
+import { jacketColor, newlyLaid, termiteSpots, workerSpots } from "./show.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
 
@@ -139,7 +139,8 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         {Array.from({ length: Math.ceil((width + 8) / 2) }, (_, i) => (
           <Piece key={i} name="fence" position={[-(width + 8) / 2 + 1 + i * 2, 0, 6]} outline={0.02} />
         ))}
-        {spots.map((s) => <Worker key={s.login} spot={s} />)}
+        {/* Keyed by colour too: a new jacket means a new skeleton, which the animations must bind to. */}
+        {spots.map((s) => <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} />)}
         <Player pallets={layout.pallets} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />

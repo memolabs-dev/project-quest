@@ -5,9 +5,12 @@ import type { Building, Site } from "../../shared/site.ts";
 const MAX_DRAWN_FLOORS = 12;
 
 export function buildingPlan(b: Building): { built: number; scaffold: number; roof: boolean } {
-  const built = Math.min(b.floorsDone, MAX_DRAWN_FLOORS);
-  const scaffold = Math.max(0, Math.min(b.floorsTotal, MAX_DRAWN_FLOORS) - built);
-  return { built, scaffold, roof: b.floorsTotal > 0 && b.floorsDone === b.floorsTotal };
+  const roof = b.floorsTotal > 0 && b.floorsDone === b.floorsTotal;
+  if (b.floorsTotal <= MAX_DRAWN_FLOORS) return { built: b.floorsDone, scaffold: b.floorsTotal - b.floorsDone, roof };
+  // A taller epic is drawn to scale: at least one floor once work is done, never full before it is.
+  const scaled = Math.round((b.floorsDone / b.floorsTotal) * MAX_DRAWN_FLOORS);
+  const built = roof ? MAX_DRAWN_FLOORS : Math.min(MAX_DRAWN_FLOORS - 1, Math.max(b.floorsDone > 0 ? 1 : 0, scaled));
+  return { built, scaffold: MAX_DRAWN_FLOORS - built, roof };
 }
 
 const SIZES: Record<string, number> = { XS: 0.7, S: 0.85, M: 1, L: 1.15, XL: 1.3 };
@@ -15,16 +18,25 @@ export const crateScale = (size: string | null) => (size ? SIZES[size] ?? 1 : 1)
 
 export interface WorkerSpot { login: string; avatarUrl: string; trade: string | null; x: number; z: number }
 
-/** One spot per worker, beside the lowest-numbered pallet they carry. */
+/**
+ * One spot per worker, beside the lowest-numbered pallet they are still working on (GitHub keeps assignees on
+ * closed issues; those count only when nothing else is left). Co-assignees of one pallet stand side by side.
+ */
 export function workerSpots(site: Site, pallets: { number: number; x: number; z: number }[]): WorkerSpot[] {
   const at = new Map(pallets.map((p) => [p.number, p]));
+  const byNumber = new Map(site.pallets.map((p) => [p.number, p]));
+  const lastZone = site.zones[site.zones.length - 1]?.name;
+  const done = (n: number) => { const p = byNumber.get(n); return !p || p.closed || p.zone === lastZone; };
+  const standing = new Map<number, number>();
   const spots: WorkerSpot[] = [];
   for (const w of site.workers) {
-    const first = [...w.carrying].sort((a, b) => a - b).find((n) => at.has(n));
+    const mine = [...w.carrying].sort((a, b) => a - b).filter((n) => at.has(n));
+    const first = mine.find((n) => !done(n)) ?? mine[0];
     if (first === undefined) continue;
     const p = at.get(first)!;
-    const pallet = site.pallets.find((x) => x.number === first);
-    spots.push({ login: w.login, avatarUrl: w.avatarUrl, trade: pallet?.trade ?? null, x: p.x + 0.7, z: p.z - 0.8 });
+    const k = standing.get(first) ?? 0;
+    standing.set(first, k + 1);
+    spots.push({ login: w.login, avatarUrl: w.avatarUrl, trade: byNumber.get(first)?.trade ?? null, x: p.x + 0.7 - k * 0.6, z: p.z - 0.8 });
   }
   return spots;
 }

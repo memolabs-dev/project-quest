@@ -52,7 +52,7 @@ export function Termites({ spots, reduceMotion }: { spots: TermiteSpot[]; reduce
   });
   if (count === 0) return null;
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, count]} castShadow>
+    <instancedMesh ref={ref} args={[undefined, undefined, count]} castShadow frustumCulled={false}>
       <capsuleGeometry args={[0.04, 0.11, 2, 6]} />
       <meshStandardMaterial color="#24140A" roughness={0.5} />
     </instancedMesh>

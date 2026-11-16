@@ -17,7 +17,13 @@ describe("buildingPlan", () => {
   it("keeps a very tall building readable by capping the drawn scaffold", () => {
     const plan = buildingPlan(b(3, 40));
     expect(plan.built + plan.scaffold).toBeLessThanOrEqual(12);
-    expect(plan.built).toBe(3);
+    expect(plan.built).toBe(1);
+  });
+  it("shows a tall building's progress in proportion, never complete before it is", () => {
+    expect(buildingPlan(b(12, 40))).toEqual({ built: 4, scaffold: 8, roof: false });
+    expect(buildingPlan(b(39, 40))).toEqual({ built: 11, scaffold: 1, roof: false });
+    expect(buildingPlan(b(40, 40))).toEqual({ built: 12, scaffold: 0, roof: true });
+    expect(buildingPlan(b(1, 40)).built).toBe(1);
   });
 });
 
@@ -47,6 +53,28 @@ describe("workerSpots", () => {
     expect(spots).toHaveLength(1);
     expect(spots[0]).toMatchObject({ login: "fictif-maria", trade: "mason" });
     expect(Math.abs(spots[0].x - 2)).toBeLessThan(1.5);
+  });
+
+  const zones = [{ name: "Backlog", index: 0 }, { name: "Done", index: 1 }];
+  const p = (number: number, zone: string, closed = false) =>
+    ({ number, itemId: `i${number}`, title: "FICTIF", url: "", zone, closed, building: null, isBug: false, trade: null, size: null });
+
+  it("stands a worker by their current work, not a finished issue", () => {
+    const s: Site = { zones, buildings: [], pallets: [p(1, "Done", true), p(5, "Backlog")], workers: [{ login: "a", avatarUrl: "", carrying: [1, 5] }] };
+    const spots = workerSpots(s, [{ number: 1, x: 20, z: 0 }, { number: 5, x: 0, z: 0 }]);
+    expect(Math.abs(spots[0].x - 0)).toBeLessThan(1.5);
+  });
+  it("falls back to a finished issue when that is all a worker has", () => {
+    const s: Site = { zones, buildings: [], pallets: [p(1, "Done", true)], workers: [{ login: "a", avatarUrl: "", carrying: [1] }] };
+    expect(workerSpots(s, [{ number: 1, x: 20, z: 0 }])).toHaveLength(1);
+  });
+  it("gives co-assignees of one pallet their own spot", () => {
+    const s: Site = {
+      zones, buildings: [], pallets: [p(3, "Backlog")],
+      workers: [{ login: "a", avatarUrl: "", carrying: [3] }, { login: "b", avatarUrl: "", carrying: [3] }],
+    };
+    const [a, c] = workerSpots(s, [{ number: 3, x: 0, z: 0 }]);
+    expect(Math.hypot(a.x - c.x, a.z - c.z)).toBeGreaterThan(0.5);
   });
 });
 

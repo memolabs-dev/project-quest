@@ -67,7 +67,7 @@ export function Worker({ spot }: { spot: WorkerSpot }) {
         <primitive object={body} />
       </group>
       <Html position={[0, HEIGHT + 0.45, 0]} center distanceFactor={14} zIndexRange={[5, 0]}>
-        <Badge login={spot.login} avatarUrl={spot.avatarUrl} color={color} />
+        <Badge key={spot.avatarUrl} login={spot.login} avatarUrl={spot.avatarUrl} color={color} />
       </Html>
     </RigidBody>
   );

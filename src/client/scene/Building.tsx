@@ -68,7 +68,8 @@ export function Building({ model, x, z, grow, reduceMotion }: {
           <Sparkles count={60} scale={[4, 2.5, 4]} size={6} speed={1.4} color="#FFD84D" position={[0, 0.12 + plan.built - 0.2, 0]} />
         </group>
       )}
-      <Html position={[0, height + 1.4, 0]} center distanceFactor={18} zIndexRange={[5, 0]}>
+      {/* The site board stands in front of the building, where the follow camera always sees it. */}
+      <Html position={[0, 1.3, 2.4]} center distanceFactor={18} zIndexRange={[5, 0]}>
         <div className="building-label" style={{ borderTopColor: colors.trim }}>
           <b>{model.epicNumber === null ? t("site.unassigned") : model.title}</b>
           <span>{t("site.floors", { done: model.floorsDone, total: model.floorsTotal })}</span>
