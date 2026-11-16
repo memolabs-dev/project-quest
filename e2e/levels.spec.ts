@@ -31,3 +31,47 @@ test("a tutorial graduate founds their site: the dialog shows what would be sent
   await expect(dialog).toContainText(/gh auth login/);
   await page.screenshot({ path: "e2e/screenshots/levels-found.png" });
 });
+
+/** Opens a pallet's card through the game state, as a click or the action key would. */
+const openPallet = async (page: Page, title: RegExp) =>
+  page.evaluate(async (source) => {
+    const re = new RegExp(source, "i");
+    const { useQuest } = await import("/src/client/store.ts");
+    const pallet = useQuest.getState().site!.pallets.find((p) => re.test(p.title))!;
+    useQuest.getState().open(pallet.number);
+  }, title.source);
+
+for (const width of [1280, 375]) {
+  test(`a new player plays the tutorial from start to end (${width} px)`, async ({ page }) => {
+    await page.setViewportSize({ width, height: width === 375 ? 812 : 800 });
+    await startAgain(page);
+    await page.goto("/?demo=1");
+    await expect(page.locator(".sign-label").first()).toBeVisible();
+    const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
+    await expect(mentor).toContainText(/Walk with the keys/);
+
+    // Level 1: walk, then open a pallet.
+    await page.keyboard.press("Escape");
+    await page.keyboard.down("KeyW");
+    await page.waitForTimeout(700);
+    await page.keyboard.up("KeyW");
+    await openPallet(page, /Hang the clock/);
+    const card = page.getByRole("dialog", { name: /Hang the clock/ });
+    await expect(card).toBeVisible();
+
+    // Level 2: read the card, then tell Mémé.
+    await card.getByRole("button", { name: "Got it, Mémé" }).click();
+
+    // Level 3: push the pallet to another yard, through the confirmation.
+    await card.locator(".zones button").first().click(); // the demo board keeps earlier moves: any other yard will do
+    await page.getByRole("dialog", { name: /sent to GitHub/ }).getByRole("button", { name: /Send to GitHub/ }).click();
+
+    await expect(mentor.getByRole("link", { name: /your own site/ })).toBeVisible();
+    await page.screenshot({ path: `e2e/screenshots/levels-mentor-${width}.png` });
+    await page.getByRole("button", { name: "Skills" }).click();
+    const book = page.getByRole("region", { name: "Skills" });
+    await expect(book.locator("li.earned")).toHaveCount(3);
+    await expect(book.locator("li.outline")).toHaveCount(4);
+    await page.screenshot({ path: `e2e/screenshots/levels-skillbook-${width}.png` });
+  });
+}
