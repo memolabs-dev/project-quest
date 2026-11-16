@@ -1,0 +1,61 @@
+{
+  "site": {
+    "title": "project-quest",
+    "loading": "On décharge les camions…",
+    "unassigned": "Hors chantier",
+    "floors": "{{done}} étages sur {{total}}",
+    "controls": "ZQSD ou flèches pour marcher, souris pour regarder, E pour ouvrir la palette devant toi",
+    "near": "Appuie sur E pour voir la palette n°{{number}}"
+  },
+  "demo": {
+    "banner": "Chantier de démo : un projet inventé, rien n'est envoyé à GitHub.",
+    "noAccess": "Pas d'accès à GitHub trouvé, tu es donc sur le chantier de démo."
+  },
+  "zones": {
+    "Backlog": "Stock",
+    "Ready": "Prête à poser",
+    "In progress": "En pose",
+    "In review": "Contrôle",
+    "Done": "Posée"
+  },
+  "card": {
+    "zone": "Zone",
+    "with": "Portée par",
+    "nobody": "Personne pour l'instant",
+    "bug": "Des termites ! (bug)",
+    "openGitHub": "Ouvrir sur GitHub",
+    "moveTo": "La pousser vers",
+    "close": "Fermer"
+  },
+  "confirm": {
+    "title": "Voici ce qui va partir chez GitHub",
+    "move": "Déplacer n°{{number}} de {{from}} vers {{to}}",
+    "payload": "Requête exacte",
+    "send": "Envoyer à GitHub",
+    "cancel": "Annuler",
+    "sending": "C'est parti…",
+    "done": "C'est fait ! La palette est en {{to}}.",
+    "stale": "Quelqu'un a déplacé cette palette entre-temps : elle est maintenant en {{zone}}. Rien n'a été envoyé.",
+    "retry": "Revoir",
+    "github": "GitHub a refusé : {{message}}"
+  },
+  "log": {
+    "title": "Carnet de chantier",
+    "empty": "Rien d'envoyé aujourd'hui.",
+    "applied": "envoyé",
+    "stale": "arrêté, plus à jour",
+    "failed": "refusé par GitHub"
+  },
+  "errors": {
+    "githubAuthTitle": "Le bureau de chantier n'a pas la clé de GitHub",
+    "githubAuthBody": "Lance ceci dans un terminal, puis recharge :",
+    "openDemo": "Visiter plutôt le chantier de démo",
+    "board": "Le tableau n'a pas pu être lu : {{message}}",
+    "generic": "Quelque chose a coincé. Recharge la page pour réessayer."
+  },
+  "lang": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français"
+  }
+}

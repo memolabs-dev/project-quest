@@ -1,0 +1,61 @@
+{
+  "site": {
+    "title": "project-quest",
+    "loading": "Unloading the trucks…",
+    "unassigned": "Unassigned",
+    "floors": "{{done}} of {{total}} floors",
+    "controls": "WASD or arrows to walk, mouse to look around, E to open the pallet in front of you",
+    "near": "Press E to look at pallet #{{number}}"
+  },
+  "demo": {
+    "banner": "Demo site: an invented project, nothing is sent to GitHub.",
+    "noAccess": "No GitHub access found, so you are on the demo site."
+  },
+  "zones": {
+    "Backlog": "Stock",
+    "Ready": "Ready to lay",
+    "In progress": "Being laid",
+    "In review": "Inspection",
+    "Done": "Laid"
+  },
+  "card": {
+    "zone": "Zone",
+    "with": "Carried by",
+    "nobody": "Nobody yet",
+    "bug": "Termites! (bug)",
+    "openGitHub": "Open on GitHub",
+    "moveTo": "Push it to",
+    "close": "Close"
+  },
+  "confirm": {
+    "title": "This is what will be sent to GitHub",
+    "move": "Move #{{number}} from {{from}} to {{to}}",
+    "payload": "Exact request",
+    "send": "Send to GitHub",
+    "cancel": "Cancel",
+    "sending": "On its way…",
+    "done": "Done! The pallet is in {{to}}.",
+    "stale": "Someone moved this pallet in the meantime: it is now in {{zone}}. Nothing was sent.",
+    "retry": "Look again",
+    "github": "GitHub said no: {{message}}"
+  },
+  "log": {
+    "title": "Site logbook",
+    "empty": "Nothing sent yet today.",
+    "applied": "sent",
+    "stale": "stopped, out of date",
+    "failed": "refused by GitHub"
+  },
+  "errors": {
+    "githubAuthTitle": "The site office has no key to GitHub",
+    "githubAuthBody": "Run this in a terminal, then reload:",
+    "openDemo": "Visit the demo site instead",
+    "board": "The board could not be read: {{message}}",
+    "generic": "Something went wrong. Reload the page to try again."
+  },
+  "lang": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français"
+  }
+}
