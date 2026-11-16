@@ -14,7 +14,7 @@ Skills to load: `router` (gamedev), `threejs-react-three-fiber`, `threejs-intera
 
 ## Backlog
 
-The backlog of this project lives in Linear: project `project-quest` (P-MEM-9) in the Memo Lab team, https://linear.app/memo-labs-workspace/project/project-quest-b902eddbc5e3. Not in GitHub issues. Reference the Linear issue (`MEM-…`) in commit messages.
+The backlog lives in GitHub: issues of this repository on the public board https://github.com/orgs/memolabs-dev/projects/9, whose columns are the game's zones (Backlog, Ready, In progress, In review, Done). The game can manage its own board. Reference the issue (`#N`) in commit messages. Linear is no longer used (moved on 2026-11-16).
 
 ## Commands
 
