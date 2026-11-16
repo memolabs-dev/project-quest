@@ -175,7 +175,8 @@ export function createApp(live: Deps, demo?: Deps) {
       const { issueNumber, comment } = c.req.valid("json");
       return c.json(prepareTake(practice, { login, id: await live.viewerId() }, issueNumber, comment));
     })
-    .post("/api/practice/:kind/apply", zValidator("json", practiceClaim), async (c) => {
+    // Only the three gestures: "moves" has its own routes below.
+    .post("/api/practice/:kind{found|issue|take}/apply", zValidator("json", practiceClaim), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedPractice;
       // A page marked demo never sends, even on a server that could.
       if (c.req.query("demo")) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);

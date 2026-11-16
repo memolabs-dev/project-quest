@@ -174,6 +174,20 @@ describe("practice gestures", () => {
     expect(res.status).toBe(409);
   });
 
+  it("moves an issue on the practice board, through its own route", async () => {
+    const item = { ...demo.items[0], itemId: "PVTI_fictif_1", number: 1, status: "Todo", state: "OPEN" as const, isEpic: false, parent: null };
+    const board: BoardSnapshot = {
+      ...demo, projectId: "PVT_fictif", items: [item],
+      statusOptions: [{ id: "o1", name: "Todo" }, { id: "o2", name: "In Progress" }, { id: "o3", name: "Done" }],
+    };
+    const moved: unknown[] = [];
+    const { app } = make(site(), { readBoardFor: async () => board, applyMoveFor: async (_c, m) => { moved.push(m); return { ok: true, board }; } });
+    const prepared = await (await app.request("/api/practice/moves/prepare", post({ itemId: "PVTI_fictif_1", toZone: "In Progress" }))).json();
+    const res = await app.request("/api/practice/moves/apply", post(prepared));
+    expect(res.status).toBe(200);
+    expect(moved).toHaveLength(1);
+  });
+
   it("remembers the founded site's name", async () => {
     const { app, deps } = make(null);
     const prepared = await (await app.request("/api/practice/found/prepare", post({ visibility: "PRIVATE" }))).json();
