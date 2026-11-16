@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { APPRENTICE } from "../shared/levels/apprentice.ts";
 
 const load = (lang: string) =>
   JSON.parse(readFileSync(new URL(`./${lang}/common.json`, import.meta.url), "utf8")) as Record<string, unknown>;
@@ -22,6 +23,12 @@ describe("locales", () => {
   it("has a display name for every zone of the default config", () => {
     const config = JSON.parse(readFileSync(new URL("../../quest.config.json", import.meta.url), "utf8")) as { zones: string[] };
     for (const z of config.zones) expect(en[`zones.${z}`], z).toBeTruthy();
+  });
+
+  it("has a skill, a goal and a lesson for every level", () => {
+    for (const l of APPRENTICE) {
+      for (const part of ["skill", "goal", "lesson"]) expect(en[`levels.${l.id}.${part}`], `${l.id}.${part}`).toBeTruthy();
+    }
   });
 
   it("uses no em or en dash in the French copy", () => {

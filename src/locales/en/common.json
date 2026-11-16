@@ -27,7 +27,8 @@
     "openGitHub": "Open on GitHub",
     "moveTo": "Push it to",
     "close": "Close",
-    "closed": "This pallet is laid and its issue is closed. Reopen it on GitHub to move it again."
+    "closed": "This pallet is laid and its issue is closed. Reopen it on GitHub to move it again.",
+    "gotIt": "Got it, Mémé"
   },
   "confirm": {
     "title": "This is what will be sent to GitHub",
@@ -60,5 +61,69 @@
     "label": "Language",
     "en": "English",
     "fr": "Français"
+  },
+  "mentor": {
+    "name": "Mémé Truelle",
+    "hello": "Welcome to the site. I'm Mémé Truelle, forty years on building sites. We'll go one step at a time.",
+    "checkAgain": "Check again",
+    "notYet": "Not yet. I don't see it on GitHub. Did it go?",
+    "stamped": "Stamped: {{skill}}.",
+    "toTutorial": "Come, I'll show you round",
+    "toPractice": "Now, your own site",
+    "connectGithub": "To do it for real, the site office needs your GitHub key: run gh auth login, then reload.",
+    "rankDone": "That's the Apprentice rank. You know your way around now."
+  },
+  "skills": {
+    "title": "Skills",
+    "rank": {
+      "apprentice": "Apprentice"
+    },
+    "proof": "See it on GitHub",
+    "tutorial": "Done on the tutorial site",
+    "notYet": "Not earned yet"
+  },
+  "levels": {
+    "a1-walk": {
+      "skill": "Walk the site",
+      "goal": "Walk with the keys or the arrows, then open a pallet.",
+      "lesson": "First, look around. Each crate on a pallet is a piece of work. Go and open one.",
+      "done": "There. You can walk and look. That's half the job."
+    },
+    "a2-read-issue": {
+      "skill": "Read an issue",
+      "goal": "Read the open card: its title, its text, its labels. Then press \"Got it, Mémé\".",
+      "lesson": "That's an issue. A job written down so nobody forgets it. Read the title first, always.",
+      "done": "Title, text, labels. You read it like a pro."
+    },
+    "a3-read-board": {
+      "skill": "Read a board",
+      "goal": "Push a pallet to another yard and confirm.",
+      "lesson": "Each fenced yard is a column of the board. When a pallet moves on, the work moves on. Push one, you'll see.",
+      "done": "See? The pallet moved, the work moved. That's all a board is."
+    },
+    "a4-found-site": {
+      "skill": "Found your site",
+      "goal": "Create your practice site: a repository and its board, in your own GitHub account.",
+      "lesson": "Enough of the pretend site. You get your own, in your own account. Nobody else's work is at risk there.",
+      "done": "Your own site. Your name on the gate."
+    },
+    "a5-write-issue": {
+      "skill": "Write an issue",
+      "goal": "Write your first issue on your site: a clear title, a few words of text.",
+      "lesson": "A good issue says what to do and why, with a title anyone understands. Short is fine.",
+      "done": "Your first issue. Written down, nobody forgets it."
+    },
+    "a6-take-issue": {
+      "skill": "Take an issue",
+      "goal": "Take your issue: assign yourself and say so in a comment.",
+      "lesson": "When you take a job, say it out loud. Then everyone knows it's yours.",
+      "done": "You said \"I'll take it\". Now everyone knows it's yours. Nobody else will do it twice."
+    },
+    "a7-move-issue": {
+      "skill": "Move your work on",
+      "goal": "Push your issue out of the first column of your board.",
+      "lesson": "Work you've started belongs in the next column. The board must say what's true.",
+      "done": "Moving on. Your board tells the truth."
+    }
   }
 }

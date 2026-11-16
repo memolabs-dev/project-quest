@@ -27,7 +27,8 @@
     "openGitHub": "Ouvrir sur GitHub",
     "moveTo": "La pousser vers",
     "close": "Fermer",
-    "closed": "Cette palette est posée et son issue est fermée. Rouvre-la sur GitHub pour la déplacer à nouveau."
+    "closed": "Cette palette est posée et son issue est fermée. Rouvre-la sur GitHub pour la déplacer à nouveau.",
+    "gotIt": "Compris, Mémé"
   },
   "confirm": {
     "title": "Voici ce qui va partir chez GitHub",
@@ -60,5 +61,69 @@
     "label": "Langue",
     "en": "English",
     "fr": "Français"
+  },
+  "mentor": {
+    "name": "Mémé Truelle",
+    "hello": "Bienvenue sur le chantier. Moi, c'est Mémé Truelle, quarante ans de chantiers. On y va une étape à la fois.",
+    "checkAgain": "Revérifier",
+    "notYet": "Pas encore. Je ne le vois pas sur GitHub. C'est parti ?",
+    "stamped": "Tamponné : {{skill}}.",
+    "toTutorial": "Viens, je te fais visiter",
+    "toPractice": "Maintenant, ton propre chantier",
+    "connectGithub": "Pour le faire pour de vrai, le bureau de chantier a besoin de ta clé GitHub : lance gh auth login, puis recharge.",
+    "rankDone": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant."
+  },
+  "skills": {
+    "title": "Compétences",
+    "rank": {
+      "apprentice": "Apprenti"
+    },
+    "proof": "Voir sur GitHub",
+    "tutorial": "Fait sur le chantier d'apprentissage",
+    "notYet": "Pas encore acquise"
+  },
+  "levels": {
+    "a1-walk": {
+      "skill": "Marcher sur le chantier",
+      "goal": "Marche avec les touches ou les flèches, puis ouvre une palette.",
+      "lesson": "D'abord, regarde autour de toi. Chaque caisse sur une palette, c'est un travail à faire. Va en ouvrir une.",
+      "done": "Voilà. Tu sais marcher et regarder. C'est la moitié du métier."
+    },
+    "a2-read-issue": {
+      "skill": "Lire une issue",
+      "goal": "Lis la fiche ouverte : son titre, son texte, ses étiquettes. Puis appuie sur « Compris, Mémé ».",
+      "lesson": "Ça, c'est une issue. Un boulot écrit noir sur blanc, pour que personne ne l'oublie. Lis toujours le titre d'abord.",
+      "done": "Titre, texte, étiquettes. Tu lis comme une pro, ou un pro."
+    },
+    "a3-read-board": {
+      "skill": "Lire un tableau",
+      "goal": "Pousse une palette vers une autre cour et confirme.",
+      "lesson": "Chaque cour clôturée est une colonne du tableau. Quand une palette avance, le travail avance. Pousses-en une, tu vas voir.",
+      "done": "Tu vois ? La palette a bougé, le travail a avancé. Un tableau, ce n'est que ça."
+    },
+    "a4-found-site": {
+      "skill": "Fonder ton chantier",
+      "goal": "Crée ton chantier d'entraînement : un dépôt et son tableau, dans ton propre compte GitHub.",
+      "lesson": "Assez joué avec le chantier pour de faux. Tu vas avoir le tien, dans ton compte. Là-bas, tu ne risques le travail de personne.",
+      "done": "Ton chantier à toi. Ton nom sur le portail."
+    },
+    "a5-write-issue": {
+      "skill": "Écrire une issue",
+      "goal": "Écris ta première issue sur ton chantier : un titre clair, quelques mots de texte.",
+      "lesson": "Une bonne issue dit quoi faire et pourquoi, avec un titre que tout le monde comprend. Court, c'est très bien.",
+      "done": "Ta première issue. Écrite noir sur blanc, personne ne l'oubliera."
+    },
+    "a6-take-issue": {
+      "skill": "Prendre une issue",
+      "goal": "Prends ton issue : assigne-toi et dis-le dans un commentaire.",
+      "lesson": "Quand tu prends un boulot, dis-le tout haut. Comme ça, tout le monde sait que c'est à toi.",
+      "done": "Tu as dit « je prends ». Maintenant tout le monde sait que c'est à toi. Personne ne le fera en double."
+    },
+    "a7-move-issue": {
+      "skill": "Faire avancer ton travail",
+      "goal": "Sors ton issue de la première colonne de ton tableau.",
+      "lesson": "Un travail commencé va dans la colonne suivante. Le tableau doit dire la vérité.",
+      "done": "Ça avance. Ton tableau dit la vérité."
+    }
   }
 }
