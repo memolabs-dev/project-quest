@@ -19,5 +19,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "scripts", "src/**/*.test.ts", "src/github/api-coverage.ts"]
+  "include": ["vite.config.ts", "vitest.config.ts", "scripts", "src/server", "src/**/*.test.ts", "src/github/api-coverage.ts"]
 }
