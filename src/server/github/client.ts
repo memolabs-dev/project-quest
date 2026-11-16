@@ -10,7 +10,8 @@ export class GitHubAuthError extends Error {}
 export async function githubToken(): Promise<string> {
   if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
   try {
-    const { stdout } = await promisify(execFile)("gh", ["auth", "token"]);
+    // QUEST_GH_BIN points at another gh binary (tests use a missing one to play without access).
+    const { stdout } = await promisify(execFile)(process.env.QUEST_GH_BIN ?? "gh", ["auth", "token"]);
     const token = stdout.trim();
     if (token) return token;
   } catch {

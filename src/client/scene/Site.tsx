@@ -10,7 +10,8 @@ import { KEY_MAP } from "../keys.ts";
 import { useQuest } from "../store.ts";
 import { Effects } from "./Effects.tsx";
 import { BUILDING_ROW_Z, YARD_Z, ZONE_SPACING, layoutSite } from "./layout.ts";
-import { Piece, zoneColor } from "./kit.tsx";
+import { zoneColor } from "./colors.ts";
+import { Piece } from "./kit.tsx";
 import { Player } from "./Player.tsx";
 
 

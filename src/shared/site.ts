@@ -31,6 +31,7 @@ export interface Pallet {
   number: number;
   itemId: string;
   title: string;
+  url: string;
   zone: string;
   building: number | null;
   isBug: boolean;
@@ -63,7 +64,7 @@ export function buildSite(board: BoardSnapshot, config: QuestConfig): Site {
     }
     const trade = i.labels.map((l) => config.labels.trades[l]).find(Boolean) ?? null;
     return {
-      number: i.number, itemId: i.itemId, title: i.title, zone, building: epicOf(i)?.number ?? null,
+      number: i.number, itemId: i.itemId, title: i.title, url: i.url, zone, building: epicOf(i)?.number ?? null,
       isBug: i.labels.some((l) => config.labels.bug.includes(l)), trade, size: i.size,
     };
   });

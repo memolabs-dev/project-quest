@@ -22,7 +22,9 @@ const preparedBody = z.object({
   mutation: z.object({ name: z.literal("updateProjectV2ItemFieldValue"), input: z.record(z.string(), z.unknown()) }),
 });
 
-export function createApp(deps: Deps) {
+/** `demo` answers requests that carry ?demo=1, so a player without GitHub access can still visit the demo site. */
+export function createApp(live: Deps, demo?: Deps) {
+  const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") ? demo : live);
   return new Hono()
     .onError((err, c) => {
       if (err instanceof GitHubAuthError) return c.json({ error: "github-auth", hint: "gh auth login" }, 503);
@@ -32,15 +34,17 @@ export function createApp(deps: Deps) {
       return c.json({ error: "server", message: "Something went wrong on the server" }, 500);
     })
     .get("/api/site", async (c) => {
+      const deps = pick(c);
       const [board, viewer] = await Promise.all([deps.readBoard(), deps.viewer()]);
       return c.json({ site: buildSite(board, deps.config), viewer, mode: deps.mode, demoReason: deps.demoReason ?? null });
     })
     .post("/api/moves/prepare", zValidator("json", prepareBody), async (c) => {
       const { itemId, toZone } = c.req.valid("json");
-      return c.json(prepareMove(await deps.readBoard(), itemId, toZone));
+      return c.json(prepareMove(await pick(c).readBoard(), itemId, toZone));
     })
     .post("/api/moves/apply", zValidator("json", preparedBody), async (c) => {
       const prepared = c.req.valid("json") as PreparedMove;
+      const deps = pick(c);
       const result = await deps.applyMove(prepared);
       const { login } = await deps.viewer();
       await deps.log.record({
@@ -50,7 +54,7 @@ export function createApp(deps: Deps) {
       });
       return c.json(result.ok ? { ok: true as const, site: buildSite(result.board, deps.config) } : result);
     })
-    .get("/api/log", async (c) => c.json(await deps.log.latest(20)));
+    .get("/api/log", async (c) => c.json(await pick(c).log.latest(20)));
 }
 
 export type AppType = ReturnType<typeof createApp>;

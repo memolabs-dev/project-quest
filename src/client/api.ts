@@ -11,8 +11,11 @@ export class ApiFailure extends Error {
   }
 }
 
+/** The demo site is asked for with ?demo=1 in the page address; every API call carries it on. */
+const withDemo = (path: string) => (new URLSearchParams(location.search).has("demo") ? `${path}${path.includes("?") ? "&" : "?"}demo=1` : path);
+
 async function call<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch(path, body === undefined ? undefined : {
+  const res = await fetch(withDemo(path), body === undefined ? undefined : {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
   });
   const json = (await res.json()) as unknown;

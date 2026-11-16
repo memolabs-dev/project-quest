@@ -34,3 +34,7 @@ docs/github-api/rest-api.json
 
 # brainstorm mockups
 .superpowers/
+
+# Playwright output
+test-results/
+playwright-report/

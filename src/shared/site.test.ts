@@ -68,6 +68,11 @@ describe("buildSite", () => {
     expect(site.pallets[0]).toMatchObject({ isBug: true, trade: "mason" });
   });
 
+  it("keeps the issue's GitHub address on the pallet", () => {
+    const i = item();
+    expect(buildSite(board([i]), config).pallets[0].url).toBe(i.url);
+  });
+
   it("gives workers the pallets assigned to them", () => {
     const a = item({ assignees: [{ login: "fictif-user-1", avatarUrl: "https://example.org/a.png" }] });
     const site = buildSite(board([a]), config);

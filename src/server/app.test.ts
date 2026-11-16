@@ -67,6 +67,14 @@ describe("API", () => {
     expect(await res.json()).toEqual({ error: "github-auth", hint: "gh auth login" });
   });
 
+  it("serves the demo site on ?demo=1, even when the live board is unreachable", async () => {
+    const live = deps(async () => ({ ok: true, board: demo }), { readBoard: async () => { throw new GitHubAuthError("No GitHub access"); } });
+    const app = createApp(live, deps(async () => ({ ok: true, board: demo }), { mode: "demo", demoReason: "asked" }));
+    const res = await app.request("/api/site?demo=1");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ mode: "demo" });
+  });
+
   it("returns the action log", async () => {
     const d = deps(async () => ({ ok: true, board: demo }));
     await d.log.record({ playerLogin: "fictif-lead", gesture: "move", target: "#1", payload: {}, result: "applied" });

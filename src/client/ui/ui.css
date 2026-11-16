@@ -39,3 +39,80 @@
   background: rgba(255, 250, 240, 0.85); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
   text-align: center;
 }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Top right: language and logbook */
+.top-right { position: absolute; z-index: 20; top: 12px; right: 12px; display: flex; gap: 8px; align-items: flex-start; }
+.lang select, .logbook > button {
+  min-height: 44px; padding: 0 14px; border: var(--line); border-radius: 999px; background: var(--paper);
+  box-shadow: var(--shadow); font-weight: 800; font-size: 16px; color: var(--ink); cursor: pointer;
+}
+.logbook { position: relative; }
+.log-panel {
+  position: absolute; right: 0; top: 52px; width: min(320px, calc(100vw - 24px)); max-height: 50vh; overflow: auto;
+  background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 10px 14px;
+}
+.log-panel ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+.log-panel p { margin: 0; font-size: 14px; }
+
+/* The pallet card: a comic-strip panel */
+.card {
+  position: absolute; z-index: 30; left: 16px; bottom: 16px; width: min(380px, calc(100vw - 32px)); max-height: calc(100vh - 100px);
+  overflow-y: auto; overflow-x: hidden; background: var(--paper); border: var(--line); border-top-width: 10px;
+  border-radius: var(--radius); box-shadow: 6px 6px 0 var(--ink); padding: 14px 16px; animation: pop 0.22s var(--ease);
+}
+.card h2 { margin: 2px 0 10px; font-size: 20px; line-height: 1.2; overflow-wrap: anywhere; text-wrap: balance; }
+.card-num { margin: 0; font-weight: 900; color: #6b6b6b; }
+.card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0 0 8px; font-size: 15px; }
+.card dt { font-weight: 800; }
+.card dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.people span { display: inline-flex; align-items: center; gap: 6px; margin-right: 8px; }
+.people img { border-radius: 50%; border: 2px solid var(--ink); }
+.bug { margin: 6px 0; font-weight: 800; color: var(--warn); }
+.move-label { margin: 8px 0 6px; font-weight: 800; }
+.zones { display: flex; flex-wrap: wrap; gap: 8px; }
+.zones button, .card-foot button, .confirm button {
+  min-height: 44px; padding: 0 14px; border: var(--line); border-left-width: 8px; border-radius: 10px; background: #fff;
+  font-weight: 800; font-size: 15px; cursor: pointer; transition: transform 0.12s var(--ease);
+}
+.zones button:active, .card-foot button:active, .confirm button:active { transform: scale(0.97); }
+.card-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
+.card-foot a { color: var(--accent-ink); font-weight: 800; min-height: 44px; display: inline-flex; align-items: center; }
+.error { color: var(--warn); font-weight: 700; }
+
+/* The confirmation: exactly what leaves for GitHub */
+.confirm {
+  position: absolute; z-index: 40; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto;
+  background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: 8px 8px 0 var(--ink); padding: 18px;
+}
+.confirm h2 { margin: 0 0 8px; font-size: 20px; }
+.confirm .move { margin: 0; font-weight: 800; font-size: 17px; }
+.confirm .issue { margin: 4px 0 10px; overflow-wrap: anywhere; }
+.payload-label { margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.payload { margin: 0; padding: 10px; background: #1c1c1c; color: #f3e3b6; border-radius: 8px; font-size: 12px; overflow: auto; max-height: 220px; }
+.confirm .actions { display: flex; gap: 10px; margin-top: 14px; }
+.confirm .primary { background: var(--accent); border-left-width: 2.5px; }
+
+.toast:empty { display: none; }
+.toast {
+  position: absolute; z-index: 25; top: 72px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px);
+  background: var(--ok); color: #fff; border: var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 8px 14px; font-weight: 800;
+}
+
+.error-screen {
+  position: absolute; z-index: 50; inset: 0; display: grid; place-content: center; gap: 10px; padding: 16px;
+  text-align: center; background: var(--sand);
+}
+.error-screen pre { margin: 0 auto; padding: 8px 14px; background: var(--ink); color: var(--sand); border-radius: 8px; font-size: 16px; }
+.error-screen a { color: var(--accent-ink); font-weight: 800; }
+
+@keyframes pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+@media (max-width: 600px) {
+  .controls { display: none; }
+  .card { left: 8px; right: 8px; bottom: 8px; width: auto; }
+  .banner { top: 64px; font-size: 14px; }
+}

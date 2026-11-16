@@ -8,9 +8,6 @@ import * as THREE from "three";
 const KIT_URL = "/models/site-kit.glb";
 export type KitPiece = "pallet" | "floor_module" | "zone_sign" | "crane" | "fence" | "site_office" | "worker";
 
-/** Colours of the board's columns, in order; the last zone is "done". Reused cyclically for longer boards. */
-export const ZONE_COLORS = ["#9AA0A6", "#3E9B5F", "#F08A24", "#3D6FD1", "#1B2747"];
-export const zoneColor = (index: number) => ZONE_COLORS[index % ZONE_COLORS.length];
 
 export function Piece({ name, crateColor, outline = 0.045, ...props }: { name: KitPiece; crateColor?: string; outline?: number } & ThreeElements["group"]) {
   const { scene } = useGLTF(KIT_URL);
