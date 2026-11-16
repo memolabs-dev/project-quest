@@ -88,8 +88,15 @@ One game session is one working day, 10 to 15 minutes, matching the lead's real 
 
 ## 6. Progression and novelty
 
+**Levels, a tutorial, rewards and skills (owner, 2026-11-16).** "Comme dans tout jeu vidéo": the game starts with a tutorial and the player discovers each step as they go, through levels. Two paths, both for someone who has never used GitHub:
+
+- **the lead's path**: from "what is an issue" to running a board, a sprint, a milestone and a review round;
+- **the contributor's path**: from "what is GitHub" to taking an issue, opening a pull request and answering a review.
+
+Each level teaches one GitHub skill, plays it first on the fictitious site (nothing sent), then unlocks it as a real gesture. Rewards, levels and skills are personal: a player sees their own, never a comparison with others (principle 3 stands). The detailed design (level list, skill tree, rewards, how a contributor's path fits v2) is brainstormed before it is built; this supersedes the earlier "no up-front tutorial" line.
+
 - **Unlocks earned by real progress**: the giant crane at the first milestone met, the forklift at 10 tasks finished, the termite net at the first bug fixed. There is always a next thing to unlock.
-- **At most one new lesson a day**: the inspector introduces one gesture at a time (the DoR, the limit of work in progress, review, splitting a task too big), in a few words. No up-front tutorial.
+- **One new lesson at a time**: the inspector introduces one gesture at a time (the DoR, the limit of work in progress, review, splitting a task too big), in a few words.
 - **Chapters** open with milestones (section 3).
 - **The site manager's logbook**: management trophies for the lead (first triage, first contributor unblocked, a week without a hammock). Never a ranking of contributors.
 - **Surprises that do not cheat**: radio shows, the mayor's ideas, the end-of-sprint party.
@@ -173,7 +180,7 @@ One package, three folders:
 1. **First playable slice (#1)**: walk the site of the test board, see buildings and pallets, open a pallet card, move a pallet to another column for real, through the confirmation, with the action log. English and French. Demo site.
 2. Morning radio and quests of the day; evening recap and bulletin.
 3. The rest of the v1 gestures, one at a time.
-4. Progression, lessons, chapters, trophies.
+4. Levels and the tutorial (lead path first, then the contributor path), skills, rewards, lessons, chapters, trophies.
 5. Cameras: plan and drone; README video; `npx project-quest`.
 6. v2: contributors sign in and play.
 7. v3: live site.
