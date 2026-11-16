@@ -1,32 +1,24 @@
-# React + TypeScript + Vite
+# project-quest
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A video game for managing a GitHub project. You walk around a 3D building site: each epic is a building, each issue is a block coloured by its board column. Every move in the game is a real GitHub change (move a card, assign, add to a sprint, comment, close), shown to you and confirmed before it is sent.
 
-Currently, two official plugins are available:
+Works with any GitHub repository and its Projects (v2) board. Status: first version in progress.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+- **Game**: React 19, Three.js r187 through React Three Fiber 9, drei, Rapier physics (`@react-three/rapier`), ecctrl 2 for the third-person character, zustand for state.
+- **Server**: Hono on Node, the only place that talks to GitHub (GraphQL through `@octokit/graphql`). Locally it uses your `gh` login; a GitHub App sign-in comes later for a hosted version.
+- **Tooling**: Vite 8, TypeScript, Vitest, oxlint.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+No database: GitHub is the source of truth.
 
-## Expanding the Oxlint configuration
+## Run it
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Configuration
+
+The board the game reads and writes is set in one config file (owner, repository, project number, and the names of the status and iteration fields). Develop against a test board you own, never against a board other people depend on.

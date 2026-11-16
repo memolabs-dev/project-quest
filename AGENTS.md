@@ -12,6 +12,10 @@ React 19 + Three.js r187 via React Three Fiber 9, drei, `@react-three/rapier`, e
 
 Skills to load: `router` (gamedev), `threejs-react-three-fiber`, `threejs-interaction`, `camera-systems`, `game-ui-ux`, `game-feel`.
 
+## Backlog
+
+The backlog of this project lives in Linear: project `project-quest` (P-MEM-9) in the Memo Lab team, https://linear.app/memo-labs-workspace/project/project-quest-b902eddbc5e3. Not in GitHub issues. Reference the Linear issue (`MEM-…`) in commit messages.
+
 ## Commands
 
 - `npm run dev`: game and server
