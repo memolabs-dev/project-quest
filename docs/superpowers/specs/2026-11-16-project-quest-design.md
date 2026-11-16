@@ -26,6 +26,8 @@ Success means: a lead prefers the game to the GitHub board for their daily round
 6. **Legal assets only.** Everything committed is CC0 or made by us, so the repository can be redistributed.
 7. **Big vision, small slices.** Each slice ships something beautiful and complete; no grey prototype promised to become pretty later.
 
+9. **Lively, and always clear (owner, 2026-11-16).** Something always happens, the story carries the player, every day teaches one thing, and yet the project's state can be read at a glance: no gag, effect or animation may hide what is true. Features arrive one step at a time.
+
 ## 3. World and story
 
 **The universe is a building site.** The project is a site; each epic is a building that grows one floor per finished task.
