@@ -26,6 +26,20 @@ describe("prepareMove", () => {
     expect(() => prepareMove(demo, backlog.itemId, "Backlog")).toThrow(/already/);
   });
 
+  it("refuses a zone the config does not list, even if GitHub has it", () => {
+    expect(() => prepareMove(demo, backlog.itemId, "Ready", ["Backlog", "Done"])).toThrow(/Ready/);
+  });
+
+  it("moves an item that has no column yet, from null", () => {
+    const board = { ...demo, items: demo.items.map((i) => (i.itemId === backlog.itemId ? { ...i, status: null } : i)) };
+    expect(prepareMove(board, backlog.itemId, "Ready").from).toBeNull();
+  });
+
+  it("refuses to move a closed issue until it is reopened", () => {
+    const closed = demo.items.find((i) => i.state === "CLOSED")!;
+    expect(() => prepareMove(demo, closed.itemId, "Ready")).toThrow(/closed/i);
+  });
+
   it("refuses an item that is not on the board", () => {
     expect(() => prepareMove(demo, "PVTI_nope", "Ready")).toThrow(/PVTI_nope/);
   });

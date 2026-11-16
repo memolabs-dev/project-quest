@@ -43,6 +43,46 @@ describe("API", () => {
     expect(bad.status).toBe(400);
   });
 
+  it("refuses a tampered move without sending anything (target, field or value changed)", async () => {
+    const sent: PreparedMove[] = [];
+    const app = createApp(deps(async (p) => { sent.push(p); return { ok: true, board: demo }; }));
+    const prepared = prepareMove(demo, item.itemId, "Ready");
+    for (const input of [
+      { ...prepared.mutation.input, projectId: "PVT_someone_else" },
+      { ...prepared.mutation.input, itemId: "PVTI_other" },
+      { ...prepared.mutation.input, fieldId: "PVTF_title" },
+      { ...prepared.mutation.input, value: { text: "pwned" } },
+    ]) {
+      const res = await app.request("/api/moves/apply", post({ ...prepared, mutation: { ...prepared.mutation, input } }));
+      expect(res.status).toBe(409);
+    }
+    expect(sent).toEqual([]);
+  });
+
+  it("sends the server's own rebuilt move and logs the server's target", async () => {
+    const sent: PreparedMove[] = [];
+    const d = deps(async (p) => { sent.push(p); return { ok: true, board: demo }; });
+    const prepared = prepareMove(demo, item.itemId, "Ready");
+    await createApp(d).request("/api/moves/apply", post({ ...prepared, issueNumber: 999999, issueTitle: "lie" }));
+    expect(sent[0]).toEqual(prepared);
+    expect((await d.log.latest(1))[0].target).toBe(`#${item.number}`);
+  });
+
+  it("still answers ok and logs when the site cannot be rebuilt after a successful write", async () => {
+    const d = deps(async () => ({ ok: true, board: null }));
+    const res = await createApp(d).request("/api/moves/apply", post(prepareMove(demo, item.itemId, "Ready")));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ ok: true, site: null });
+    expect((await d.log.latest(1))[0].result).toBe("applied");
+  });
+
+  it("does not fail the move when the log cannot be written", async () => {
+    const d = deps(async () => ({ ok: true, board: demo }));
+    d.log = { record: async () => { throw new Error("postgres down"); }, latest: async () => [] };
+    const res = await createApp(d).request("/api/moves/apply", post(prepareMove(demo, item.itemId, "Ready")));
+    expect(res.status).toBe(200);
+  });
+
   it("logs every outcome of an applied move", async () => {
     const outcomes: ApplyResult[] = [
       { ok: true, board: demo },

@@ -1,4 +1,5 @@
 // The game's API: the site, and the move gesture in two steps (prepare, then apply after confirmation).
+import { isDeepStrictEqual } from "node:util";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -6,7 +7,7 @@ import { GestureError, prepareMove, type PreparedMove } from "../shared/gestures
 import { SiteError, buildSite } from "../shared/site.ts";
 import type { Deps } from "./deps.ts";
 import { GitHubAuthError } from "./github/client.ts";
-import { BoardNotFoundError } from "./github/read-board.ts";
+import { BoardNotFoundError, GitHubScopeError } from "./github/errors.ts";
 
 const prepareBody = z.object({ itemId: z.string().min(1), toZone: z.string().min(1) });
 const preparedBody = z.object({
@@ -14,7 +15,7 @@ const preparedBody = z.object({
   itemId: z.string(),
   issueNumber: z.number(),
   issueTitle: z.string(),
-  from: z.string(),
+  from: z.string().nullable(),
   to: z.string(),
   fieldId: z.string(),
   optionId: z.string(),
@@ -28,6 +29,7 @@ export function createApp(live: Deps, demo?: Deps) {
   return new Hono()
     .onError((err, c) => {
       if (err instanceof GitHubAuthError) return c.json({ error: "github-auth", hint: "gh auth login" }, 503);
+      if (err instanceof GitHubScopeError) return c.json({ error: "github-scope", hint: "gh auth refresh -s project" }, 503);
       if (err instanceof BoardNotFoundError || err instanceof SiteError) return c.json({ error: "board", message: err.message }, 502);
       if (err instanceof GestureError) return c.json({ error: "gesture", message: err.message }, 400);
       console.error(err);
@@ -40,19 +42,41 @@ export function createApp(live: Deps, demo?: Deps) {
     })
     .post("/api/moves/prepare", zValidator("json", prepareBody), async (c) => {
       const { itemId, toZone } = c.req.valid("json");
-      return c.json(prepareMove(await pick(c).readBoard(), itemId, toZone));
+      const deps = pick(c);
+      return c.json(prepareMove(await deps.readBoard(), itemId, toZone, deps.config.zones));
     })
     .post("/api/moves/apply", zValidator("json", preparedBody), async (c) => {
-      const prepared = c.req.valid("json") as PreparedMove;
+      // The client's copy is a claim: the server rebuilds the move from the configured board and sends its own.
+      const claim = c.req.valid("json") as PreparedMove;
       const deps = pick(c);
-      const result = await deps.applyMove(prepared);
       const { login } = await deps.viewer();
-      await deps.log.record({
-        playerLogin: login, gesture: "move", target: `#${prepared.issueNumber}`, payload: prepared.mutation,
-        result: result.ok ? "applied" : result.reason === "stale" ? "stale" : "failed",
-        githubResponse: result.ok ? null : result,
-      });
-      return c.json(result.ok ? { ok: true as const, site: buildSite(result.board, deps.config) } : result);
+      const board = await deps.readBoard();
+      const item = board.items.find((i) => i.itemId === claim.itemId);
+      if (item && (item.status !== claim.from || item.updatedAt !== claim.expectedUpdatedAt)) {
+        return c.json({ ok: false as const, reason: "stale" as const, current: { status: item.status, updatedAt: item.updatedAt } });
+      }
+      const move = prepareMove(board, claim.itemId, claim.to, deps.config.zones);
+      if (!isDeepStrictEqual(move.mutation, claim.mutation) || move.optionId !== claim.optionId || move.fieldId !== claim.fieldId) {
+        return c.json({ error: "gesture" as const, message: "This move does not match the board: nothing was sent" }, 409);
+      }
+      const result = await deps.applyMove(move);
+      try {
+        await deps.log.record({
+          playerLogin: login, gesture: "move", target: `#${move.issueNumber}`, payload: move.mutation,
+          result: result.ok ? "applied" : result.reason === "stale" ? "stale" : "failed",
+          githubResponse: result.ok ? null : result,
+        });
+      } catch (e) {
+        console.error("[project-quest] the action log could not be written", e);
+      }
+      if (!result.ok) return c.json(result);
+      let site: ReturnType<typeof buildSite> | null = null;
+      try {
+        site = result.board ? buildSite(result.board, deps.config) : null;
+      } catch {
+        site = null;
+      }
+      return c.json({ ok: true as const, site });
     })
     .get("/api/log", async (c) => c.json(await pick(c).log.latest(20)));
 }

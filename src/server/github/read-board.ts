@@ -2,6 +2,9 @@
 import type { QuestConfig } from "../../shared/config.ts";
 import type { BoardItem, BoardSnapshot } from "../../shared/site.ts";
 import type { Gql } from "./client.ts";
+import { BoardNotFoundError } from "./errors.ts";
+
+export { BoardNotFoundError };
 
 export const BOARD_QUERY = /* GraphQL */ `
   query Board($owner: String!, $number: Int!, $statusField: String!, $sizeField: String!, $after: String) {
@@ -21,6 +24,7 @@ export const BOARD_QUERY = /* GraphQL */ `
                 __typename
                 ... on Issue {
                   id number title url state
+                  repository { nameWithOwner }
                   issueType { name }
                   parent { number }
                   subIssuesSummary { total }
@@ -39,6 +43,7 @@ export const BOARD_QUERY = /* GraphQL */ `
 interface IssueNode {
   __typename: "Issue";
   id: string; number: number; title: string; url: string; state: "OPEN" | "CLOSED";
+  repository: { nameWithOwner: string };
   issueType: { name: string } | null;
   parent: { number: number } | null;
   subIssuesSummary: { total: number };
@@ -62,11 +67,12 @@ interface BoardResponse {
   } | null;
 }
 
-export class BoardNotFoundError extends Error {}
 
 const isIssue = (c: ItemNode["content"]): c is IssueNode => c?.__typename === "Issue";
 
+/** Only the configured repository's issues are read: a board mixing repositories would repeat issue numbers. */
 export async function readBoard(gql: Gql, config: QuestConfig): Promise<BoardSnapshot> {
+  const repo = `${config.owner}/${config.repo}`.toLowerCase();
   const items: BoardItem[] = [];
   let after: string | null = null;
   let project: NonNullable<NonNullable<BoardResponse["repositoryOwner"]>["projectV2"]>;
@@ -80,7 +86,7 @@ export async function readBoard(gql: Gql, config: QuestConfig): Promise<BoardSna
     project = p;
     for (const n of p.items.nodes) {
       const c = n.content;
-      if (!isIssue(c)) continue;
+      if (!isIssue(c) || c.repository.nameWithOwner.toLowerCase() !== repo) continue;
       items.push({
         itemId: n.id, issueId: c.id, number: c.number, title: c.title, url: c.url, state: c.state,
         status: n.status?.name ?? null, size: n.size?.name ?? null, parent: c.parent?.number ?? null,

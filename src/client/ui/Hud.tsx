@@ -17,7 +17,7 @@ export function Hud() {
   return (
     <>
       {mode === "demo" && (
-        <div className="banner" role="note">{demoReason === "no-github-access" ? t("demo.noAccess") : t("demo.banner")}</div>
+        <div className="banner" role="note">{demoReason === "no-github-access" ? <>{t("demo.noAccess")} <code>gh auth login</code></> : t("demo.banner")}</div>
       )}
       {near !== null && card === null && <div className="prompt">{t("site.near", { number: near, action: letters.action })}</div>}
       <div className="controls">{t("site.controls", { keys: letters.move, action: letters.action })}</div>

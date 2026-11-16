@@ -22,5 +22,6 @@ export async function githubToken(): Promise<string> {
 
 export async function githubGql(): Promise<Gql> {
   const client = graphql.defaults({ headers: { authorization: `token ${await githubToken()}` } });
-  return <T>(query: string, variables: Record<string, unknown>) => client<T>(query, variables);
+  const { withGitHubErrors } = await import("./errors.ts");
+  return withGitHubErrors(<T>(query: string, variables: Record<string, unknown>) => client<T>(query, variables));
 }

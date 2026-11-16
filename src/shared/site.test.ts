@@ -32,9 +32,9 @@ describe("buildSite", () => {
     expect(site.pallets.map((p) => p.zone).sort()).toEqual(["Backlog", "Ready"]);
   });
 
-  it("puts a closed issue in the last zone even if the board says otherwise", () => {
+  it("puts a closed issue in the last zone even if the board says otherwise, and marks it closed", () => {
     const site = buildSite(board([item({ state: "CLOSED", status: "Ready" })]), config);
-    expect(site.pallets[0].zone).toBe("Done");
+    expect(site.pallets[0]).toMatchObject({ zone: "Done", closed: true });
   });
 
   it("makes an epic a building and its sub-issues its floors", () => {

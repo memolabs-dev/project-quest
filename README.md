@@ -19,7 +19,7 @@ Open http://localhost:5173. The demo site is an invented project: nothing is sen
 
 ## Play your own board
 
-1. Log in to GitHub with the CLI: `gh auth login` (the game uses your login on your machine; no token ever reaches the browser).
+1. Log in to GitHub with the CLI and give it the `project` scope: `gh auth login`, then `gh auth refresh -s project` (the game uses your login on your machine; no token ever reaches the browser).
 2. Point `quest.config.json` at your board: owner, repository, project number, the names of its status, iteration and size fields, and its status columns in order.
 3. Optional, to keep the logbook: `npm run db:up && npm run db:migrate`, then `export DATABASE_URL=postgres://quest:quest@localhost:5442/quest`.
 4. `npm run dev`.

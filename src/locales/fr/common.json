@@ -9,14 +9,15 @@
   },
   "demo": {
     "banner": "Chantier de démo : un projet inventé, rien n'est envoyé à GitHub.",
-    "noAccess": "Pas d'accès à GitHub trouvé, tu es donc sur le chantier de démo."
+    "noAccess": "Pas d'accès à GitHub trouvé, tu es donc sur le chantier de démo. Pour jouer sur ton tableau, lance"
   },
   "zones": {
     "Backlog": "Stock",
     "Ready": "Prête à poser",
     "In progress": "En pose",
     "In review": "Contrôle",
-    "Done": "Posée"
+    "Done": "Posée",
+    "none": "Sans colonne"
   },
   "card": {
     "zone": "Zone",
@@ -25,7 +26,8 @@
     "bug": "Des termites ! (bug)",
     "openGitHub": "Ouvrir sur GitHub",
     "moveTo": "La pousser vers",
-    "close": "Fermer"
+    "close": "Fermer",
+    "closed": "Cette palette est posée et son issue est fermée. Rouvre-la sur GitHub pour la déplacer à nouveau."
   },
   "confirm": {
     "title": "Voici ce qui va partir chez GitHub",
@@ -51,7 +53,8 @@
     "githubAuthBody": "Lance ceci dans un terminal, puis recharge :",
     "openDemo": "Visiter plutôt le chantier de démo",
     "board": "Le tableau n'a pas pu être lu : {{message}}",
-    "generic": "Quelque chose a coincé. Recharge la page pour réessayer."
+    "generic": "Quelque chose a coincé. Recharge la page pour réessayer.",
+    "githubScopeTitle": "La clé du bureau de chantier n'ouvre pas les tableaux : il manque le droit project"
   },
   "lang": {
     "label": "Langue",

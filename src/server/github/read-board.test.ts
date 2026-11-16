@@ -31,6 +31,19 @@ describe("readBoard", () => {
     expect(() => buildSite(board, config)).not.toThrow();
   });
 
+  it("keeps only the configured repository's issues, so issue numbers never collide", async () => {
+    const project = structuredClone(fixture.repositoryOwner.projectV2) as { items: { nodes: { content: Record<string, unknown> | null }[] } };
+    const first = project.items.nodes.find((n) => n.content?.__typename === "Issue")!;
+    const other = structuredClone(first);
+    (other as unknown as { id: string }).id = "PVTI_other_repo";
+    other.content!.repository = { nameWithOwner: "someone/else" };
+    project.items.nodes.push(other);
+    const { gql } = fakeGql([{ repositoryOwner: { projectV2: project } }]);
+    const board = await readBoard(gql, config);
+    expect(board.items.some((i) => i.itemId === "PVTI_other_repo")).toBe(false);
+    expect(board.items.length).toBeGreaterThan(0);
+  });
+
   it("follows pagination, passing the cursor back", async () => {
     const project = fixture.repositoryOwner.projectV2;
     const page = (nodes: unknown[], hasNextPage: boolean, endCursor: string | null) => ({

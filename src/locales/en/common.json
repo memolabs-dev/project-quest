@@ -9,14 +9,15 @@
   },
   "demo": {
     "banner": "Demo site: an invented project, nothing is sent to GitHub.",
-    "noAccess": "No GitHub access found, so you are on the demo site."
+    "noAccess": "No GitHub access found, so you are on the demo site. To play your own board, run"
   },
   "zones": {
     "Backlog": "Stock",
     "Ready": "Ready to lay",
     "In progress": "Being laid",
     "In review": "Inspection",
-    "Done": "Laid"
+    "Done": "Laid",
+    "none": "No column"
   },
   "card": {
     "zone": "Zone",
@@ -25,7 +26,8 @@
     "bug": "Termites! (bug)",
     "openGitHub": "Open on GitHub",
     "moveTo": "Push it to",
-    "close": "Close"
+    "close": "Close",
+    "closed": "This pallet is laid and its issue is closed. Reopen it on GitHub to move it again."
   },
   "confirm": {
     "title": "This is what will be sent to GitHub",
@@ -51,7 +53,8 @@
     "githubAuthBody": "Run this in a terminal, then reload:",
     "openDemo": "Visit the demo site instead",
     "board": "The board could not be read: {{message}}",
-    "generic": "Something went wrong. Reload the page to try again."
+    "generic": "Something went wrong. Reload the page to try again.",
+    "githubScopeTitle": "The site office's key does not open the boards: the project scope is missing"
   },
   "lang": {
     "label": "Language",

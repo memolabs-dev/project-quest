@@ -44,14 +44,18 @@ function PalletCard({ number }: { number: number }) {
         </dd>
       </dl>
       {pallet.isBug && <p className="bug">{t("card.bug")}</p>}
-      <p className="move-label">{t("card.moveTo")}</p>
-      <div className="zones">
-        {site.zones.filter((z) => z.name !== pallet.zone).map((z) => (
-          <button key={z.name} type="button" style={{ borderColor: zoneColor(z.index) }} onClick={() => void push(z.name)}>
-            {zoneLabel(z.name)}
-          </button>
-        ))}
-      </div>
+      {pallet.closed ? <p className="move-label">{t("card.closed")}</p> : (
+        <>
+          <p className="move-label">{t("card.moveTo")}</p>
+          <div className="zones">
+            {site.zones.filter((z) => z.name !== pallet.zone).map((z) => (
+              <button key={z.name} type="button" style={{ borderColor: zoneColor(z.index) }} onClick={() => void push(z.name)}>
+                {zoneLabel(z.name)}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       {error && <p className="error" role="alert">{error}</p>}
       <div className="card-foot">
         <a href={pallet.url} target="_blank" rel="noreferrer">{t("card.openGitHub")}</a>
@@ -79,7 +83,8 @@ function ConfirmMove() {
     try {
       const r = await api.applyMove(pending);
       if (r.ok) {
-        setSite(r.site);
+        if (r.site) setSite(r.site);
+        else await refresh();
         open(null);
         setNotice(t("confirm.done", { to: zoneLabel(pending.to) }));
       } else if (r.reason === "stale") {
@@ -101,7 +106,7 @@ function ConfirmMove() {
       {pending && (
         <div className="confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
           <h2 id="confirm-title">{t("confirm.title")}</h2>
-          <p className="move">{t("confirm.move", { number: pending.issueNumber, from: zoneLabel(pending.from), to: zoneLabel(pending.to) })}</p>
+          <p className="move">{t("confirm.move", { number: pending.issueNumber, from: pending.from === null ? t("zones.none") : zoneLabel(pending.from), to: zoneLabel(pending.to) })}</p>
           <p className="issue">{pending.issueTitle}</p>
           <p className="payload-label">{t("confirm.payload")}</p>
           <pre className="payload">{JSON.stringify(pending.mutation, null, 2)}</pre>
@@ -162,14 +167,14 @@ function ErrorScreen() {
   const load = useQuest((s) => s.load);
   if (load.status !== "error") return null;
   const f = load.failure;
-  const auth = f instanceof ApiFailure && f.body.error === "github-auth";
+  const access = f instanceof ApiFailure && "hint" in f.body ? f.body : null;
   return (
     <div className="error-screen" role="alert">
-      {auth ? (
+      {access ? (
         <>
-          <h2>{t("errors.githubAuthTitle")}</h2>
+          <h2>{t(access.error === "github-scope" ? "errors.githubScopeTitle" : "errors.githubAuthTitle")}</h2>
           <p>{t("errors.githubAuthBody")}</p>
-          <pre>gh auth login</pre>
+          <pre>{access.hint}</pre>
         </>
       ) : (
         <p>{f instanceof ApiFailure && f.body.error === "board" ? t("errors.board", { message: f.message }) : t("errors.generic")}</p>

@@ -10,7 +10,8 @@ export interface SiteResponse {
 }
 
 export type ApplyResponse =
-  | { ok: true; site: Site }
+  /** site is null when the move landed on GitHub but the site could not be rebuilt; the game reloads it. */
+  | { ok: true; site: Site | null }
   | { ok: false; reason: "stale"; current: { status: string | null; updatedAt: string } }
   | { ok: false; reason: "github"; message: string };
 
@@ -23,6 +24,6 @@ export interface LoggedActionView {
   createdAt: string;
 }
 
-export type ApiError = { error: "github-auth"; hint: string } | { error: "board" | "gesture" | "server"; message: string };
+export type ApiError = { error: "github-auth" | "github-scope"; hint: string } | { error: "board" | "gesture" | "server"; message: string };
 
 export type { PreparedMove };

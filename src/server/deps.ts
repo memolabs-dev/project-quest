@@ -52,7 +52,7 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
       }
       item.status = p.to;
       item.updatedAt = new Date().toISOString();
-      return { ok: true, board };
+      return { ok: true as const, board };
     },
     log: memoryActionLog(),
     viewer: async () => ({ login: "you", avatarUrl: "" }),

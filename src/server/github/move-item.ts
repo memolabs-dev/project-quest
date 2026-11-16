@@ -6,7 +6,8 @@ import type { Gql } from "./client.ts";
 import { readBoard } from "./read-board.ts";
 
 export type ApplyResult =
-  | { ok: true; board: BoardSnapshot }
+  /** board is null when the write succeeded but the board could not be re-read right after. */
+  | { ok: true; board: BoardSnapshot | null }
   | { ok: false; reason: "stale"; current: { status: string | null; updatedAt: string } }
   | { ok: false; reason: "github"; message: string };
 
@@ -48,5 +49,9 @@ export async function applyMove(gql: Gql, config: QuestConfig, prepared: Prepare
   } catch (e) {
     return { ok: false, reason: "github", message: githubMessage(e) };
   }
-  return { ok: true, board: await readBoard(gql, config) };
+  try {
+    return { ok: true, board: await readBoard(gql, config) };
+  } catch {
+    return { ok: true, board: null };
+  }
 }

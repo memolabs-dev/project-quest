@@ -13,7 +13,7 @@ const item = demo.items.find((i) => i.status === "Backlog" && !i.isEpic && i.sta
 const prepared = prepareMove(demo, item.itemId, "Ready");
 
 /** A fake GitHub: answers the freshness check, records mutations, then serves the board. */
-const fakeGitHub = (current: { status: string; updatedAt: string }, opts: { failMutation?: string } = {}) => {
+const fakeGitHub = (current: { status: string; updatedAt: string }, opts: { failMutation?: string; failReadBoard?: boolean } = {}) => {
   const mutations: Record<string, unknown>[] = [];
   const gql = (async (query: string, variables: Record<string, unknown>) => {
     if (query.includes("query ItemState")) {
@@ -24,6 +24,7 @@ const fakeGitHub = (current: { status: string; updatedAt: string }, opts: { fail
       mutations.push(variables);
       return { updateProjectV2ItemFieldValue: { projectV2Item: { id: item.itemId } } };
     }
+    if (opts.failReadBoard) throw new Error("network down");
     return read("./__fixtures__/board-response.json");
   }) as Gql;
   return { gql, mutations };
@@ -42,6 +43,21 @@ describe("applyMove", () => {
     const result = await applyMove(gql, config, prepared);
     expect(result).toMatchObject({ ok: false, reason: "stale", current: { status: "In progress" } });
     expect(mutations).toEqual([]);
+  });
+
+  it("moves an item that had no column, without calling it stale", async () => {
+    const noColumn = { ...prepared, from: null };
+    const { gql, mutations } = fakeGitHub({ status: null as unknown as string, updatedAt: item.updatedAt });
+    const result = await applyMove(gql, config, noColumn);
+    expect(result.ok).toBe(true);
+    expect(mutations.length).toBe(1);
+  });
+
+  it("still reports success when the board cannot be re-read after the write", async () => {
+    const { gql, mutations } = fakeGitHub({ status: "Backlog", updatedAt: item.updatedAt }, { failReadBoard: true });
+    const result = await applyMove(gql, config, prepared);
+    expect(result).toEqual({ ok: true, board: null });
+    expect(mutations.length).toBe(1);
   });
 
   it("reports GitHub's own message when the mutation fails", async () => {

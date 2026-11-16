@@ -19,7 +19,7 @@ Ouvre http://localhost:5173. Le chantier de démo est un projet inventé : rien 
 
 ## Jouer sur ton propre tableau
 
-1. Connecte-toi à GitHub avec la ligne de commande : `gh auth login` (le jeu utilise ta connexion sur ta machine ; aucun jeton n'arrive dans le navigateur).
+1. Connecte-toi à GitHub avec la ligne de commande et donne-lui le droit `project` : `gh auth login`, puis `gh auth refresh -s project` (le jeu utilise ta connexion sur ta machine ; aucun jeton n'arrive dans le navigateur).
 2. Indique ton tableau dans `quest.config.json` : propriétaire, dépôt, numéro du projet, noms des champs de statut, de sprint et de taille, et ses colonnes dans l'ordre.
 3. Facultatif, pour garder le carnet : `npm run db:up && npm run db:migrate`, puis `export DATABASE_URL=postgres://quest:quest@localhost:5442/quest`.
 4. `npm run dev`.
