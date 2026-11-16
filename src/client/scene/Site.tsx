@@ -15,8 +15,9 @@ import { Piece } from "./kit.tsx";
 import { BUILDING_ROW_Z, YARD_Z, ZONE_SPACING, layoutSite } from "./layout.ts";
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
-import { newlyLaid } from "./show.ts";
+import { newlyLaid, workerSpots } from "./show.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
+import { Worker } from "./Worker.tsx";
 
 const YARD_DEPTH = 6;
 
@@ -90,6 +91,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   const near = useQuest((s) => s.nearPallet);
   const zoneIndex = new Map(site.zones.map((z) => [z.name, z.index]));
   const width = site.zones.length * ZONE_SPACING + 10;
+  const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
 
   // Count each building's growths, so its floor grows once per new laid floor batch.
   const previous = useRef<SiteModel | null>(null);
@@ -126,6 +128,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         {Array.from({ length: Math.ceil((width + 8) / 2) }, (_, i) => (
           <Piece key={i} name="fence" position={[-(width + 8) / 2 + 1 + i * 2, 0, 6]} outline={0.02} />
         ))}
+        {spots.map((s) => <Worker key={s.login} spot={s} />)}
         <Player pallets={layout.pallets} reduceMotion={reduceMotion} />
       </Physics>
       <Effects />

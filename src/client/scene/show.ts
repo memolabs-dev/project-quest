@@ -24,9 +24,26 @@ export function workerSpots(site: Site, pallets: { number: number; x: number; z:
     if (first === undefined) continue;
     const p = at.get(first)!;
     const pallet = site.pallets.find((x) => x.number === first);
-    spots.push({ login: w.login, avatarUrl: w.avatarUrl, trade: pallet?.trade ?? null, x: p.x + 0.9, z: p.z + 0.6 });
+    spots.push({ login: w.login, avatarUrl: w.avatarUrl, trade: pallet?.trade ?? null, x: p.x + 0.7, z: p.z - 0.8 });
   }
   return spots;
+}
+
+/** The letter on a worker's badge when their avatar is missing or fails to load. */
+export function badgeInitial(login: string): string {
+  return login.match(/[a-z0-9]/i)?.[0].toUpperCase() ?? "?";
+}
+
+const JACKETS: Record<string, string> = { mason: "#C0622F", painter: "#2F7FD0", surveyor: "#2E9B6A", architect: "#7A4FB0" };
+const NO_TRADE = "#8A8F98";
+/** A worker's jacket says their trade; the lead keeps the orange one. */
+export const jacketColor = (trade: string | null) => (trade ? JACKETS[trade] ?? NO_TRADE : NO_TRADE);
+
+/** Where a worker's idle loop starts (0 to 1), so the crew does not breathe in step. */
+export function idleOffset(login: string): number {
+  let h = 2166136261;
+  for (const c of login) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return (h >>> 0) / 4294967296;
 }
 
 /** Buildings that gained floors since the previous site: each grows once, however many floors came. */

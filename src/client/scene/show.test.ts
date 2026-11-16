@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Building, Site } from "../../shared/site.ts";
-import { buildingPlan, crateScale, facade, newlyLaid, workerSpots } from "./show.ts";
+import { badgeInitial, buildingPlan, crateScale, facade, idleOffset, jacketColor, newlyLaid, workerSpots } from "./show.ts";
 
 const b = (floorsDone: number, floorsTotal: number, epicNumber: number | null = 1): Building => ({ epicNumber, title: "FICTIF", floorsDone, floorsTotal });
 
@@ -45,6 +45,35 @@ describe("workerSpots", () => {
     expect(spots).toHaveLength(1);
     expect(spots[0]).toMatchObject({ login: "fictif-maria", trade: "mason" });
     expect(Math.abs(spots[0].x - 2)).toBeLessThan(1.5);
+  });
+});
+
+describe("badgeInitial", () => {
+  it("is the login's first letter or digit, upper case", () => {
+    expect(badgeInitial("maria-fictif")).toBe("M");
+    expect(badgeInitial("-_42bot")).toBe("4");
+    expect(badgeInitial("")).toBe("?");
+  });
+});
+
+describe("jacketColor", () => {
+  it("gives each trade its own colour, and a default one without trade", () => {
+    const trades = ["mason", "painter", "surveyor", "architect"].map(jacketColor);
+    expect(new Set(trades).size).toBe(4);
+    expect(jacketColor(null)).toMatch(/^#/);
+    expect(trades).not.toContain(jacketColor(null));
+    expect(jacketColor("juggler")).toBe(jacketColor(null));
+  });
+});
+
+describe("idleOffset", () => {
+  it("is stable per worker and between 0 and 1", () => {
+    expect(idleOffset("maria-fictif")).toBe(idleOffset("maria-fictif"));
+    expect(idleOffset("maria-fictif")).not.toBe(idleOffset("jo-fictif"));
+    for (const l of ["a", "jo-fictif", "sam-fictif"]) {
+      expect(idleOffset(l)).toBeGreaterThanOrEqual(0);
+      expect(idleOffset(l)).toBeLessThan(1);
+    }
   });
 });
 

@@ -4,7 +4,10 @@ import { writeFileSync } from "node:fs";
 import type { BoardItem, BoardSnapshot } from "../src/shared/site.ts";
 
 const zones = ["Backlog", "Ready", "In progress", "In review", "Done"];
-const worker = { login: "fictif-maria", avatarUrl: "https://avatars.githubusercontent.com/u/9919?v=4" };
+const worker = { login: "maria-fictif", avatarUrl: "https://avatars.githubusercontent.com/u/9919?v=4" };
+// Invented people have no avatar: their badge falls back to their initial.
+const jo = { login: "jo-fictif", avatarUrl: "" };
+const sam = { login: "sam-fictif", avatarUrl: "" };
 let n = 0;
 const items: BoardItem[] = [];
 const add = (title: string, extra: Partial<BoardItem> = {}) => {
@@ -27,16 +30,16 @@ const plan: [BoardItem, string, string, Partial<BoardItem>?][] = [
   [town, "Raise the walls", "Done", { labels: ["back"], state: "CLOSED" }],
   [town, "Paint the facade", "In progress", { labels: ["front"], assignees: [worker] }],
   [town, "Hang the clock", "Ready", { labels: ["design"] }],
-  [town, "Termites in the attic", "In review", { labels: ["bug", "back"] }],
+  [town, "Termites in the attic", "In review", { labels: ["bug", "back"], assignees: [sam] }],
   [town, "Lay the square's paving", "Backlog", { size: "M" }],
   [library, "Measure the plot", "Done", { labels: ["data"], state: "CLOSED" }],
-  [library, "Draw the reading room", "In review", { labels: ["design"] }],
+  [library, "Draw the reading room", "In review", { labels: ["design"], assignees: [jo] }],
   [library, "Build the shelves", "Ready", { labels: ["back"], size: "M" }],
   [library, "Light the reading room", "Backlog", { labels: ["front"] }],
   [library, "Catalogue every book", "Backlog", { labels: ["data"], size: "L" }],
   [library, "Squeaky door on the first floor", "In progress", { labels: ["bug"], assignees: [worker] }],
   [station, "Survey the tracks", "Done", { labels: ["data"], state: "CLOSED" }],
-  [station, "Build the platform", "In progress", { labels: ["back"], size: "L" }],
+  [station, "Build the platform", "In progress", { labels: ["back"], size: "L", assignees: [jo] }],
   [station, "Timetable board", "Ready", { labels: ["front"] }],
   [station, "Waiting room benches", "Backlog", { labels: ["design"] }],
   [station, "Ticket office", "Backlog", { labels: ["back"] }],
