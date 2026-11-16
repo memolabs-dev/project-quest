@@ -177,6 +177,15 @@ One package, three folders:
 
 Each slice is an issue of this repository on the public board https://github.com/orgs/memolabs-dev/projects/9, created when the previous one ships.
 
+## 15b. Several projects, several structures
+
+The owner's requirements (2026-11-16): the player chooses which project to play, and the game adapts to each project's structure.
+
+- **A project picker**: several configurations side by side (one per board), chosen at the start of a day; the last one played is remembered.
+- **Any structure**: column names and order, the iteration and size fields (or none), which labels mean bug and which mean a trade, epics as issue types or as parent issues, user or organisation boards. Everything structural lives in the configuration, never in the code.
+- **A setup helper**: reads a board's fields and columns and proposes a configuration to confirm, so adapting the game to a new project takes minutes.
+- **Test stages**: the fictitious sandbox first; then a copy of the SOS MEDITERRANEE project (kept outside this public repository); the real SOS MEDITERRANEE project only once the game is validated.
+
 ## 16. Out of scope for now
 
 - Unity, Unreal and the Blender MCP server.

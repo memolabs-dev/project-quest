@@ -29,7 +29,11 @@ Every GitHub API operation (GraphQL mutations and root queries, REST endpoints, 
 
 ## Rules
 
-- **Fictitious boards only**: test on the sandbox, `memolabs-dev/project-quest-sandbox` and its board `memolabs-dev` project 10, filled with invented FICTIF issues by `scripts/seed-sandbox.ts`. Never test on a real organisation's project: not SOS MEDITERRANEE, not Data for Good (`dataforgoodfr`), not the Rescue Atlas lab (`memolabs-dev` project 6), whose issues mirror SOS's project (owner's rule, 2026-11-16).
+- **Where to test, in three stages (owner's rule, 2026-11-16)**:
+  1. Now: the fictitious sandbox only, `memolabs-dev/project-quest-sandbox` and its board `memolabs-dev` project 10 (invented FICTIF issues, `scripts/seed-sandbox.ts`).
+  2. Later, when the owner says so: a copy of the SOS MEDITERRANEE project, kept outside this public repository (partner data never enters the repo), and tested there from then on.
+  3. Only once the game is fully validated: the real SOS MEDITERRANEE project.
+  Never test on a real organisation's project before its stage: not SOS MEDITERRANEE, not Data for Good (`dataforgoodfr`), not the Rescue Atlas lab (`memolabs-dev` project 6).
 - **Every write is confirmed**: before a GitHub mutation, the game shows exactly what will be sent (issue, change, text). Nothing is written without the player's click. Each write goes to an action log.
 - **The browser never holds a token**: only the server talks to GitHub.
 - **No pressure on contributors**: only the player (the lead) scores. Never assign someone who did not ask for the issue.
