@@ -19,11 +19,33 @@ export interface PracticeIssue {
   closed: boolean;
 }
 
+export interface PracticePull {
+  id: string;
+  number: number;
+  url: string;
+  author: string;
+  state: "OPEN" | "CLOSED" | "MERGED";
+  createdAt: string;
+  headRefName: string;
+  headRefOid: string;
+  /** Issues this pull request closes when merged ("Closes #N"). */
+  closes: number[];
+  commits: { oid: string; url: string; committedDate: string }[];
+}
+
 /** The player's practice repository as read on GitHub. */
 export interface PracticeSnapshot {
   repo: { id: string; nameWithOwner: string; url: string };
   board: { id: string; number: number; url: string; columns: string[] } | null;
   issues: PracticeIssue[];
+  /** Null while the repository has no commit at all. */
+  defaultBranch: { name: string; oid: string } | null;
+  /** README.md on the default branch. */
+  readme: string | null;
+  /** Branches other than the default, with their head commit's author. */
+  branches: { name: string; oid: string; author: string; url: string }[];
+  /** Newest first. */
+  pulls: PracticePull[];
 }
 
 export interface Observed {

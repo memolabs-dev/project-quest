@@ -23,7 +23,7 @@ const issue = (o: Partial<PracticeIssue> = {}): PracticeIssue => ({
 const site = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" },
   board: { id: "PVT_fictif", number: 1, url: "https://github.com/users/fictif-volunteer/projects/1", columns: ["Todo", "In Progress", "Done"] },
-  issues: [], ...o,
+  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], ...o,
 });
 
 const make = (practice: PracticeSnapshot | null, extra: Partial<Deps> & { progress?: ProgressStore } = {}) => {

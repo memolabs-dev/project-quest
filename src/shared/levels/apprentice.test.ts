@@ -12,7 +12,7 @@ const issue = (o: Partial<PracticeIssue> = {}): PracticeIssue => ({
 const snapshot = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" },
   board: { id: "PVT_fictif", number: 1, url: "https://github.com/users/fictif-volunteer/projects/1", columns: ["Todo", "In Progress", "Done"] },
-  issues: [], ...o,
+  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], ...o,
 });
 const seen = (o: Partial<Observed> = {}): Observed => ({ viewer: VIEWER, events: [], practice: null, ...o });
 const events = (...e: TutorialEvent[]) => seen({ events: e });

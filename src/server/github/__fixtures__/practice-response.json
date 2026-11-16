@@ -109,6 +109,94 @@
           }
         }
       ]
+    },
+    "defaultBranchRef": {
+      "name": "main",
+      "target": {
+        "oid": "aaa111"
+      }
+    },
+    "object": {
+      "text": "# my-first-site\n"
+    },
+    "refs": {
+      "nodes": [
+        {
+          "name": "main",
+          "target": {
+            "oid": "aaa111",
+            "url": "https://github.com/fictif-volunteer/my-first-site/commit/aaa111",
+            "author": {
+              "user": {
+                "login": "fictif-volunteer"
+              }
+            }
+          }
+        },
+        {
+          "name": "practice-1",
+          "target": {
+            "oid": "bbb222",
+            "url": "https://github.com/fictif-volunteer/my-first-site/commit/bbb222",
+            "author": {
+              "user": {
+                "login": "fictif-volunteer"
+              }
+            }
+          }
+        },
+        {
+          "name": "orphan",
+          "target": {
+            "oid": "ccc333",
+            "url": "https://github.com/fictif-volunteer/my-first-site/commit/ccc333",
+            "author": {
+              "user": null
+            }
+          }
+        }
+      ]
+    },
+    "pullRequests": {
+      "nodes": [
+        {
+          "id": "PR_fictif_2",
+          "number": 2,
+          "url": "https://github.com/fictif-volunteer/my-first-site/pull/2",
+          "state": "OPEN",
+          "createdAt": "2026-11-17T10:00:00Z",
+          "headRefName": "practice-1",
+          "headRefOid": "bbb222",
+          "author": {
+            "login": "fictif-volunteer"
+          },
+          "closingIssuesReferences": {
+            "nodes": [
+              {
+                "number": 1
+              }
+            ]
+          },
+          "commits": {
+            "nodes": [
+              {
+                "commit": {
+                  "oid": "bbb111",
+                  "url": "https://github.com/fictif-volunteer/my-first-site/commit/bbb111",
+                  "committedDate": "2026-11-17T09:59:00Z"
+                }
+              },
+              {
+                "commit": {
+                  "oid": "bbb222",
+                  "url": "https://github.com/fictif-volunteer/my-first-site/commit/bbb222",
+                  "committedDate": "2026-11-17T10:05:00Z"
+                }
+              }
+            ]
+          }
+        }
+      ]
     }
   }
 }

@@ -10,7 +10,7 @@ const viewer = { login: "fictif-volunteer", id: "U_fictif" };
 const site: PracticeSnapshot = {
   repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "u" },
   board: { id: "PVT_fictif", number: 1, url: "b", columns: ["Todo", "Done"] },
-  issues: [],
+  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [],
 };
 
 /** A fake GitHub answering each mutation with new ids, recording what it was sent. */

@@ -35,6 +35,32 @@ describe("readPractice", () => {
   });
 });
 
+describe("branches, README and pull requests", () => {
+  it("maps branches, the README and pull requests", async () => {
+    const p = await readPractice(gqlReturning(fixture), "fictif-volunteer", "my-first-site");
+    expect(p?.defaultBranch).toEqual({ name: "main", oid: "aaa111" });
+    expect(p?.readme).toBe("# my-first-site\n");
+    expect(p?.branches).toEqual([
+      { name: "practice-1", oid: "bbb222", author: "fictif-volunteer", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb222" },
+      { name: "orphan", oid: "ccc333", author: "ghost", url: "https://github.com/fictif-volunteer/my-first-site/commit/ccc333" },
+    ]);
+    expect(p?.pulls).toEqual([{
+      id: "PR_fictif_2", number: 2, url: "https://github.com/fictif-volunteer/my-first-site/pull/2", author: "fictif-volunteer", state: "OPEN",
+      createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "bbb222", closes: [1],
+      commits: [
+        { oid: "bbb111", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb111", committedDate: "2026-11-17T09:59:00Z" },
+        { oid: "bbb222", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb222", committedDate: "2026-11-17T10:05:00Z" },
+      ],
+    }]);
+  });
+  it("reads an empty repository as no default branch, no README, no branches", async () => {
+    const data = structuredClone(fixture) as Record<string, Record<string, unknown>>;
+    Object.assign(data.repository, { defaultBranchRef: null, object: null, refs: { nodes: [] }, pullRequests: { nodes: [] } });
+    const p = await readPractice(gqlReturning(data), "fictif-volunteer", "my-first-site");
+    expect(p).toMatchObject({ defaultBranch: null, readme: null, branches: [], pulls: [] });
+  });
+});
+
 describe("the practice board", () => {
   it("is the viewer's own board, never a project of another owner linked to the repository", async () => {
     const data = structuredClone(fixture) as { repository: { projectsV2: { nodes: unknown[] } } };
