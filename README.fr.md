@@ -31,7 +31,7 @@ Chaque déplacement montre d'abord la requête GitHub exacte, vérifie que perso
 - **Le jeu** : React 19, Three.js r187 via React Three Fiber 9, la physique Rapier, ecctrl pour le chef de chantier, zustand.
 - **Le serveur** : Hono, seul à parler à GitHub (GraphQL), servi dans Vite pendant le développement.
 - **Le carnet** : Postgres 18 avec Drizzle.
-- **Les modèles 3D** : générés par des scripts Blender (`npm run assets`), compressés avec glTF Transform. Aucun modèle tiers.
+- **Les modèles 3D** : générés par des scripts Blender (`npm run assets`), compressés avec glTF Transform. Le chef de chantier est le chevalier KayKit de Kay Lousberg (CC0), transformé en contremaître par un script ; voir `public/models/LICENSES.md`.
 - **L'API GitHub** : les 1873 opérations sont listées et décidées (`docs/github-api/COVERAGE.md`) ; un test échoue s'il en manque une.
 
 ## Commandes

@@ -1,10 +1,11 @@
 // The site manager: an ecctrl character, a follow camera behind and above, and the "what am I near" check.
+import { useKeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Ecctrl, type EcctrlHandle } from "ecctrl";
 import { useRef } from "react";
 import * as THREE from "three";
 import { useQuest } from "../store.ts";
-import { Piece } from "./kit.tsx";
+import { Foreman } from "./Foreman.tsx";
 
 const NEAR_DISTANCE = 2.5;
 const CAMERA_OFFSET = new THREE.Vector3(0, 11, 12);
@@ -17,10 +18,13 @@ export function Player({ pallets, reduceMotion }: { pallets: { number: number; x
   const look = useRef(new THREE.Vector3());
   const setNear = useQuest((s) => s.setNear);
   const cardOpen = useQuest((s) => s.openCard !== null);
+  // ecctrl 2 does not read the keyboard itself: the keys are handed to it every frame.
+  const [, getKeys] = useKeyboardControls();
 
   useFrame(({ camera }, delta) => {
     const h = ref.current;
     if (!h) return;
+    h.setMovement(cardOpen ? {} : getKeys());
     const pos = h.currPos;
     const k = reduceMotion ? 1 : 1 - Math.exp(-4 * delta);
     camera.position.lerp(target.current.copy(pos).add(CAMERA_OFFSET), k);
@@ -38,7 +42,7 @@ export function Player({ pallets, reduceMotion }: { pallets: { number: number; x
 
   return (
     <Ecctrl ref={ref} position={[0, 2, 2]} capsuleHalfHeight={0.55} capsuleRadius={0.32} floatHeight={0.25} enable={!cardOpen} maxWalkVel={4} maxRunVel={7}>
-      <Piece name="worker" position={[0, -1.12, 0]} outline={0.025} />
+      <Foreman body={ref} feetY={-1.12} />
     </Ecctrl>
   );
 }
