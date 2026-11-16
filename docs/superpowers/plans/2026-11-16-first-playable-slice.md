@@ -59,11 +59,11 @@
   - `marks bugs and trades from labels`; `workers carry the pallets assigned to them`.
   - `config.test.ts`: `loadConfig` rejects a config without zones, with a message naming `zones`.
 
-- [ ] **Step 3: Run** `npx vitest run src/shared` — expected FAIL (modules missing).
+- [ ] **Step 3: Run** `npx vitest run src/shared`: expected FAIL (modules missing).
 
 - [ ] **Step 4: Implement** `src/shared/config.ts` (zod schema) and `src/shared/site.ts` (pure functions, no I/O).
 
-- [ ] **Step 5: Run** `npx vitest run src/shared` — expected PASS.
+- [ ] **Step 5: Run** `npx vitest run src/shared`: expected PASS.
 
 - [ ] **Step 6: Commit** `feat: site model from a Projects board (MEM-87)`.
 
@@ -83,9 +83,9 @@
 
 - [ ] **Step 1: Record the fixture**: run the board query once against the lab board, replace every title with a FICTIF title and every login with `fictif-user-N`, save as `board-response.json`.
 - [ ] **Step 2: Write the failing tests**: `readBoard` with a fake `gql` returning the fixture gives the expected item count and statuses; `follows pagination` (two pages, cursor passed back); `the demo board passes buildSite without error`.
-- [ ] **Step 3: Run** `npx vitest run src/server/github` — expected FAIL.
+- [ ] **Step 3: Run** `npx vitest run src/server/github`: expected FAIL.
 - [ ] **Step 4: Implement** `client.ts` (`@octokit/graphql` with the token; `gh auth token` through `node:child_process` `execFile`) and `read-board.ts` (one GraphQL query through `organization(login).projectV2(number)`).
-- [ ] **Step 5: Run** — expected PASS.
+- [ ] **Step 5: Run**: expected PASS.
 - [ ] **Step 6: Commit** `feat: read a Projects board through GraphQL, demo board (MEM-87)`.
 
 ### Task 3: The move gesture (prepare, then apply)
@@ -103,9 +103,9 @@
   - `applyMove(gql: Gql, config: QuestConfig, prepared: PreparedMove): Promise<ApplyResult>`: re-reads the item (`node(id)`), returns `stale` when its status or `updatedAt` differ from what was prepared, else sends the mutation and re-reads the board.
 
 - [ ] **Step 1: Write the failing tests**: `prepareMove` builds the mutation input `{ projectId, itemId, fieldId, value: { singleSelectOptionId } }` with the ids of the board; refuses an unknown zone; refuses a no-op move. `applyMove` sends the mutation once when fresh; returns `{ ok: false, reason: "stale" }` without sending when the item moved meanwhile (Review Focus 2); maps a GraphQL error to `reason: "github"` with GitHub's message.
-- [ ] **Step 2: Run** `npx vitest run src/shared/gestures src/server/github/move-item.test.ts` — expected FAIL.
+- [ ] **Step 2: Run** `npx vitest run src/shared/gestures src/server/github/move-item.test.ts`: expected FAIL.
 - [ ] **Step 3: Implement** `move.ts` and `move-item.ts`.
-- [ ] **Step 4: Run** — expected PASS.
+- [ ] **Step 4: Run**: expected PASS.
 - [ ] **Step 5: Commit** `feat: move gesture with stale check (MEM-87)`.
 
 ### Task 4: Postgres and the action log
@@ -121,9 +121,9 @@
   - `pgActionLog(url: string): ActionLog` and `memoryActionLog(): ActionLog` (demo mode and unit tests).
 
 - [ ] **Step 1: Write the failing tests**: `memoryActionLog` returns the latest first; `pgActionLog` round-trips one entry (this test runs only when `DATABASE_URL` is set, and `npm run test:db` sets it after `docker compose up -d db`).
-- [ ] **Step 2: Run** `npx vitest run src/server/db` — expected FAIL.
+- [ ] **Step 2: Run** `npx vitest run src/server/db`: expected FAIL.
 - [ ] **Step 3: Implement** the schema, `npx drizzle-kit generate`, and `log.ts`.
-- [ ] **Step 4: Run** `docker compose up -d db && npx drizzle-kit migrate && npm run test:db` — expected PASS.
+- [ ] **Step 4: Run** `docker compose up -d db && npx drizzle-kit migrate && npm run test:db`: expected PASS.
 - [ ] **Step 5: Commit** `feat: action log in Postgres (MEM-87)`.
 
 ### Task 5: The Hono API
@@ -140,9 +140,9 @@
   - `createApp(deps: Deps)` with routes: `GET /api/site` → `{ site: Site; viewer; mode: "live" | "demo" }`; `POST /api/moves/prepare` `{ itemId, toZone }` → `PreparedMove`; `POST /api/moves/apply` `PreparedMove` → `ApplyResult` (logs every outcome); `GET /api/log` → latest 20 actions. `export type AppType = ReturnType<typeof createApp>`.
   - Mode: `QUEST_MODE=demo` or no GitHub token → demo, with `mode: "demo"` and the reason in the response.
 - [ ] **Step 1: Write the failing tests** with fake deps (`app.request`): site returns zones in order; prepare validates input with zod (400 on a missing `toZone`); apply logs `applied`, `stale` and `failed`; `GitHubAuthError` from `liveDeps` gives `503` with `{ error: "github-auth", hint: "gh auth login" }` (Review Focus 3).
-- [ ] **Step 2: Run** `npx vitest run src/server/app.test.ts` — expected FAIL.
+- [ ] **Step 2: Run** `npx vitest run src/server/app.test.ts`: expected FAIL.
 - [ ] **Step 3: Implement** `app.ts`, `deps.ts`, the Vite plugin, and scripts `dev`, `dev:demo` (`QUEST_MODE=demo vite`), `test`, `test:db`, `check` (`tsc -b && oxlint && vitest run`).
-- [ ] **Step 4: Run** the test, then `npm run dev:demo` and `curl -s localhost:5173/api/site | head -c 200` — expected JSON with `"mode":"demo"`.
+- [ ] **Step 4: Run** the test, then `npm run dev:demo` and `curl -s localhost:5173/api/site | head -c 200`: expected JSON with `"mode":"demo"`.
 - [ ] **Step 5: Commit** `feat: Hono API for the site and the move gesture (MEM-87)`.
 
 ### Task 6: English and French
@@ -154,9 +154,9 @@
 **Interfaces:**
 - Produces: `initI18n(): void` (i18next + react-i18next + browser language detector, fallback `en`, `fr` supported); keys under `site.*`, `zones.*` (the config's zone names map to display names here, with a fallback to the raw name), `card.*`, `confirm.*`, `log.*`, `errors.*`, `demo.*`.
 - [ ] **Step 1: Write the failing test** `every key exists in both languages and no value is empty`.
-- [ ] **Step 2: Run** `npx vitest run src/locales` — expected FAIL.
-- [ ] **Step 3: Write** both files and `i18n.ts`. French copy is plain and short, no em or en dashes (`grep -c '[—–]'` gives 0).
-- [ ] **Step 4: Run** — expected PASS.
+- [ ] **Step 2: Run** `npx vitest run src/locales`: expected FAIL.
+- [ ] **Step 3: Write** both files and `i18n.ts`. French copy is plain and short, no em or en dashes (`grep -c '[:-]'` gives 0).
+- [ ] **Step 4: Run**: expected PASS.
 - [ ] **Step 5: Commit** `feat: English and French from the first slice (MEM-87)`.
 
 ### Task 7: The site kit (assets)
@@ -168,9 +168,9 @@
 **Interfaces:**
 - Produces: `site-kit.glb` with named nodes `pallet`, `floor_module`, `zone_sign`, `crane`, `fence`, `site_office`, in the model-kit style (bevelled blocks, flat colours, no textures); `npm run assets` runs `blender --background --factory-startup --python scripts/blender/site_kit.py -- public/models/site-kit.raw.glb` then `gltf-transform optimize` to `site-kit.glb`.
 - [ ] **Step 1: Write the failing test**: the GLB exists, is under 500 KB, and contains every named node (read with `@gltf-transform/core`).
-- [ ] **Step 2: Run** — expected FAIL.
+- [ ] **Step 2: Run**: expected FAIL.
 - [ ] **Step 3: Write** `site_kit.py` and `build-assets.sh`; run `npm run assets`.
-- [ ] **Step 4: Run** — expected PASS.
+- [ ] **Step 4: Run**: expected PASS.
 - [ ] **Step 5: Character model**: ask the owner before downloading the KayKit Adventurers pack (state the file, itch.io source and size); after the yes, check its CC0 licence text, copy one character and its animations into `public/models/`, and record source and licence in `LICENSES.md`. Without the yes, the player is a Blender-made worker with a hard hat, added to `site_kit.py`.
 - [ ] **Step 6: Commit** `feat: site kit generated by Blender (MEM-87)`.
 
@@ -187,7 +187,7 @@
   - `layoutSite(site: Site): { zones: { name: string; x: number; z: number }[]; buildings: { key: string; x: number; z: number; floors: number }[]; pallets: { number: number; x: number; z: number }[] }`: zones in a row along the road, buildings on a ring behind them, pallets stacked inside their zone; deterministic for the same site.
   - zustand store `useQuest` with `site`, `mode`, `nearPallet: number | null`, `openCard: number | null`, `pending: PreparedMove | null`, `refresh()`.
 - [ ] **Step 1: Write the failing tests**: `layoutSite` is deterministic; no two pallets overlap; every zone of the site has a position.
-- [ ] **Step 2: Run** — expected FAIL.
+- [ ] **Step 2: Run**: expected FAIL.
 - [ ] **Step 3: Implement** `layout.ts`, then the scene: Rapier ground and colliders, ecctrl player with a third-person follow camera, pallets coloured by zone, buildings with `floorsDone` floors, outline and soft shadows in `Effects.tsx`, proximity (under 2.5 m) sets `nearPallet`, pressing `E` or clicking opens the card. Reduced motion disables the camera damping and particles.
 - [ ] **Step 4: Run** the test, then `npm run dev:demo` and check in the browser: the site renders, the player walks, a nearby pallet highlights.
 - [ ] **Step 5: Commit** `feat: walk the 3D site (MEM-87)`.
@@ -207,9 +207,9 @@
   - `a worst-case title does not overflow the card` (Review Focus 4): the card's `scrollWidth` equals its `clientWidth`.
   - `without GitHub access, offers the demo` (Review Focus 3): with `QUEST_MODE=live` and no token, the error screen shows `gh auth login` and a demo button.
   - screenshots at 375 and 1280 px saved as baselines.
-- [ ] **Step 2: Run** `npx playwright test` — expected FAIL.
+- [ ] **Step 2: Run** `npx playwright test`: expected FAIL.
 - [ ] **Step 3: Implement** the UI components.
-- [ ] **Step 4: Run** `npx playwright test` — expected PASS; then run `~/.agents/skills/ui-craft/scripts/ui-check.js` on the page at 375, 768, 1024, 1440 and fix every count.
+- [ ] **Step 4: Run** `npx playwright test`: expected PASS; then run `~/.agents/skills/ui-craft/scripts/ui-check.js` on the page at 375, 768, 1024, 1440 and fix every count.
 - [ ] **Step 5: Commit** `feat: pallet card, confirmation and action log (MEM-87)`.
 
 ### Task 10: Local gates, README and the real test
