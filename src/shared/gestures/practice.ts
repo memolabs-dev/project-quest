@@ -28,6 +28,9 @@ export function prepareFound(
   viewer: { login: string; id: string }, existing: PracticeSnapshot | null, name: string, visibility: "PUBLIC" | "PRIVATE",
 ): PreparedFound {
   if (existing?.board) throw new GestureError(`Your site ${existing.repo.nameWithOwner} is already founded`);
+  if (existing && existing.repo.nameWithOwner.toLowerCase() !== `${viewer.login}/${name}`.toLowerCase()) {
+    throw new GestureError(`${viewer.login}/${name} now leads to ${existing.repo.nameWithOwner}: the game founds only in your own account`);
+  }
   const board = (repositoryId: string): PracticeMutation => ({ name: "createProjectV2", input: { ownerId: viewer.id, title: name, repositoryId } });
   const mutations: PracticeMutation[] = existing
     ? [board(existing.repo.id)]

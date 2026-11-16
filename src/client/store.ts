@@ -4,7 +4,7 @@ import type { LevelsView, PreparedMove, SiteResponse } from "../shared/api.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Site } from "../shared/site.ts";
 import { ApiFailure, api } from "./api.ts";
-import { siteKindFromUrl, type SiteKind } from "./levels.ts";
+import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
 
 type Load = { status: "loading" } | { status: "ready" } | { status: "error"; failure: ApiFailure | Error };
 
@@ -56,16 +56,16 @@ export const useQuest = create<QuestState>((set, get) => ({
   async refreshLevels(check = false) {
     try {
       const v = await (check ? api.checkLevels() : api.levels());
-      set((s) => ({ levelsBefore: s.levels, levels: v }));
+      set((s) => ({ levelsBefore: s.levels, levels: laterView(s.levels, v) }));
     } catch {
       // The levels are a layer over the site: if they cannot be read, the site still plays.
     }
   },
-  setLevels: (v) => set((s) => ({ levelsBefore: s.levels, levels: v })),
+  setLevels: (v) => set((s) => ({ levelsBefore: s.levels, levels: laterView(s.levels, v) })),
   sendEvent(e) {
     if (get().siteKind !== "demo" || sent.has(e)) return;
     sent.add(e);
-    void api.levelEvent(e).then((v) => set((s) => ({ levelsBefore: s.levels, levels: v }))).catch(() => sent.delete(e));
+    void api.levelEvent(e).then((v) => get().setLevels(v)).catch(() => sent.delete(e));
   },
   async refresh() {
     try {

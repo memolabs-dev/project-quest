@@ -139,6 +139,41 @@ describe("practice gestures", () => {
     expect(await res.json()).toEqual({ error: "github-scope", hint: "gh auth refresh -s project" });
   });
 
+  it("logs a gesture that failed half-way, with what was already done", async () => {
+    const { app, deps } = make(null, { applyPractice: async () => ({ ok: false, reason: "github", message: "no project scope", applied: ["createRepository"] }) });
+    const prepared = await (await app.request("/api/practice/found/prepare", post({ visibility: "PUBLIC" }))).json();
+    const r = await (await app.request("/api/practice/found/apply", post(prepared))).json();
+    expect(r).toMatchObject({ ok: false, applied: ["createRepository"] });
+    expect((await deps.log.latest(1))[0]).toMatchObject({ gesture: "found", result: "failed" });
+  });
+
+  it("logs a gesture GitHub refused before anything was done", async () => {
+    const { app, deps } = make(null, { applyPractice: async () => { throw new GitHubScopeError("no project scope"); } });
+    const prepared = await (await app.request("/api/practice/found/prepare", post({ visibility: "PUBLIC" }))).json();
+    expect((await app.request("/api/practice/found/apply", post(prepared))).status).toBe(503);
+    expect((await deps.log.latest(1))[0]).toMatchObject({ gesture: "found", result: "failed" });
+  });
+
+  it("never sends from a page marked demo", async () => {
+    const { app, sent } = make(site());
+    const prepared = prepareIssue(site(), "FICTIF Paint the gate", "");
+    expect((await app.request("/api/practice/issue/apply?demo=1", post(prepared))).status).toBe(409);
+    expect(sent).toEqual([]);
+  });
+
+  it("answers a claim without its target with a refusal, not a crash", async () => {
+    const { app } = make(site());
+    const { repo: _, ...claim } = prepareIssue(site(), "FICTIF Paint the gate", "");
+    expect((await app.request("/api/practice/issue/apply", post(claim))).status).toBe(400);
+  });
+
+  it("moves only on the practice board it read, never another project with the same number", async () => {
+    const other: BoardSnapshot = { ...demo, projectId: "PVT_someone_else", items: [] };
+    const { app } = make(site(), { readBoardFor: async () => other });
+    const res = await app.request("/api/practice/moves/prepare", post({ itemId: "x", toZone: "Done" }));
+    expect(res.status).toBe(409);
+  });
+
   it("remembers the founded site's name", async () => {
     const { app, deps } = make(null);
     const prepared = await (await app.request("/api/practice/found/prepare", post({ visibility: "PRIVATE" }))).json();
@@ -149,7 +184,7 @@ describe("practice gestures", () => {
 
   it("serves the practice site, and says when it is not founded yet", async () => {
     expect((await make(null).app.request("/api/site?site=practice")).status).toBe(404);
-    const board: BoardSnapshot = { ...demo, items: [] };
+    const board: BoardSnapshot = { ...demo, projectId: "PVT_fictif", items: [] };
     const res = await make(site(), { readBoardFor: async () => board }).app.request("/api/site?site=practice");
     expect(res.status).toBe(200);
     expect(((await res.json()) as { site: { zones: { name: string }[] } }).site.zones.map((z) => z.name)).toEqual(["Todo", "In Progress", "Done"]);

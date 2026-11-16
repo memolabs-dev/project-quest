@@ -25,9 +25,14 @@ export function Mentor() {
   useEffect(() => {
     if (!last) return;
     const show = setTimeout(() => setCheer(last), 0);
-    const hide = setTimeout(() => setCheer(null), CHEER_MS);
-    return () => { clearTimeout(show); clearTimeout(hide); };
+    return () => clearTimeout(show);
   }, [last]);
+  // The cheer's own timer: a later update without a new stamp must not keep it on screen.
+  useEffect(() => {
+    if (!cheer) return;
+    const hide = setTimeout(() => setCheer(null), CHEER_MS);
+    return () => clearTimeout(hide);
+  }, [cheer]);
 
   if (!levels) return null;
   const action = mentorAction(levels, kind);

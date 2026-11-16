@@ -33,6 +33,10 @@ describe("prepareFound", () => {
     const p = prepareFound(viewer, site({ board: null }), "my-first-site", "PUBLIC");
     expect(p.mutations).toEqual([{ name: "createProjectV2", input: { ownerId: "U_fictif", title: "my-first-site", repositoryId: "R_fictif" } }]);
   });
+  it("never founds on a repository that is not the viewer's (renamed, moved)", () => {
+    const moved = site({ board: null, repo: { id: "R_moved", nameWithOwner: "fictif-org/elsewhere", url: "u" } });
+    expect(() => prepareFound(viewer, moved, "my-first-site", "PUBLIC")).toThrow(GestureError);
+  });
   it("founds nothing when the site is complete", () => {
     expect(() => prepareFound(viewer, site(), "my-first-site", "PUBLIC")).toThrow(GestureError);
   });

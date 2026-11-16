@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { APPRENTICE } from "../shared/levels/apprentice.ts";
-import { mentorAction, newStamps, siteKindFromUrl } from "./levels.ts";
+import { laterView, mentorAction, newStamps, siteKindFromUrl } from "./levels.ts";
 
 const ids = APPRENTICE.map((l) => l.id);
 const view = (stamped: number, exists = false): LevelsView => ({
@@ -40,6 +40,15 @@ describe("siteKindFromUrl", () => {
     expect(siteKindFromUrl("")).toBe("main");
     expect(siteKindFromUrl("?demo=1")).toBe("demo");
     expect(siteKindFromUrl("?site=practice")).toBe("practice");
+    expect(siteKindFromUrl("?demo=1&site=practice")).toBe("demo");
+  });
+});
+
+describe("laterView", () => {
+  it("keeps the view with more stamps, so a late answer never takes a level back", () => {
+    expect(laterView(view(2), view(1))).toEqual(view(2));
+    expect(laterView(view(1), view(2))).toEqual(view(2));
+    expect(laterView(null, view(1))).toEqual(view(1));
   });
 });
 

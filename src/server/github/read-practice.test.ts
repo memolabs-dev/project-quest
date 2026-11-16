@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { Gql } from "./client.ts";
-import { practiceConfig, readPractice } from "./read-practice.ts";
+import { PRACTICE_QUERY, practiceConfig, readPractice } from "./read-practice.ts";
 
 const fixture = JSON.parse(readFileSync(new URL("./__fixtures__/practice-response.json", import.meta.url), "utf8")) as {
   repository: { projectsV2: { nodes: unknown[] } };
@@ -32,6 +32,23 @@ describe("readPractice", () => {
   });
   it("returns null when the repository does not exist", async () => {
     expect(await readPractice(gqlReturning({ repository: null }), "fictif-volunteer", "my-first-site")).toBeNull();
+  });
+});
+
+describe("the practice board", () => {
+  it("is the viewer's own board, never a project of another owner linked to the repository", async () => {
+    const data = structuredClone(fixture) as { repository: { projectsV2: { nodes: unknown[] } } };
+    data.repository.projectsV2.nodes = [
+      { id: "PVT_org", number: 3, url: "https://github.com/orgs/fictif-org/projects/3", title: "my-first-site", owner: { login: "fictif-org" }, field: { options: [{ name: "Todo" }] } },
+      { id: "PVT_other", number: 4, url: "https://github.com/users/fictif-volunteer/projects/4", title: "Something else", owner: { login: "fictif-volunteer" }, field: { options: [{ name: "Todo" }] } },
+      { id: "PVT_mine", number: 5, url: "https://github.com/users/fictif-volunteer/projects/5", title: "my-first-site", owner: { login: "Fictif-Volunteer" }, field: { options: [{ name: "Todo" }] } },
+    ];
+    expect((await readPractice(gqlReturning(data), "fictif-volunteer", "my-first-site"))?.board?.id).toBe("PVT_mine");
+    data.repository.projectsV2.nodes = data.repository.projectsV2.nodes.slice(0, 1);
+    expect((await readPractice(gqlReturning(data), "fictif-volunteer", "my-first-site"))?.board).toBeNull();
+  });
+  it("reads the newest issues first, so a reused repository's old issues do not hide the new ones", () => {
+    expect(PRACTICE_QUERY).toMatch(/issues\(first: 50, orderBy: \{ field: CREATED_AT, direction: DESC \}/);
   });
 });
 

@@ -9,7 +9,23 @@
           "id": "PVT_fictif",
           "number": 3,
           "url": "https://github.com/users/fictif-volunteer/projects/3",
-          "field": { "options": [{ "name": "Todo" }, { "name": "In Progress" }, { "name": "Done" }] }
+          "field": {
+            "options": [
+              {
+                "name": "Todo"
+              },
+              {
+                "name": "In Progress"
+              },
+              {
+                "name": "Done"
+              }
+            ]
+          },
+          "title": "my-first-site",
+          "owner": {
+            "login": "fictif-volunteer"
+          }
         }
       ]
     },
@@ -20,13 +36,46 @@
           "number": 1,
           "url": "https://github.com/fictif-volunteer/my-first-site/issues/1",
           "closed": false,
-          "author": { "login": "fictif-volunteer" },
-          "assignees": { "nodes": [{ "login": "fictif-volunteer" }] },
-          "comments": { "nodes": [{ "author": { "login": "fictif-volunteer" }, "url": "https://github.com/fictif-volunteer/my-first-site/issues/1#issuecomment-1" }] },
+          "author": {
+            "login": "fictif-volunteer"
+          },
+          "assignees": {
+            "nodes": [
+              {
+                "login": "fictif-volunteer"
+              }
+            ]
+          },
+          "comments": {
+            "nodes": [
+              {
+                "author": {
+                  "login": "fictif-volunteer"
+                },
+                "url": "https://github.com/fictif-volunteer/my-first-site/issues/1#issuecomment-1"
+              }
+            ]
+          },
           "projectItems": {
             "nodes": [
-              { "project": { "number": 7 }, "status": { "name": "Elsewhere" } },
-              { "project": { "number": 3 }, "status": { "name": "In Progress" } }
+              {
+                "project": {
+                  "number": 7,
+                  "id": "PVT_elsewhere"
+                },
+                "status": {
+                  "name": "Elsewhere"
+                }
+              },
+              {
+                "project": {
+                  "number": 3,
+                  "id": "PVT_fictif"
+                },
+                "status": {
+                  "name": "In Progress"
+                }
+              }
             ]
           }
         },
@@ -36,9 +85,28 @@
           "url": "https://github.com/fictif-volunteer/my-first-site/issues/2",
           "closed": true,
           "author": null,
-          "assignees": { "nodes": [] },
-          "comments": { "nodes": [{ "author": null, "url": "https://github.com/fictif-volunteer/my-first-site/issues/2#issuecomment-2" }] },
-          "projectItems": { "nodes": [{ "project": { "number": 3 }, "status": null }] }
+          "assignees": {
+            "nodes": []
+          },
+          "comments": {
+            "nodes": [
+              {
+                "author": null,
+                "url": "https://github.com/fictif-volunteer/my-first-site/issues/2#issuecomment-2"
+              }
+            ]
+          },
+          "projectItems": {
+            "nodes": [
+              {
+                "project": {
+                  "number": 3,
+                  "id": "PVT_fictif"
+                },
+                "status": null
+              }
+            ]
+          }
         }
       ]
     }

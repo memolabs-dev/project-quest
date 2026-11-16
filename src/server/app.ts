@@ -30,10 +30,13 @@ const preparedBody = z.object({
   expectedUpdatedAt: z.string(),
   mutation: z.object({ name: z.literal("updateProjectV2ItemFieldValue"), input: z.record(z.string(), z.unknown()) }),
 });
-const practiceClaim = z.looseObject({
-  kind: z.enum(["found", "issue", "take"]),
-  mutations: z.array(z.object({ name: z.string(), input: z.record(z.string(), z.unknown()) })),
-});
+const mutations = z.array(z.object({ name: z.string(), input: z.record(z.string(), z.unknown()) }));
+/** The shape of each claim; its content is then checked against the server's own rebuild. */
+const practiceClaim = z.discriminatedUnion("kind", [
+  z.looseObject({ kind: z.literal("found"), owner: z.string(), name: z.string(), visibility: z.enum(["PUBLIC", "PRIVATE"]), mutations }),
+  z.looseObject({ kind: z.literal("issue"), repo: z.string(), title: z.string(), body: z.string(), mutations }),
+  z.looseObject({ kind: z.literal("take"), repo: z.string(), issueNumber: z.number(), comment: z.string(), mutations }),
+]);
 
 const NOT_YOURS = "Levels write only to your own practice site: nothing was sent";
 
@@ -89,8 +92,17 @@ async function practiceBoard(deps: Deps) {
   const { login, name, practice } = await practiceContext(deps);
   if (!practice?.board) return null;
   const config = practiceConfig(login, name, practice.board.number, practice.board.columns);
-  return { config, read: () => deps.readBoardFor(config) };
+  const boardId = practice.board.id;
+  // The board is read by number under the viewer's account: refuse it unless it is the very board linked to the site.
+  const read = async () => {
+    const snapshot = await deps.readBoardFor(config);
+    if (snapshot.projectId !== boardId) throw new PracticeBoardMismatch("This board is not your practice site's board: nothing was sent");
+    return snapshot;
+  };
+  return { config, read };
 }
+
+class PracticeBoardMismatch extends Error {}
 
 const PRACTICE_MISSING = { error: "practice-missing" as const, message: "Your practice site is not founded yet" };
 
@@ -105,6 +117,7 @@ export function createApp(live: Deps, demo?: Deps) {
       if (err instanceof GitHubScopeError) return c.json({ error: "github-scope", hint: "gh auth refresh -s project" }, 503);
       if (err instanceof BoardNotFoundError || err instanceof SiteError) return c.json({ error: "board", message: err.message }, 502);
       if (err instanceof GestureError) return c.json({ error: "gesture", message: err.message }, 400);
+      if (err instanceof PracticeBoardMismatch) return c.json({ error: "gesture", message: err.message }, 409);
       console.error(err);
       return c.json({ error: "server", message: "Something went wrong on the server" }, 500);
     })
@@ -164,6 +177,8 @@ export function createApp(live: Deps, demo?: Deps) {
     })
     .post("/api/practice/:kind/apply", zValidator("json", practiceClaim), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedPractice;
+      // A page marked demo never sends, even on a server that could.
+      if (c.req.query("demo")) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       if (claim.kind !== c.req.param("kind")) return c.json({ error: "gesture" as const, message: NOT_YOURS }, 409);
       const { login, name, practice } = await practiceContext(live);
       // The guard: whatever the client claims, a level writes only to the viewer's own practice repository.
@@ -178,11 +193,15 @@ export function createApp(live: Deps, demo?: Deps) {
       if (!isDeepStrictEqual(rebuilt, claim)) {
         return c.json({ error: "gesture" as const, message: "This gesture does not match your site: nothing was sent" }, 409);
       }
-      const result = await live.applyPractice(rebuilt);
-      await record(live, {
-        playerLogin: login, gesture: rebuilt.kind, target, payload: rebuilt.mutations,
-        result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result,
-      });
+      const entry = { playerLogin: login, gesture: rebuilt.kind, target, payload: rebuilt.mutations };
+      let result: Awaited<ReturnType<Deps["applyPractice"]>>;
+      try {
+        result = await live.applyPractice(rebuilt);
+      } catch (e) {
+        await record(live, { ...entry, result: "failed", githubResponse: { message: e instanceof Error ? e.message : String(e) } });
+        throw e;
+      }
+      await record(live, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
       if (!result.ok) return c.json(result);
       if (rebuilt.kind === "found") await live.progress.setPracticeRepo(login, name);
       return c.json({ ok: true as const, levels: await levels() });

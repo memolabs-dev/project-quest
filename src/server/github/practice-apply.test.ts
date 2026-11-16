@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { prepareFound, prepareIssue } from "../../shared/gestures/practice.ts";
 import type { PracticeSnapshot } from "../../shared/levels/types.ts";
 import type { Gql } from "./client.ts";
-import { BoardNotFoundError } from "./errors.ts";
+import { BoardNotFoundError, GitHubScopeError } from "./errors.ts";
 import { applyPractice } from "./practice-apply.ts";
 import { readPractice } from "./read-practice.ts";
 
@@ -45,6 +45,19 @@ describe("applyPractice", () => {
     const r = await applyPractice(gql, prepareFound(viewer, null, "my-first-site", "PUBLIC"));
     expect(r).toEqual({ ok: false, reason: "github", message: "GitHub said no", applied: ["createRepository"] });
     expect(calls).toHaveLength(2);
+  });
+});
+
+describe("a failure after a first write", () => {
+  it("never hides what was already done, whatever GitHub throws", async () => {
+    let n = 0;
+    const gql = (async (query: string) => {
+      n += 1;
+      if (n === 2) throw new GitHubScopeError("no project scope");
+      return query.includes("createRepository") ? { createRepository: { repository: { id: "R_new" } } } : {};
+    }) as Gql;
+    const r = await applyPractice(gql, prepareFound(viewer, null, "my-first-site", "PUBLIC"));
+    expect(r).toMatchObject({ ok: false, applied: ["createRepository"] });
   });
 });
 

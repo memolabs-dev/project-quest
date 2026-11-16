@@ -30,8 +30,9 @@ export async function applyPractice(gql: Gql, prepared: PreparedPractice): Promi
     try {
       res = await gql(`mutation($input: ${inputType}!) { ${m.name}(input: $input) { ${returns} } }`, { input: fill(m.input, ids) });
     } catch (e) {
-      // Access errors (login, scope) are the server's to explain; GitHub refusing the content is the player's.
-      if (!(e as { errors?: unknown }).errors) throw e;
+      // Before any write, access errors (login, scope) are the server's to explain. After one, whatever went
+      // wrong, the player is told what was already done on GitHub.
+      if (applied.length === 0 && !(e as { errors?: unknown }).errors) throw e;
       return { ok: false, reason: "github", message: githubMessage(e), applied };
     }
     applied.push(m.name);
