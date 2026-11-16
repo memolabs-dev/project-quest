@@ -10,7 +10,7 @@ const io = async () => {
   await MeshoptDecoder.ready;
   return new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ "meshopt.decoder": MeshoptDecoder });
 };
-export const KIT_NODES = ["pallet", "floor_module", "zone_sign", "crane", "fence", "site_office", "worker"] as const;
+export const KIT_NODES = ["pallet", "floor_module", "scaffold_module", "roof", "zone_sign", "crane", "fence", "site_office", "worker"] as const;
 
 describe("site kit", () => {
   it("is a small GLB", () => {

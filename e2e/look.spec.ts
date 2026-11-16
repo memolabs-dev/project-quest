@@ -7,7 +7,7 @@ const ready = async (page: Page) => {
   await page.goto("/");
   await expect(page.locator(".sign-label").first()).toBeVisible();
   await page.keyboard.press("Escape"); // skips the arrival fly-over when there is one
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(4000);
 };
 const walk = async (page: Page, key: string, ms: number) => {
   await page.keyboard.down(key);

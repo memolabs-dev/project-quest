@@ -13,7 +13,7 @@
 }
 .building-label {
   display: grid; gap: 1px; text-align: center; background: var(--paper); border: var(--line);
-  border-radius: var(--radius); box-shadow: var(--shadow); padding: 6px 12px; min-width: 120px; max-width: 220px;
+  border-radius: var(--radius); border-top-width: 6px; box-shadow: var(--shadow); padding: 6px 12px; min-width: 120px; max-width: 220px;
   pointer-events: none;
 }
 .building-label b { font-size: 15px; line-height: 1.2; overflow-wrap: anywhere; }

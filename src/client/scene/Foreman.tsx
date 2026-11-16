@@ -27,11 +27,13 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
   }, [scene]);
 
   const play = (clip: Clip) => {
-    if (current.current === clip) return;
     const next = actions[clip];
     if (!next) return;
+    // useAnimations stops every action when its effect re-runs (StrictMode does that once at mount),
+    // so a clip we started can be stopped behind our back: replay it whenever it is not running.
+    if (current.current === clip && next.isRunning()) return;
     next.reset().fadeIn(FADE).play();
-    if (current.current) actions[current.current]?.fadeOut(FADE);
+    if (current.current && current.current !== clip) actions[current.current]?.fadeOut(FADE);
     current.current = clip;
   };
 

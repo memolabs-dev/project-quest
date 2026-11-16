@@ -102,6 +102,33 @@ def floor_module():
     return join(parts, "floor_module")
 
 
+def scaffold_module():
+    """One storey of scaffolding around a 3 x 3 floor: poles, rails and planks."""
+    parts = []
+    for x in (-1.65, 1.65):
+        for y in (-1.65, 1.65):
+            parts.append(cylinder(0.05, 1.0, (x, y, 0.5), "steel", vertices=8))
+    for x in (-1.65, 1.65):
+        parts.append(block((0.06, 3.3, 0.06), (x, 0, 0.95), "steel", 0))
+    for y in (-1.65, 1.65):
+        parts.append(block((3.3, 0.06, 0.06), (0, y, 0.95), "steel", 0))
+    parts.append(block((3.3, 0.5, 0.05), (0, -1.65, 0.05), "wood", 0.01))
+    parts.append(block((3.3, 0.5, 0.05), (0, 1.65, 0.05), "wood", 0.01))
+    return join(parts, "scaffold_module")
+
+
+def roof():
+    """A pitched roof that crowns a finished building."""
+    bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=2.45, depth=1.1, location=(0, 0, 0.55), rotation=(0, 0, math.pi / 4))
+    cap = bpy.context.active_object
+    cap.data.materials.append(material("roof"))
+    mod = cap.modifiers.new("bevel", "BEVEL")
+    mod.width = 0.04
+    mod.segments = 2
+    chimney = block((0.35, 0.35, 0.7), (0.8, 0.5, 0.75), "wall", 0.03)
+    return join([cap, chimney], "roof")
+
+
 def zone_sign():
     parts = [cylinder(0.05, 1.6, (0, 0, 0.8), "post"), block((1.4, 0.08, 0.5), (0, 0, 1.55), "sign", 0.03)]
     parts.append(block((1.46, 0.06, 0.08), (0, 0, 1.28), "fence", 0.01))
@@ -151,7 +178,7 @@ def worker():
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.context.scene.cursor.location = (0, 0, 0)
-pieces = [pallet(), floor_module(), zone_sign(), crane(), fence(), site_office(), worker()]
+pieces = [pallet(), floor_module(), scaffold_module(), roof(), zone_sign(), crane(), fence(), site_office(), worker()]
 # Every piece stays at the origin: the game places them, and the node transforms written by the
 # compression step (meshopt quantization) then only carry the dequantization.
 bpy.ops.object.select_all(action="SELECT")
