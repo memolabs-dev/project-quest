@@ -6,12 +6,12 @@ const level = (id: string) => APPRENTICE.find((l) => l.id === id)!;
 const VIEWER = "fictif-volunteer";
 
 const issue = (o: Partial<PracticeIssue> = {}): PracticeIssue => ({
-  number: 1, url: "https://github.com/fictif-volunteer/my-first-site/issues/1", author: VIEWER,
+  id: "I_fictif_1", number: 1, url: "https://github.com/fictif-volunteer/my-first-site/issues/1", author: VIEWER,
   assignees: [], comments: [], status: "Todo", closed: false, ...o,
 });
 const snapshot = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
-  repo: { nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" },
-  board: { number: 1, url: "https://github.com/users/fictif-volunteer/projects/1", columns: ["Todo", "In Progress", "Done"] },
+  repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" },
+  board: { id: "PVT_fictif", number: 1, url: "https://github.com/users/fictif-volunteer/projects/1", columns: ["Todo", "In Progress", "Done"] },
   issues: [], ...o,
 });
 const seen = (o: Partial<Observed> = {}): Observed => ({ viewer: VIEWER, events: [], practice: null, ...o });
@@ -86,7 +86,7 @@ describe("a6-take-issue", () => {
 describe("a7-move-issue", () => {
   const moved = (status: string | null, columns = ["Todo", "In Progress", "Done"]) =>
     level("a7-move-issue").check(seen({ practice: snapshot({
-      board: { number: 1, url: "b", columns },
+      board: { id: "PVT_fictif", number: 1, url: "b", columns },
       issues: [issue({ assignees: [VIEWER], status })],
     }) })).done;
   it("passes when the viewer's issue has left the first column", () => {

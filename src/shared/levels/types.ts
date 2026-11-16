@@ -8,6 +8,7 @@ export const TUTORIAL_EVENTS = ["walked", "card-opened", "card-read", "pallet-mo
 export type TutorialEvent = (typeof TUTORIAL_EVENTS)[number];
 
 export interface PracticeIssue {
+  id: string;
   number: number;
   url: string;
   author: string;
@@ -20,8 +21,8 @@ export interface PracticeIssue {
 
 /** The player's practice repository as read on GitHub. */
 export interface PracticeSnapshot {
-  repo: { nameWithOwner: string; url: string };
-  board: { number: number; url: string; columns: string[] } | null;
+  repo: { id: string; nameWithOwner: string; url: string };
+  board: { id: string; number: number; url: string; columns: string[] } | null;
   issues: PracticeIssue[];
 }
 
