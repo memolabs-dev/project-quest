@@ -1,0 +1,14 @@
+# Postgres for the game's own state (players, action log). GitHub keeps the project.
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: quest
+      POSTGRES_PASSWORD: quest
+      POSTGRES_DB: quest
+    ports:
+      - "${DB_PORT:-5442}:5432"
+    volumes:
+      - quest-db:/var/lib/postgresql
+volumes:
+  quest-db:

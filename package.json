@@ -11,7 +11,10 @@
     "test": "vitest run",
     "api:download": "curl -sSfL -o docs/github-api/schema.docs.graphql https://docs.github.com/public/fpt/schema.docs.graphql && curl -sSfL -o docs/github-api/rest-api.json https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json",
     "api:inventory": "tsx scripts/api-inventory.ts",
-    "api:coverage": "tsx scripts/api-coverage-report.ts"
+    "api:coverage": "tsx scripts/api-coverage-report.ts",
+    "db:up": "docker compose up -d db",
+    "db:migrate": "drizzle-kit migrate",
+    "test:db": "DATABASE_URL=${DATABASE_URL:-postgres://quest:quest@localhost:5442/quest} vitest run src/server/db"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.8",
@@ -19,9 +22,11 @@
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@react-three/rapier": "^2.2.0",
+    "drizzle-orm": "^0.45.4",
     "ecctrl": "^2.0.2",
     "hono": "^4.13.19",
     "leva": "^0.10.1",
+    "postgres": "^4.1.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "three": "^0.187.0",
@@ -34,6 +39,7 @@
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.187.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "drizzle-kit": "^0.31.11",
     "graphql": "^17.1.0",
     "oxlint": "^1.90.0",
     "tsx": "^4.23.15",
