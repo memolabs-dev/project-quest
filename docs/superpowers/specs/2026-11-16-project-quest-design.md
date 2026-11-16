@@ -21,6 +21,7 @@ Success means: a lead prefers the game to the GitHub board for their daily round
 2. **Every write is shown, then confirmed.** Before a GitHub mutation, the game shows exactly what will be sent: the issue, the change, the full text. Nothing leaves without the player's click. Every write is logged.
 3. **No pressure on contributors.** Only the lead scores. Contributors are never ranked. The game never assigns someone who did not ask for the issue ("je prends", "I'll take it").
 4. **Nothing is forgotten in the API.** Every GitHub API operation has a written decision (`src/github/api-coverage.ts`, enforced by a test).
+8. **Everything GitHub offers, in the game (owner's goal, 2026-11-16).** A project can be created from A to Z inside the game (repository, board, columns and fields, labels, milestones, epics and issues, then reviews, releases and closing), and every GitHub action that serves a project becomes reachable as a gesture. The API coverage file is the map of that goal: operations now marked "out" as board setup or repository administration move to planned gestures, slice by slice.
 5. **Bilingual from day one.** English and French for every word in the game and in the docs.
 6. **Legal assets only.** Everything committed is CC0 or made by us, so the repository can be redistributed.
 7. **Big vision, small slices.** Each slice ships something beautiful and complete; no grey prototype promised to become pretty later.
@@ -186,9 +187,14 @@ The owner's requirements (2026-11-16): the player chooses which project to play,
 - **A setup helper**: reads a board's fields and columns and proposes a configuration to confirm, so adapting the game to a new project takes minutes.
 - **Test stages**: the fictitious sandbox first; then a copy of the SOS MEDITERRANEE project (kept outside this public repository); the real SOS MEDITERRANEE project only once the game is validated.
 
+## 15c. Founding the site
+
+Creating a project from scratch inside the game: the player founds a site (a repository and its board), lays out its zones (the board's columns and fields), stocks its materials (labels), sets the mayor's visits (milestones), raises the first buildings (epics) and orders the first pallets (issues). Each step is a confirmed GitHub write, like every other gesture. The sandbox is the first site founded this way.
+
 ## 16. Out of scope for now
 
 - Unity, Unreal and the Blender MCP server.
+- Nothing GitHub offers for a project is out for good: what is not in a slice yet is planned (see 2.8 and the API coverage).
 - Line-by-line code review and merging inside the game (GitHub's own page does it; see the API coverage).
 - Testing on any real organisation's board (SOS MEDITERRANEE, Data for Good, the Rescue Atlas lab): only the fictitious sandbox.
 - Any ranking of contributors.
