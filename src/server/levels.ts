@@ -1,7 +1,7 @@
 // Where the viewer stands in the levels: the server observes (tutorial events, the practice site on GitHub),
 // the levels' checks decide, and each passing level is stamped with its proof. Never another player's progress.
 import type { LevelsView } from "../shared/api.ts";
-import { APPRENTICE } from "../shared/levels/apprentice.ts";
+import { LEVELS } from "../shared/levels/index.ts";
 import { currentLevel, rankReached, unlocks } from "../shared/levels/progress.ts";
 import type { Observed, PracticeSnapshot } from "../shared/levels/types.ts";
 import type { Deps } from "./deps.ts";
@@ -20,7 +20,7 @@ export async function observe(deps: Deps, login: string): Promise<Observed> {
 export async function checkLevels(deps: Deps, login: string, seen?: Observed): Promise<LevelsView> {
   const o = seen ?? (await observe(deps, login));
   const stamped = new Set((await deps.progress.stamps(login)).map((s) => s.levelId));
-  for (const level of APPRENTICE) {
+  for (const level of LEVELS) {
     if (stamped.has(level.id)) continue;
     const c = level.check(o);
     if (!c.done || !c.proof) break;
@@ -37,8 +37,8 @@ async function view(deps: Deps, login: string, practice: PracticeSnapshot | null
     login,
     canWrite: deps.mode === "live",
     stamps,
-    current: currentLevel(APPRENTICE, done)?.id ?? null,
-    rank: rankReached(APPRENTICE, done),
+    current: currentLevel(LEVELS, done)?.id ?? null,
+    rank: rankReached(LEVELS, done),
     unlocks: unlocks(done),
     practice: { name: await practiceNameOf(deps, login), exists: practice !== null },
   };

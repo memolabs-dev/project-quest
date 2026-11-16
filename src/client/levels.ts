@@ -1,6 +1,6 @@
 // What the mentor offers next, decided from the levels and the site being played. Pure.
 import type { LevelsView } from "../shared/api.ts";
-import { APPRENTICE } from "../shared/levels/apprentice.ts";
+import { LEVELS } from "../shared/levels/index.ts";
 
 /** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site. */
 export type SiteKind = "main" | "demo" | "practice";
@@ -16,7 +16,7 @@ export function siteKindFromUrl(search: string): SiteKind {
 const GESTURES: Record<string, MentorAction> = { "a4-found-site": "found", "a5-write-issue": "write", "a6-take-issue": "take", "a7-move-issue": "move" };
 
 export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | null {
-  const level = APPRENTICE.find((l) => l.id === view.current);
+  const level = LEVELS.find((l) => l.id === view.current);
   if (!level) return null;
   if (level.where === "tutorial") return kind === "demo" ? null : "to-tutorial";
   if (kind !== "practice") return "to-practice";

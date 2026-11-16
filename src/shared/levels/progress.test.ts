@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { APPRENTICE } from "./apprentice.ts";
+import { LEVELS } from "./index.ts";
 import { currentLevel, rankReached, unlocks } from "./progress.ts";
 
 const ids = APPRENTICE.map((l) => l.id);
@@ -15,8 +16,19 @@ describe("progress", () => {
     expect(rankReached(APPRENTICE, new Set(ids))).toBe("apprentice");
   });
   it("unlocks the helmet and the skill book after the first level, the own site after founding", () => {
-    expect(unlocks(new Set())).toEqual({ helmet: false, skillBook: false, ownSite: false });
-    expect(unlocks(new Set(["a1-walk"]))).toEqual({ helmet: true, skillBook: true, ownSite: false });
-    expect(unlocks(new Set(ids.slice(0, 4)))).toEqual({ helmet: true, skillBook: true, ownSite: true });
+    expect(unlocks(new Set())).toMatchObject({ helmet: false, skillBook: false, ownSite: false });
+    expect(unlocks(new Set(["a1-walk"]))).toMatchObject({ helmet: true, skillBook: true, ownSite: false });
+    expect(unlocks(new Set(ids.slice(0, 4)))).toMatchObject({ helmet: true, skillBook: true, ownSite: true });
+  });
+  it("the trowel comes with the Apprentice rank, the first building with the merge", () => {
+    expect(unlocks(new Set(ids.slice(0, 6)))).toMatchObject({ trowel: false, firstBuilding: false });
+    expect(unlocks(new Set(ids))).toMatchObject({ trowel: true, firstBuilding: false });
+    expect(unlocks(new Set([...ids, "a8-edit-file", "a9-open-pull", "a10-answer-review", "a11-merge"]))).toMatchObject({ trowel: true, firstBuilding: true });
+  });
+  it("reaches the Journeyman rank after the Apprentice one", () => {
+    const all = LEVELS.map((l) => l.id);
+    expect(rankReached(LEVELS, new Set(ids))).toBe("apprentice");
+    expect(rankReached(LEVELS, new Set(all))).toBe("journeyman");
+    expect(currentLevel(LEVELS, new Set(ids))?.id).toBe("a8-edit-file");
   });
 });

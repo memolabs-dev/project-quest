@@ -54,7 +54,7 @@ describe("levels", () => {
     const v = await view(await app.request("/api/levels/check", post({})));
     expect(v.stamps.map((s) => s.levelId)).toEqual(["a1-walk"]);
     expect(v.current).toBe("a2-read-issue");
-    expect(v.unlocks).toEqual({ helmet: true, skillBook: true, ownSite: false });
+    expect(v.unlocks).toEqual({ helmet: true, skillBook: true, ownSite: false, trowel: false, firstBuilding: false });
     expect(v.practice).toEqual({ name: "my-first-site", exists: false });
   });
 

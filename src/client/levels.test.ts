@@ -9,7 +9,7 @@ const view = (stamped: number, exists = false): LevelsView => ({
   stamps: ids.slice(0, stamped).map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
   current: ids[stamped] ?? null,
   rank: stamped === ids.length ? "apprentice" : null,
-  unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3 },
+  unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3, trowel: stamped > 6, firstBuilding: stamped > 10 },
   practice: { name: "my-first-site", exists },
 });
 
