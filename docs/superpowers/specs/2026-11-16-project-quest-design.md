@@ -167,7 +167,7 @@ One package, three folders:
 
 ## 15. Slices
 
-1. **MEM-87, first playable slice**: walk the site of the test board, see buildings and pallets, open a pallet card, move a pallet to another column for real, through the confirmation, with the action log. English and French. Demo site.
+1. **First playable slice (#1)**: walk the site of the test board, see buildings and pallets, open a pallet card, move a pallet to another column for real, through the confirmation, with the action log. English and French. Demo site.
 2. Morning radio and quests of the day; evening recap and bulletin.
 3. The rest of the v1 gestures, one at a time.
 4. Progression, lessons, chapters, trophies.
@@ -175,7 +175,7 @@ One package, three folders:
 6. v2: contributors sign in and play.
 7. v3: live site.
 
-Each slice is a Linear issue in project `project-quest`, created when the previous one ships.
+Each slice is an issue of this repository on the public board https://github.com/orgs/memolabs-dev/projects/9, created when the previous one ships.
 
 ## 16. Out of scope for now
 
