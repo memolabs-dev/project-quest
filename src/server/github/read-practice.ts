@@ -3,6 +3,7 @@
 import type { QuestConfig } from "../../shared/config.ts";
 import type { PracticeSnapshot } from "../../shared/levels/types.ts";
 import type { Gql } from "./client.ts";
+import { BoardNotFoundError } from "./errors.ts";
 
 export const PRACTICE_QUERY = /* GraphQL */ `
   query Practice($owner: String!, $name: String!) {
@@ -46,7 +47,14 @@ interface PracticeResponse {
 const login = (a: { login: string } | null) => a?.login ?? "ghost";
 
 export async function readPractice(gql: Gql, owner: string, name: string): Promise<PracticeSnapshot | null> {
-  const { repository: r } = await gql<PracticeResponse>(PRACTICE_QUERY, { owner, name });
+  let r: PracticeResponse["repository"];
+  try {
+    ({ repository: r } = await gql<PracticeResponse>(PRACTICE_QUERY, { owner, name }));
+  } catch (e) {
+    // GitHub answers a repository that does not exist with NOT_FOUND: the site is not founded yet.
+    if (e instanceof BoardNotFoundError) return null;
+    throw e;
+  }
   if (!r) return null;
   const p = r.projectsV2.nodes[0];
   const board = p ? { id: p.id, number: p.number, url: p.url, columns: (p.field?.options ?? []).map((o) => o.name) } : null;

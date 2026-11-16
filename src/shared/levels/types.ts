@@ -32,6 +32,9 @@ export interface Observed {
   practice: PracticeSnapshot | null;
 }
 
+/** A level passed, with its proof. */
+export interface Stamp { levelId: string; stampedAt: string; proof: string }
+
 /** proof: a GitHub address showing the skill, or "tutorial" for the fictitious site. */
 export interface Check { done: boolean; proof: string | null }
 

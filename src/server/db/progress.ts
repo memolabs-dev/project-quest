@@ -3,10 +3,10 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import type { TutorialEvent } from "../../shared/levels/types.ts";
+import type { Stamp, TutorialEvent } from "../../shared/levels/types.ts";
 import { players, progress, tutorialEvents } from "./schema.ts";
 
-export interface Stamp { levelId: string; stampedAt: string; proof: string }
+export type { Stamp };
 
 export interface ProgressStore {
   stamps(login: string): Promise<Stamp[]>;

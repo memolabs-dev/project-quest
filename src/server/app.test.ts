@@ -5,6 +5,7 @@ import { prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { createApp } from "./app.ts";
 import { memoryActionLog } from "./db/log.ts";
+import { memoryProgress } from "./db/progress.ts";
 import type { Deps } from "./deps.ts";
 import { GitHubAuthError } from "./github/client.ts";
 import type { ApplyResult } from "./github/move-item.ts";
@@ -19,8 +20,15 @@ const deps = (apply: (p: PreparedMove) => Promise<ApplyResult>, extra: Partial<D
   config,
   readBoard: async () => demo,
   applyMove: apply,
+  readBoardFor: async () => demo,
+  applyMoveFor: (_config, p) => apply(p),
   log: memoryActionLog(),
   viewer: async () => ({ login: "fictif-lead", avatarUrl: "https://example.org/a.png" }),
+  viewerId: async () => "U_fictif_lead",
+  progress: memoryProgress(),
+  practiceName: "my-first-site",
+  readPractice: async () => null,
+  applyPractice: async () => ({ ok: true }),
   ...extra,
 });
 const post = (body: unknown) => ({ method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json" } });

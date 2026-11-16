@@ -26,6 +26,12 @@ describe("GitHub API coverage", () => {
     expect(Object.keys(CATEGORY_DECISIONS).filter((c) => !categories.has(c))).toEqual([]);
   });
 
+  it("makes founding the practice site a gesture (levels, Apprentice rank)", () => {
+    for (const id of ["graphql.mutation.createRepository", "graphql.mutation.createProjectV2"]) {
+      expect(OPERATIONS[id]?.kind, id).toBe("gesture");
+    }
+  });
+
   it("gives every decision a reason or a gesture", () => {
     const decisions: Decision[] = [...Object.values(OPERATIONS), ...Object.values(CATEGORY_DECISIONS)];
     for (const d of decisions) {

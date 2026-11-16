@@ -2,11 +2,16 @@
 import { readFileSync } from "node:fs";
 import { loadConfig, type QuestConfig } from "../shared/config.ts";
 import type { PreparedMove } from "../shared/gestures/move.ts";
+import type { PreparedPractice } from "../shared/gestures/practice.ts";
+import type { PracticeSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
-import { githubGql, githubToken, type Gql } from "./github/client.ts";
+import { memoryProgress, pgProgress, type ProgressStore } from "./db/progress.ts";
+import { GitHubAuthError, githubGql, githubToken, type Gql } from "./github/client.ts";
 import { applyMove, type ApplyResult } from "./github/move-item.ts";
+import { applyPractice, type PracticeResult } from "./github/practice-apply.ts";
 import { readBoard } from "./github/read-board.ts";
+import { readPractice } from "./github/read-practice.ts";
 
 export interface Deps {
   mode: "live" | "demo";
@@ -15,9 +20,20 @@ export interface Deps {
   config: QuestConfig;
   readBoard(): Promise<BoardSnapshot>;
   applyMove(p: PreparedMove): Promise<ApplyResult>;
+  /** The same, for another board (the player's practice site). */
+  readBoardFor(config: QuestConfig): Promise<BoardSnapshot>;
+  applyMoveFor(config: QuestConfig, p: PreparedMove): Promise<ApplyResult>;
   log: ActionLog;
   viewer(): Promise<{ login: string; avatarUrl: string }>;
+  viewerId(): Promise<string>;
+  progress: ProgressStore;
+  /** The practice repository's default name (QUEST_PRACTICE_REPO, else my-first-site). */
+  practiceName: string;
+  readPractice(owner: string, name: string): Promise<PracticeSnapshot | null>;
+  applyPractice(p: PreparedPractice): Promise<PracticeResult>;
 }
+
+const PRACTICE_NAME = process.env.QUEST_PRACTICE_REPO || "my-first-site";
 
 const root = new URL("../../", import.meta.url);
 const json = (path: string) => JSON.parse(readFileSync(new URL(path, root), "utf8")) as unknown;
@@ -32,14 +48,22 @@ export function liveDeps(config: QuestConfig): Deps {
     config,
     readBoard: async () => readBoard(await client(), config),
     applyMove: async (p) => applyMove(await client(), config, p),
+    readBoardFor: async (c) => readBoard(await client(), c),
+    applyMoveFor: async (c, p) => applyMove(await client(), c, p),
     log: url ? pgActionLog(url) : memoryActionLog(),
     viewer: async () =>
       (await (await client())<{ viewer: { login: string; avatarUrl: string } }>("query { viewer { login avatarUrl } }", {})).viewer,
+    viewerId: async () => (await (await client())<{ viewer: { id: string } }>("query { viewer { id } }", {})).viewer.id,
+    progress: url ? pgProgress(url) : memoryProgress(),
+    practiceName: PRACTICE_NAME,
+    readPractice: async (owner, name) => readPractice(await client(), owner, name),
+    applyPractice: async (p) => applyPractice(await client(), p),
   };
 }
 
 export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps {
   const board = structuredClone(json("src/shared/demo/demo-board.json")) as BoardSnapshot;
+  const noGitHub = async (): Promise<never> => { throw new GitHubAuthError("The demo site has no GitHub access: run `gh auth login`"); };
   return {
     mode: "demo",
     demoReason: reason,
@@ -54,8 +78,16 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
       item.updatedAt = new Date().toISOString();
       return { ok: true as const, board };
     },
+    readBoardFor: noGitHub,
+    applyMoveFor: noGitHub,
     log: memoryActionLog(),
     viewer: async () => ({ login: "you", avatarUrl: "" }),
+    viewerId: noGitHub,
+    progress: memoryProgress(),
+    practiceName: PRACTICE_NAME,
+    // Without GitHub there is no practice site to read: the tutorial still plays.
+    readPractice: async () => null,
+    applyPractice: noGitHub,
   };
 }
 

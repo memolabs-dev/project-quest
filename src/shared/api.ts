@@ -1,5 +1,8 @@
 // The shapes the API sends and the game reads. Shared so both sides agree at compile time.
 import type { PreparedMove } from "./gestures/move.ts";
+import type { PreparedPractice } from "./gestures/practice.ts";
+import type { unlocks } from "./levels/progress.ts";
+import type { Rank, Stamp } from "./levels/types.ts";
 import type { Site } from "./site.ts";
 
 export interface SiteResponse {
@@ -24,6 +27,22 @@ export interface LoggedActionView {
   createdAt: string;
 }
 
-export type ApiError = { error: "github-auth" | "github-scope"; hint: string } | { error: "board" | "gesture" | "server"; message: string };
+export type ApiError =
+  | { error: "github-auth" | "github-scope"; hint: string }
+  | { error: "board" | "gesture" | "server" | "practice-missing"; message: string };
 
-export type { PreparedMove };
+/** Where the player stands in the levels. Only ever the viewer's own. */
+export interface LevelsView {
+  stamps: Stamp[];
+  /** The next level to play, null when every level is stamped. */
+  current: string | null;
+  rank: Rank | null;
+  unlocks: ReturnType<typeof unlocks>;
+  practice: { name: string; exists: boolean };
+}
+
+export type PracticeApplyResponse =
+  | { ok: true; levels: LevelsView }
+  | { ok: false; reason: "github"; message: string; applied: string[] };
+
+export type { PreparedMove, PreparedPractice };
