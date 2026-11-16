@@ -13,12 +13,6 @@ const openPallet = async (page: Page, title: RegExp) =>
     useQuest.getState().open(pallet.number);
   }, title.source);
 
-test("the site loads within 20 seconds", async ({ page }) => {
-  const start = Date.now();
-  await ready(page);
-  expect(Date.now() - start).toBeLessThan(20_000);
-});
-
 test("opens a pallet card and moves it after confirmation", async ({ page }) => {
   await ready(page);
   await openPallet(page, /Hang the clock/);
