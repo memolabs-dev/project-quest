@@ -23,6 +23,10 @@ The backlog of this project lives in Linear: project `project-quest` (P-MEM-9) i
 - `npm run build`: type check and build
 - `npx oxlint`: lint
 
+## GitHub API
+
+Every GitHub API operation (GraphQL mutations and root queries, REST endpoints, webhook events: 1873 on 2026-11-16) is listed in `docs/github-api/inventory.json` and decided in `src/github/api-coverage.ts`: a gesture, a read, later, or out with its reason. `npm test` fails if one is missing. To refresh: `npm run api:download && npm run api:inventory && npm run api:coverage`, then decide the new operations. Readable summary: `docs/github-api/COVERAGE.md`.
+
 ## Rules
 
 - **Test board only**: develop against `memolabs-dev` project 6 ("Rescue Atlas, le lab", private) and its repository `memolabs-dev/rescue-atlas-lab`. Never point the game at `dataforgoodfr` (project 44, the public SOS MEDITERRANEE repo) until the owner validates version 1.
