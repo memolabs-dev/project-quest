@@ -1,0 +1,2600 @@
+{
+ "repositoryOwner": {
+  "projectV2": {
+   "id": "PVT_fictif",
+   "field": {
+    "id": "PVTSSF_fictif",
+    "options": [
+     {
+      "id": "opt_0",
+      "name": "Backlog"
+     },
+     {
+      "id": "opt_1",
+      "name": "Ready"
+     },
+     {
+      "id": "opt_2",
+      "name": "In progress"
+     },
+     {
+      "id": "opt_3",
+      "name": "In review"
+     },
+     {
+      "id": "opt_4",
+      "name": "Done"
+     }
+    ]
+   },
+   "items": {
+    "pageInfo": {
+     "hasNextPage": false,
+     "endCursor": null
+    },
+    "nodes": [
+     {
+      "id": "PVTI_fictif_1",
+      "updatedAt": "2026-11-05T10:40:48Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_1",
+       "number": 4,
+       "title": "FICTIF item 4",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/4",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 8
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_2",
+      "updatedAt": "2026-11-04T23:34:39Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_2",
+       "number": 5,
+       "title": "FICTIF item 5",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/5",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 3
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_3",
+      "updatedAt": "2026-11-04T22:59:36Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_3",
+       "number": 9,
+       "title": "FICTIF item 9",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/9",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_4",
+      "updatedAt": "2026-11-04T23:25:34Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_4",
+       "number": 12,
+       "title": "FICTIF item 12",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/12",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "data"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_5",
+      "updatedAt": "2026-11-04T23:05:18Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_5",
+       "number": 10,
+       "title": "FICTIF item 10",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/10",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 5
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "data"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_6",
+      "updatedAt": "2026-11-04T23:30:12Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_6",
+       "number": 13,
+       "title": "FICTIF item 13",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/13",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_7",
+      "updatedAt": "2026-11-05T10:40:50Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_7",
+       "number": 6,
+       "title": "FICTIF item 6",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/6",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 2
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_8",
+      "updatedAt": "2026-11-04T23:33:36Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_8",
+       "number": 14,
+       "title": "FICTIF item 14",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/14",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_9",
+      "updatedAt": "2026-11-04T23:10:49Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_9",
+       "number": 11,
+       "title": "FICTIF item 11",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/11",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 5
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_10",
+      "updatedAt": "2026-11-05T08:51:18Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_10",
+       "number": 16,
+       "title": "FICTIF item 16",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/16",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_11",
+      "updatedAt": "2026-11-04T23:21:12Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_11",
+       "number": 15,
+       "title": "FICTIF item 15",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/15",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 5
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_12",
+      "updatedAt": "2026-11-05T08:58:47Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_12",
+       "number": 17,
+       "title": "FICTIF item 17",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/17",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 6
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_13",
+      "updatedAt": "2026-11-05T09:03:40Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_13",
+       "number": 18,
+       "title": "FICTIF item 18",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/18",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 6
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_14",
+      "updatedAt": "2026-11-05T08:25:20Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_14",
+       "number": 7,
+       "title": "FICTIF item 7",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/7",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 6
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_15",
+      "updatedAt": "2026-11-05T16:27:30Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_15",
+       "number": 8,
+       "title": "FICTIF item 8",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/8",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 96
+       },
+       "subIssuesSummary": {
+        "total": 2
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_16",
+      "updatedAt": "2026-11-05T00:25:33Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_16",
+       "number": 19,
+       "title": "FICTIF item 19",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/19",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 7
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-3"
+         },
+         {
+          "name": "back"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_17",
+      "updatedAt": "2026-11-05T00:33:28Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_17",
+       "number": 20,
+       "title": "FICTIF item 20",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/20",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 7
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-3"
+         },
+         {
+          "name": "back"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_18",
+      "updatedAt": "2026-11-05T00:51:18Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_18",
+       "number": 23,
+       "title": "FICTIF item 23",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/23",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 8
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "data"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_19",
+      "updatedAt": "2026-11-05T00:38:16Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_19",
+       "number": 21,
+       "title": "FICTIF item 21",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/21",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 7
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "back"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_20",
+      "updatedAt": "2026-11-05T01:13:01Z",
+      "status": {
+       "name": "Ready"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_20",
+       "number": 24,
+       "title": "FICTIF item 24",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/24",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 8
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "back"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_21",
+      "updatedAt": "2026-11-05T00:44:48Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_21",
+       "number": 22,
+       "title": "FICTIF item 22",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/22",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 7
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_22",
+      "updatedAt": "2026-11-04T22:48:25Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_22",
+       "number": 25,
+       "title": "FICTIF item 25",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/25",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "docs"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_23",
+      "updatedAt": "2026-11-05T08:33:54Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_23",
+       "number": 34,
+       "title": "FICTIF item 34",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/34",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": [
+         {
+          "login": "fictif-user-1",
+          "avatarUrl": "https://example.org/avatar.png"
+         }
+        ]
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_24",
+      "updatedAt": "2026-11-05T08:43:26Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_24",
+       "number": 35,
+       "title": "FICTIF item 35",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/35",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_25",
+      "updatedAt": "2026-11-05T14:11:36Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_25",
+       "number": 36,
+       "title": "FICTIF item 36",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/36",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_26",
+      "updatedAt": "2026-11-04T23:48:20Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_26",
+       "number": 37,
+       "title": "FICTIF item 37",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/37",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_27",
+      "updatedAt": "2026-11-04T23:48:24Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_27",
+       "number": 38,
+       "title": "FICTIF item 38",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/38",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_28",
+      "updatedAt": "2026-11-04T23:48:28Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_28",
+       "number": 39,
+       "title": "FICTIF item 39",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/39",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_29",
+      "updatedAt": "2026-11-05T00:24:23Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_29",
+       "number": 40,
+       "title": "FICTIF item 40",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/40",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_30",
+      "updatedAt": "2026-11-05T17:22:18Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_30",
+       "number": 41,
+       "title": "FICTIF item 41",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/41",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 99
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_31",
+      "updatedAt": "2026-11-05T17:49:00Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_31",
+       "number": 42,
+       "title": "FICTIF item 42",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/42",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 99
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_32",
+      "updatedAt": "2026-11-05T16:27:29Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_32",
+       "number": 43,
+       "title": "FICTIF item 43",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/43",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_33",
+      "updatedAt": "2026-11-05T14:31:29Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_33",
+       "number": 44,
+       "title": "FICTIF item 44",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/44",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_34",
+      "updatedAt": "2026-11-04T23:48:48Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_34",
+       "number": 45,
+       "title": "FICTIF item 45",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/45",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 96
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_35",
+      "updatedAt": "2026-11-05T16:26:48Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_35",
+       "number": 46,
+       "title": "FICTIF item 46",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/46",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_36",
+      "updatedAt": "2026-11-05T16:26:49Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_36",
+       "number": 47,
+       "title": "FICTIF item 47",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/47",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_37",
+      "updatedAt": "2026-11-05T10:42:21Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_37",
+       "number": 48,
+       "title": "FICTIF item 48",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/48",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 3
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "recette"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_38",
+      "updatedAt": "2026-11-05T00:06:08Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_38",
+       "number": 49,
+       "title": "FICTIF item 49",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/49",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "docs"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_39",
+      "updatedAt": "2026-11-05T08:24:59Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_39",
+       "number": 57,
+       "title": "FICTIF item 57",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/57",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 7
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-3"
+         },
+         {
+          "name": "front"
+         },
+         {
+          "name": "back"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_40",
+      "updatedAt": "2026-11-05T10:12:55Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_40",
+       "number": 56,
+       "title": "FICTIF item 56",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/56",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 7
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-3"
+         },
+         {
+          "name": "ci"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_41",
+      "updatedAt": "2026-11-05T09:33:24Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_41",
+       "number": 62,
+       "title": "FICTIF item 62",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/62",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Bug"
+       },
+       "parent": {
+        "number": 4
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "bug"
+         },
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_42",
+      "updatedAt": "2026-11-05T10:37:43Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_42",
+       "number": 68,
+       "title": "FICTIF item 68",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/68",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Bug"
+       },
+       "parent": {
+        "number": 48
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "bug"
+         },
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         },
+         {
+          "name": "recette"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_43",
+      "updatedAt": "2026-11-05T10:42:12Z",
+      "status": {
+       "name": "Ready"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_43",
+       "number": 69,
+       "title": "FICTIF item 69",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/69",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Bug"
+       },
+       "parent": {
+        "number": 48
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "bug"
+         },
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         },
+         {
+          "name": "recette"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_44",
+      "updatedAt": "2026-11-05T10:42:14Z",
+      "status": {
+       "name": "Ready"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_44",
+       "number": 70,
+       "title": "FICTIF item 70",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/70",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Bug"
+       },
+       "parent": {
+        "number": 48
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "bug"
+         },
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "front"
+         },
+         {
+          "name": "recette"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_45",
+      "updatedAt": "2026-11-05T11:22:19Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_45",
+       "number": 74,
+       "title": "FICTIF item 74",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/74",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 6
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_46",
+      "updatedAt": "2026-11-05T11:22:19Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_46",
+       "number": 75,
+       "title": "FICTIF item 75",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/75",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 7
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_47",
+      "updatedAt": "2026-11-05T14:46:21Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_47",
+       "number": 76,
+       "title": "FICTIF item 76",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/76",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 74
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "docs"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_48",
+      "updatedAt": "2026-11-05T14:49:16Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_48",
+       "number": 77,
+       "title": "FICTIF item 77",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/77",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 74
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "docs"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_49",
+      "updatedAt": "2026-11-05T14:55:59Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_49",
+       "number": 78,
+       "title": "FICTIF item 78",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/78",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 74
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_50",
+      "updatedAt": "2026-11-05T16:38:27Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_50",
+       "number": 79,
+       "title": "FICTIF item 79",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/79",
+       "state": "CLOSED",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 74
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-3"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_51",
+      "updatedAt": "2026-11-05T17:54:32Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_51",
+       "number": 80,
+       "title": "FICTIF item 80",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/80",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 74
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-3"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_52",
+      "updatedAt": "2026-11-05T11:25:06Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "XS"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_52",
+       "number": 81,
+       "title": "FICTIF item 81",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/81",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 74
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "docs"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_53",
+      "updatedAt": "2026-11-05T11:25:49Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_53",
+       "number": 82,
+       "title": "FICTIF item 82",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/82",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 75
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-3"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_54",
+      "updatedAt": "2026-11-05T11:25:52Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "M"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_54",
+       "number": 83,
+       "title": "FICTIF item 83",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/83",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 75
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_55",
+      "updatedAt": "2026-11-05T11:25:23Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_55",
+       "number": 84,
+       "title": "FICTIF item 84",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/84",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 75
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_56",
+      "updatedAt": "2026-11-05T11:25:26Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_56",
+       "number": 85,
+       "title": "FICTIF item 85",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/85",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 75
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_57",
+      "updatedAt": "2026-11-05T11:25:30Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_57",
+       "number": 86,
+       "title": "FICTIF item 86",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/86",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 75
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_58",
+      "updatedAt": "2026-11-05T11:25:32Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_58",
+       "number": 87,
+       "title": "FICTIF item 87",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/87",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 75
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "good first issue"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_59",
+      "updatedAt": "2026-11-05T11:25:35Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": {
+       "name": "S"
+      },
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_59",
+       "number": 88,
+       "title": "FICTIF item 88",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/88",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 75
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "niveau-2"
+         },
+         {
+          "name": "front"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_60",
+      "updatedAt": "2026-11-05T14:43:01Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_60",
+       "number": 89,
+       "title": "FICTIF item 89",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/89",
+       "state": "CLOSED",
+       "issueType": null,
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_61",
+      "updatedAt": "2026-11-05T16:26:46Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_61",
+       "number": 96,
+       "title": "FICTIF item 96",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/96",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 3
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_62",
+      "updatedAt": "2026-11-05T16:26:46Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_62",
+       "number": 97,
+       "title": "FICTIF item 97",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/97",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 11
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_63",
+      "updatedAt": "2026-11-05T16:26:48Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_63",
+       "number": 98,
+       "title": "FICTIF item 98",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/98",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_64",
+      "updatedAt": "2026-11-05T16:26:51Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_64",
+       "number": 99,
+       "title": "FICTIF item 99",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/99",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 96
+       },
+       "subIssuesSummary": {
+        "total": 4
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_65",
+      "updatedAt": "2026-11-05T16:35:05Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_65",
+       "number": 100,
+       "title": "FICTIF item 100",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/100",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 99
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_66",
+      "updatedAt": "2026-11-05T16:26:55Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_66",
+       "number": 101,
+       "title": "FICTIF item 101",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/101",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Task"
+       },
+       "parent": {
+        "number": 97
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_67",
+      "updatedAt": "2026-11-05T18:58:06Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_67",
+       "number": 106,
+       "title": "FICTIF item 106",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/106",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": {
+        "number": 99
+       },
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": [
+         {
+          "name": "bloquée"
+         }
+        ]
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_68",
+      "updatedAt": "2026-11-06T17:43:17Z",
+      "status": {
+       "name": "Done"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_68",
+       "number": 108,
+       "title": "FICTIF item 108",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/108",
+       "state": "CLOSED",
+       "issueType": null,
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     },
+     {
+      "id": "PVTI_fictif_69",
+      "updatedAt": "2026-11-16T12:07:54Z",
+      "status": {
+       "name": "Backlog"
+      },
+      "size": null,
+      "content": {
+       "__typename": "Issue",
+       "id": "I_fictif_69",
+       "number": 114,
+       "title": "FICTIF item 114",
+       "url": "https://github.com/fictif-org/fictif-repo/issues/114",
+       "state": "OPEN",
+       "issueType": {
+        "name": "Feature"
+       },
+       "parent": null,
+       "subIssuesSummary": {
+        "total": 0
+       },
+       "labels": {
+        "nodes": []
+       },
+       "assignees": {
+        "nodes": []
+       }
+      }
+     }
+    ]
+   }
+  }
+ }
+}
