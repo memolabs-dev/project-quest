@@ -63,3 +63,28 @@ export function facade(epicNumber: number | null): { wall: string; trim: string 
   if (epicNumber === null) return { wall: "#E4E1D8", trim: "#7A7368" };
   return { wall: WALLS[epicNumber % WALLS.length], trim: TRIMS[(epicNumber * 7) % TRIMS.length] };
 }
+
+export interface TermiteSpot { number: number; x: number; z: number; scale: number }
+
+/** Termites crawl on every open bug; a closed bug is a fixed one, so they are gone. */
+export function termiteSpots(site: Site, pallets: { number: number; x: number; z: number }[]): TermiteSpot[] {
+  const at = new Map(pallets.map((p) => [p.number, p]));
+  return site.pallets
+    .filter((p) => p.isBug && !p.closed && at.has(p.number))
+    .map((p) => ({ number: p.number, x: at.get(p.number)!.x, z: at.get(p.number)!.z, scale: crateScale(p.size) }));
+}
+
+export interface CameraPose { position: number[]; target: number[] }
+
+/**
+ * The drone's arrival fly-over, t from 0 to 1: from high above the far left of the site, sweeping along the
+ * buildings, down onto the follow camera's pose so the player takes over without a jump.
+ */
+export function dronePose(t: number, siteWidth: number, end: CameraPose): CameraPose {
+  const k = Math.min(1, Math.max(0, t));
+  if (k === 1) return end;
+  const e = k * k * (3 - 2 * k); // smoothstep
+  const start: CameraPose = { position: [-siteWidth / 2, 26, 22], target: [-siteWidth / 4, 0, -14] };
+  const mix = (a: number[], b: number[]) => a.map((v, i) => v + (b[i] - v) * e);
+  return { position: mix(start.position, end.position), target: mix(start.target, end.target) };
+}

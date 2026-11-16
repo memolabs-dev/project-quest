@@ -1,6 +1,7 @@
 // The building site: ground, road, zone yards with their pallets, the buildings, the crane and the office.
 import { Html, KeyboardControls, Sky } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
+import type { EcctrlHandle } from "ecctrl";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -12,27 +13,30 @@ import { Building } from "./Building.tsx";
 import { zoneColor } from "./colors.ts";
 import { Effects } from "./Effects.tsx";
 import { Piece } from "./kit.tsx";
-import { BUILDING_ROW_Z, YARD_Z, ZONE_SPACING, layoutSite } from "./layout.ts";
+import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "./layout.ts";
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
-import { newlyLaid, workerSpots } from "./show.ts";
+import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
+import { newlyLaid, termiteSpots, workerSpots } from "./show.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
 
 const YARD_DEPTH = 6;
+const GROUND_SIZE = 400;
 
 function Ground({ width }: { width: number }) {
   const texture = useMemo(() => {
     const t = groundTexture().clone();
     t.needsUpdate = true;
-    t.repeat.set((width + 40) / 12, 80 / 12);
+    t.repeat.set(GROUND_SIZE / 12, GROUND_SIZE / 12);
     return t;
-  }, [width]);
+  }, []);
   return (
     <RigidBody type="fixed" colliders={false}>
       <CuboidCollider args={[width / 2 + 20, 0.5, 40]} position={[0, -0.5, 0]} />
+      {/* Larger than the site, so the drone never sees its edge. */}
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <planeGeometry args={[width + 40, 80]} />
+        <planeGeometry args={[GROUND_SIZE, GROUND_SIZE]} />
         <meshStandardMaterial map={texture} roughness={1} />
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position={[0, 0.01, 0]} receiveShadow>
@@ -92,6 +96,11 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   const zoneIndex = new Map(site.zones.map((z) => [z.name, z.index]));
   const width = site.zones.length * ZONE_SPACING + 10;
   const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
+  const termites = useMemo(() => termiteSpots(site, layout.pallets), [site, layout]);
+  const body = useRef<EcctrlHandle>(null);
+  // The drone flies over once, when the site first opens; never with reduced motion.
+  const arrival = useRef(reduceMotion ? 0 : ARRIVAL_SECONDS);
+  const look = useRef(new THREE.Vector3().fromArray(FOLLOW_START.target));
 
   // Count each building's growths, so its floor grows once per new laid floor batch.
   const previous = useRef<SiteModel | null>(null);
@@ -121,7 +130,9 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
           <Building key={b.key} model={site.buildings[i]} x={b.x} z={b.z} reduceMotion={reduceMotion}
             grow={site.buildings[i].epicNumber === null ? 0 : growths[site.buildings[i].epicNumber as number] ?? 0} />
         ))}
-        <Piece name="crane" position={[width / 2 - 2, 0, BUILDING_ROW_Z + 7]} />
+        <TurningCrane position={[width / 2 - 2, 0, BUILDING_ROW_Z + 7]} reduceMotion={reduceMotion} />
+        <Termites spots={termites} reduceMotion={reduceMotion} />
+        <Dust body={body} reduceMotion={reduceMotion} />
         <RigidBody type="fixed" colliders="cuboid" position={[-width / 2 + 1, 0, YARD_Z - 4]}>
           <Piece name="site_office" rotation-y={Math.PI / 2} />
         </RigidBody>
@@ -129,8 +140,9 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
           <Piece key={i} name="fence" position={[-(width + 8) / 2 + 1 + i * 2, 0, 6]} outline={0.02} />
         ))}
         {spots.map((s) => <Worker key={s.login} spot={s} />)}
-        <Player pallets={layout.pallets} reduceMotion={reduceMotion} />
+        <Player pallets={layout.pallets} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
+      <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
       <Effects />
     </>
   );

@@ -38,3 +38,15 @@ export function layoutSite(site: Site): SiteLayout {
   }));
   return { zones, buildings, pallets };
 }
+
+/** The player starts on the road; the follow camera sits behind and above, looking a little ahead. */
+export const SPAWN: [number, number, number] = [0, 2, 2];
+export const CAMERA_OFFSET: [number, number, number] = [0, 11, 12];
+export const LOOK_AHEAD: [number, number, number] = [0, 0, -6];
+/** Height of the character's centre once it stands on the ground. */
+const STANDING_Y = 1.1;
+/** Where the follow camera settles over the spawn point: the drone's fly-over lands there. */
+export const FOLLOW_START = {
+  position: SPAWN.map((v, i) => (i === 1 ? STANDING_Y : v) + CAMERA_OFFSET[i]),
+  target: SPAWN.map((v, i) => (i === 1 ? STANDING_Y : v) + LOOK_AHEAD[i]),
+};

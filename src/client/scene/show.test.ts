@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Building, Site } from "../../shared/site.ts";
-import { badgeInitial, buildingPlan, crateScale, facade, idleOffset, jacketColor, newlyLaid, workerSpots } from "./show.ts";
+import {
+  badgeInitial, buildingPlan, crateScale, dronePose, facade, idleOffset, jacketColor, newlyLaid, termiteSpots, workerSpots,
+} from "./show.ts";
 
 const b = (floorsDone: number, floorsTotal: number, epicNumber: number | null = 1): Building => ({ epicNumber, title: "FICTIF", floorsDone, floorsTotal });
 
@@ -74,6 +76,33 @@ describe("idleOffset", () => {
       expect(idleOffset(l)).toBeGreaterThanOrEqual(0);
       expect(idleOffset(l)).toBeLessThan(1);
     }
+  });
+});
+
+describe("termiteSpots", () => {
+  const pallet = (number: number, isBug: boolean, closed = false, size: string | null = null) => ({
+    number, itemId: `i${number}`, title: "FICTIF", url: "", zone: "Backlog", closed, building: null, isBug, trade: null, size,
+  });
+  it("puts termites on open bug pallets only, sized to the crate", () => {
+    const site: Site = { zones: [], buildings: [], workers: [], pallets: [pallet(1, true), pallet(2, false), pallet(3, true, true), pallet(4, true, false, "XL")] };
+    const spots = termiteSpots(site, [{ number: 1, x: 1, z: 2 }, { number: 2, x: 0, z: 0 }, { number: 3, x: 5, z: 5 }, { number: 4, x: 9, z: 0 }]);
+    expect(spots.map((s) => s.number)).toEqual([1, 4]);
+    expect(spots[0]).toMatchObject({ x: 1, z: 2, scale: 1 });
+    expect(spots[1].scale).toBe(crateScale("XL"));
+  });
+});
+
+describe("dronePose", () => {
+  const end = { position: [0, 13, 14], target: [0, 2, -4] };
+  it("starts high over the far end of the site and lands on the follow camera", () => {
+    const start = dronePose(0, 40, end);
+    expect(start.position[1]).toBeGreaterThan(end.position[1]);
+    expect(start.position[0]).toBeLessThan(-10);
+    expect(dronePose(1, 40, end)).toEqual(end);
+  });
+  it("clamps time outside 0..1", () => {
+    expect(dronePose(2, 40, end)).toEqual(end);
+    expect(dronePose(-1, 40, end)).toEqual(dronePose(0, 40, end));
   });
 });
 
