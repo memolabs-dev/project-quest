@@ -3,6 +3,7 @@ import { ContactShadows, Html, KeyboardControls, Sky } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import { Suspense, useMemo } from "react";
+import * as THREE from "three";
 import { useTranslation } from "react-i18next";
 import type { Site as SiteModel } from "../../shared/site.ts";
 import { zoneLabel } from "../i18n.ts";
@@ -117,7 +118,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
 export function SiteCanvas({ site }: { site: SiteModel }) {
   const reduceMotion = useMemo(() => matchMedia("(prefers-reduced-motion: reduce)").matches, []);
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
+    <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={[1, 2]} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
       <KeyboardControls map={KEY_MAP}>
         <Suspense fallback={null}>
           <Scene site={site} reduceMotion={reduceMotion} />
