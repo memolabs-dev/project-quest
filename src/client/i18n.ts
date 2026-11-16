@@ -20,5 +20,4 @@ export function initI18n(): void {
 }
 
 /** A zone's display name, falling back to the board's own name for columns the locales do not know. */
-export const zoneLabel = (t: (k: string, o?: Record<string, unknown>) => string, zone: string) =>
-  t(`zones.${zone}`, { defaultValue: zone });
+export const zoneLabel = (zone: string) => i18n.t(`zones.${zone}`, { defaultValue: zone });

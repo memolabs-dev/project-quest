@@ -152,8 +152,8 @@ def worker():
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.context.scene.cursor.location = (0, 0, 0)
 pieces = [pallet(), floor_module(), zone_sign(), crane(), fence(), site_office(), worker()]
-for i, p in enumerate(pieces):
-    p.location = (i * 12, 0, 0)  # spread out in the file; the game places each piece itself
+# Every piece stays at the origin: the game places them, and the node transforms written by the
+# compression step (meshopt quantization) then only carry the dequantization.
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(filepath=OUT, export_format="GLB", use_selection=True, export_apply=True)
 print(f"site kit: {len(pieces)} pieces -> {OUT}")

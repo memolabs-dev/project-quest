@@ -11,4 +11,11 @@ export default defineConfig({
       exclude: [/^(?!\/api\/).*/],
     }),
   ],
+  // The 3D scene is loaded lazily: pre-bundle its libraries so the first visit does not re-optimize mid-load.
+  optimizeDeps: {
+    include: [
+      "three", "@react-three/fiber", "@react-three/drei", "@react-three/rapier", "@react-three/postprocessing",
+      "postprocessing", "ecctrl", "zustand", "i18next", "react-i18next", "i18next-browser-languagedetector",
+    ],
+  },
 });

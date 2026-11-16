@@ -4,8 +4,8 @@
     "loading": "Unloading the trucks…",
     "unassigned": "Unassigned",
     "floors": "{{done}} of {{total}} floors",
-    "controls": "WASD or arrows to walk, mouse to look around, E to open the pallet in front of you",
-    "near": "Press E to look at pallet #{{number}}"
+    "controls": "{{keys}} or arrows to walk, Shift to run, {{action}} or a click to open a pallet",
+    "near": "Press {{action}} to look at pallet #{{number}}"
   },
   "demo": {
     "banner": "Demo site: an invented project, nothing is sent to GitHub.",

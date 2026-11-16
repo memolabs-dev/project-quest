@@ -1,0 +1,41 @@
+.app { position: fixed; inset: 0; overflow: hidden; }
+.app canvas { display: block; }
+
+.loading {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 1.25rem; font-weight: 800; background: var(--sand);
+}
+
+/* Labels in the 3D scene: comic-strip panels */
+.sign-label {
+  background: var(--paper); border: var(--line); border-top-width: 6px; border-radius: 6px;
+  padding: 2px 10px; font-weight: 800; font-size: 14px; white-space: nowrap; pointer-events: none;
+}
+.building-label {
+  display: grid; gap: 1px; text-align: center; background: var(--paper); border: var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow); padding: 6px 12px; min-width: 120px; max-width: 220px;
+  pointer-events: none;
+}
+.building-label b { font-size: 15px; line-height: 1.2; overflow-wrap: anywhere; }
+.building-label span { font-size: 12px; font-weight: 700; color: #4a4a4a; }
+.near-tag {
+  background: var(--accent); color: var(--ink); border: var(--line); border-radius: 999px;
+  padding: 1px 9px; font-weight: 900; font-size: 13px; pointer-events: none;
+}
+
+/* Heads-up display */
+.banner {
+  position: absolute; z-index: 10; top: 12px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px);
+  background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 8px 14px; font-weight: 700; text-align: center;
+}
+.prompt {
+  position: absolute; z-index: 10; bottom: 64px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); border: var(--line); border-radius: 999px; box-shadow: var(--shadow);
+  padding: 8px 16px; font-weight: 800;
+}
+.controls {
+  position: absolute; z-index: 10; bottom: 14px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px);
+  background: rgba(255, 250, 240, 0.85); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
+  text-align: center;
+}

@@ -4,8 +4,8 @@
     "loading": "On décharge les camions…",
     "unassigned": "Hors chantier",
     "floors": "{{done}} étages sur {{total}}",
-    "controls": "ZQSD ou flèches pour marcher, souris pour regarder, E pour ouvrir la palette devant toi",
-    "near": "Appuie sur E pour voir la palette n°{{number}}"
+    "controls": "{{keys}} ou flèches pour marcher, Maj pour courir, {{action}} ou un clic pour ouvrir une palette",
+    "near": "Appuie sur {{action}} pour voir la palette n°{{number}}"
   },
   "demo": {
     "banner": "Chantier de démo : un projet inventé, rien n'est envoyé à GitHub.",
