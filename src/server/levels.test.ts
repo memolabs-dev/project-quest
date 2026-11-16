@@ -91,6 +91,17 @@ describe("levels", () => {
   });
 });
 
+describe("starting again", () => {
+  it("resets the player's levels on the demo site only", async () => {
+    const progress = memoryProgress();
+    await progress.stamp(VIEWER, "a1-walk", "tutorial");
+    expect((await make(null, { progress }).app.request("/api/levels/reset", post({}))).status).toBe(404);
+    const v = await view(await make(null, { progress, mode: "demo" }).app.request("/api/levels/reset", post({})));
+    expect(v.stamps).toEqual([]);
+    expect(v.canWrite).toBe(false);
+  });
+});
+
 describe("practice gestures", () => {
   it("refuses a target outside the practice repository", async () => {
     const { app, sent } = make(site());

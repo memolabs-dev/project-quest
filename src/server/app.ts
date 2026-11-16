@@ -133,6 +133,12 @@ export function createApp(live: Deps, demo?: Deps) {
     // ---------- Levels ----------
     .get("/api/levels", async (c) => c.json(await levels()))
     .post("/api/levels/check", async (c) => c.json(await levels()))
+    // "Start again" exists on the demo site only: real progress is never thrown away.
+    .post("/api/levels/reset", async (c) => {
+      if (live.mode !== "demo") return c.json({ error: "gesture" as const, message: "Only the demo site starts again" }, 404);
+      await live.progress.reset((await live.viewer()).login);
+      return c.json(await levels());
+    })
     .post("/api/levels/event", zValidator("json", z.object({ event: z.enum(TUTORIAL_EVENTS) })), async (c) => {
       const { login } = await live.viewer();
       await live.progress.addEvent(login, c.req.valid("json").event);

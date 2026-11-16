@@ -82,7 +82,8 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     applyMoveFor: noGitHub,
     log: memoryActionLog(),
     viewer: async () => ({ login: "you", avatarUrl: "" }),
-    viewerId: noGitHub,
+    // A pretend id, so the demo shows exactly what a real gesture would send; nothing is ever sent.
+    viewerId: async () => "U_demo",
     progress: memoryProgress(),
     practiceName: PRACTICE_NAME,
     // Without GitHub there is no practice site to read: the tutorial still plays.

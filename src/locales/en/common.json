@@ -128,14 +128,40 @@
     }
   },
   "practice": {
+    "back": "Back",
+    "prepare": "Show what will be sent",
+    "applied": "Already done on GitHub: {{list}}.",
     "found": {
-      "open": "Found my site"
+      "open": "Found my site",
+      "title": "Found your site",
+      "body": "The game creates {{name}} in your own GitHub account, with a board to play on. Only you write there.",
+      "visibility": "Who can see it?",
+      "public": "Everyone (it starts your GitHub profile)",
+      "private": "Only me",
+      "reuse": "{{name}} already exists in your account: the game uses it as it is and only adds the board. Nothing in it is changed."
     },
     "write": {
-      "open": "Write an issue"
+      "open": "Write an issue",
+      "title": "Write an issue",
+      "titleLabel": "Title",
+      "bodyLabel": "What to do, and why"
     },
     "take": {
-      "open": "Take an issue"
+      "open": "Take an issue",
+      "title": "Take an issue",
+      "issueLabel": "Issue",
+      "commentLabel": "Your comment",
+      "comment": "I'll take it.",
+      "none": "No open issue on your site yet: write one first."
+    },
+    "gate": "{{login}}'s site",
+    "summary": {
+      "found": "Create the repository {{owner}}/{{name}} ({{visibility}}) and its board.",
+      "foundReuse": "Add a board to your repository {{owner}}/{{name}}.",
+      "issue": "Write the issue \"{{title}}\" in {{repo}} and put it on your board.",
+      "take": "Assign yourself #{{number}} in {{repo}}, then comment: \"{{comment}}\"",
+      "public": "public",
+      "private": "private"
     }
   }
 }

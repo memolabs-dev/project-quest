@@ -7,6 +7,7 @@ import { zoneLabel } from "../i18n.ts";
 import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
 import { Mentor } from "./Mentor.tsx";
+import { PracticeDialogs } from "./PracticeDialogs.tsx";
 import { SkillBook } from "./SkillBook.tsx";
 
 function PalletCard({ number }: { number: number }) {
@@ -205,6 +206,7 @@ export function Overlays() {
       <Mentor />
       {openCard !== null && <PalletCard key={openCard} number={openCard} />}
       <ConfirmMove />
+      <PracticeDialogs />
       <ErrorScreen />
     </>
   );

@@ -24,6 +24,7 @@ interface QuestState {
   levelsBefore: LevelsView | null;
   refresh(): Promise<void>;
   refreshLevels(check?: boolean): Promise<void>;
+  setLevels(v: LevelsView): void;
   /** Tutorial events count only on the tutorial site, and only once each. */
   sendEvent(e: TutorialEvent): void;
   /** The practice gesture dialog open, if any. */
@@ -36,6 +37,7 @@ interface QuestState {
 }
 
 const sent = new Set<TutorialEvent>();
+const EMPTY_PLOT: Site = { zones: [], buildings: [], pallets: [], workers: [] };
 
 export const useQuest = create<QuestState>((set, get) => ({
   load: { status: "loading" },
@@ -59,6 +61,7 @@ export const useQuest = create<QuestState>((set, get) => ({
       // The levels are a layer over the site: if they cannot be read, the site still plays.
     }
   },
+  setLevels: (v) => set((s) => ({ levelsBefore: s.levels, levels: v })),
   sendEvent(e) {
     if (get().siteKind !== "demo" || sent.has(e)) return;
     sent.add(e);
@@ -69,6 +72,11 @@ export const useQuest = create<QuestState>((set, get) => ({
       const r = await api.site();
       set({ site: r.site, viewer: r.viewer, mode: r.mode, demoReason: r.demoReason, load: { status: "ready" } });
     } catch (e) {
+      // Before founding, the practice site is an empty plot: the mentor offers to found it.
+      if (e instanceof ApiFailure && e.body.error === "practice-missing") {
+        set({ site: EMPTY_PLOT, mode: "live", demoReason: null, load: { status: "ready" } });
+        return;
+      }
       set({ load: { status: "error", failure: e instanceof Error ? e : new Error(String(e)) } });
     }
   },

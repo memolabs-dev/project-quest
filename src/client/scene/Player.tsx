@@ -1,11 +1,12 @@
 // The site manager: an ecctrl character, a follow camera behind and above, and the "what am I near" check.
-import { useKeyboardControls } from "@react-three/drei";
+import { Html, useKeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Ecctrl, type EcctrlHandle } from "ecctrl";
 import { useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { useQuest } from "../store.ts";
 import { Foreman } from "./Foreman.tsx";
+import { badgeInitial } from "./show.ts";
 import { CAMERA_OFFSET as CAMERA_OFFSET_XYZ, LOOK_AHEAD as LOOK_AHEAD_XYZ, SPAWN } from "./layout.ts";
 
 const NEAR_DISTANCE = 2.5;
@@ -26,6 +27,8 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
   const setNear = useQuest((s) => s.setNear);
   const cardOpen = useQuest((s) => s.openCard !== null);
   const sendEvent = useQuest((s) => s.sendEvent);
+  // The Apprentice's first reward: their initial on the helmet.
+  const helmet = useQuest((s) => (s.levels?.unlocks.helmet ? badgeInitial(s.levels.login) : null));
   // ecctrl 2 does not read the keyboard itself: the keys are handed to it every frame.
   const [, getKeys] = useKeyboardControls();
 
@@ -54,6 +57,11 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
   return (
     <Ecctrl ref={ref} position={SPAWN} capsuleHalfHeight={0.55} capsuleRadius={0.32} floatHeight={0.25} enable={!cardOpen} maxWalkVel={4} maxRunVel={7}>
       <Foreman body={ref} feetY={-1.12} />
+      {helmet && (
+        <Html position={[0, 1.05, 0]} center distanceFactor={10} zIndexRange={[5, 0]}>
+          <div className="helmet-badge">{helmet}</div>
+        </Html>
+      )}
     </Ecctrl>
   );
 }

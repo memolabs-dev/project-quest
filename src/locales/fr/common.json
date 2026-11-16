@@ -128,14 +128,40 @@
     }
   },
   "practice": {
+    "back": "Retour",
+    "prepare": "Voir ce qui va partir",
+    "applied": "Déjà fait sur GitHub : {{list}}.",
     "found": {
-      "open": "Fonder mon chantier"
+      "open": "Fonder mon chantier",
+      "title": "Fonder ton chantier",
+      "body": "Le jeu crée {{name}} dans ton propre compte GitHub, avec un tableau pour jouer. Personne d'autre que toi n'y écrit.",
+      "visibility": "Qui peut le voir ?",
+      "public": "Tout le monde (ça démarre ton profil GitHub)",
+      "private": "Moi seulement",
+      "reuse": "{{name}} existe déjà dans ton compte : le jeu l'utilise tel quel et ajoute seulement le tableau. Rien n'y est modifié."
     },
     "write": {
-      "open": "Écrire une issue"
+      "open": "Écrire une issue",
+      "title": "Écrire une issue",
+      "titleLabel": "Titre",
+      "bodyLabel": "Quoi faire, et pourquoi"
     },
     "take": {
-      "open": "Prendre une issue"
+      "open": "Prendre une issue",
+      "title": "Prendre une issue",
+      "issueLabel": "Issue",
+      "commentLabel": "Ton commentaire",
+      "comment": "Je prends.",
+      "none": "Pas encore d'issue ouverte sur ton chantier : écris-en une d'abord."
+    },
+    "gate": "Le chantier de {{login}}",
+    "summary": {
+      "found": "Créer le dépôt {{owner}}/{{name}} ({{visibility}}) et son tableau.",
+      "foundReuse": "Ajouter un tableau à ton dépôt {{owner}}/{{name}}.",
+      "issue": "Écrire l'issue « {{title}} » dans {{repo}} et la poser sur ton tableau.",
+      "take": "T'assigner le n°{{number}} dans {{repo}}, puis commenter : « {{comment}} »",
+      "public": "public",
+      "private": "privé"
     }
   }
 }

@@ -5,6 +5,7 @@ import { mentorAction, newStamps, siteKindFromUrl } from "./levels.ts";
 
 const ids = APPRENTICE.map((l) => l.id);
 const view = (stamped: number, exists = false): LevelsView => ({
+  login: "fictif-volunteer", canWrite: true,
   stamps: ids.slice(0, stamped).map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
   current: ids[stamped] ?? null,
   rank: stamped === ids.length ? "apprentice" : null,

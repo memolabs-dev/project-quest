@@ -33,6 +33,10 @@ export type ApiError =
 
 /** Where the player stands in the levels. Only ever the viewer's own. */
 export interface LevelsView {
+  /** The player these levels belong to. */
+  login: string;
+  /** False on the demo site: gestures are shown, never sent. */
+  canWrite: boolean;
   stamps: Stamp[];
   /** The next level to play, null when every level is stamped. */
   current: string | null;

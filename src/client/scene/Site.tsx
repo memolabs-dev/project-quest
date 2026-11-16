@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import type { Site as SiteModel } from "../../shared/site.ts";
 import { zoneLabel } from "../i18n.ts";
@@ -90,6 +91,18 @@ function Yard({ name, index, x, z }: { name: string; index: number; x: number; z
   );
 }
 
+/** The practice site's gate: the player's name at the road, once they founded it. */
+function GateSign({ x }: { x: number }) {
+  const { t } = useTranslation();
+  const login = useQuest((s) => (s.siteKind === "practice" && s.levels?.unlocks.ownSite ? s.levels.login : null));
+  if (!login) return null;
+  return (
+    <Html position={[x, 1.7, 1.9]} center transform distanceFactor={6} zIndexRange={[5, 0]}>
+      <div className="gate-sign">{t("practice.gate", { login })}</div>
+    </Html>
+  );
+}
+
 function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean }) {
   const layout = useMemo(() => layoutSite(site), [site]);
   const near = useQuest((s) => s.nearPallet);
@@ -141,6 +154,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         ))}
         {/* Keyed by colour too: a new jacket means a new skeleton, which the animations must bind to. */}
         {spots.map((s) => <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} />)}
+        <GateSign x={-width / 2 + 1.5} />
         <Player pallets={layout.pallets} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />

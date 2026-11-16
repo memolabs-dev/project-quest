@@ -38,6 +38,18 @@ const behaves = (name: string, make: () => ProgressStore, cleanup?: () => Promis
       await cleanup?.();
     });
 
+    it("starts a player again from nothing on reset, and only that player", async () => {
+      const p = make();
+      await p.stamp("fictif-a", "a1-walk", "tutorial");
+      await p.addEvent("fictif-a", "walked");
+      await p.stamp("fictif-b", "a1-walk", "tutorial");
+      await p.reset("FICTIF-A");
+      expect(await p.stamps("fictif-a")).toEqual([]);
+      expect(await p.events("fictif-a")).toEqual([]);
+      expect(await p.stamps("fictif-b")).toHaveLength(1);
+      await cleanup?.();
+    });
+
     it("remembers the practice repository's name", async () => {
       const p = make();
       expect(await p.practiceRepo("fictif-a")).toBeNull();

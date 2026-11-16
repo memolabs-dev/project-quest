@@ -34,6 +34,8 @@ async function view(deps: Deps, login: string, practice: PracticeSnapshot | null
   const stamps = await deps.progress.stamps(login);
   const done = new Set(stamps.map((s) => s.levelId));
   return {
+    login,
+    canWrite: deps.mode === "live",
     stamps,
     current: currentLevel(APPRENTICE, done)?.id ?? null,
     rank: rankReached(APPRENTICE, done),

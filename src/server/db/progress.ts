@@ -16,6 +16,8 @@ export interface ProgressStore {
   addEvent(login: string, e: TutorialEvent): Promise<void>;
   practiceRepo(login: string): Promise<string | null>;
   setPracticeRepo(login: string, name: string): Promise<void>;
+  /** Forgets a player's stamps and tutorial events (the demo site's "start again"). */
+  reset(login: string): Promise<void>;
 }
 
 const key = (login: string) => login.toLowerCase();
@@ -45,6 +47,10 @@ export function memoryProgress(): ProgressStore {
     async setPracticeRepo(login, name) {
       repos.set(key(login), name);
     },
+    async reset(login) {
+      stamps.delete(key(login));
+      events.delete(key(login));
+    },
   };
 }
 
@@ -72,6 +78,10 @@ export function pgProgress(url: string): ProgressStore & { clearForTests(): Prom
     async setPracticeRepo(login, name) {
       await db.insert(players).values({ githubLogin: key(login), practiceRepo: name })
         .onConflictDoUpdate({ target: players.githubLogin, set: { practiceRepo: name } });
+    },
+    async reset(login) {
+      await db.delete(progress).where(eq(progress.playerLogin, key(login)));
+      await db.delete(tutorialEvents).where(eq(tutorialEvents.playerLogin, key(login)));
     },
     async clearForTests() {
       await db.delete(progress);
