@@ -7,15 +7,14 @@ import { zoneLabel } from "../i18n.ts";
 import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
 
-function PalletCard() {
+function PalletCard({ number }: { number: number }) {
   const { t } = useTranslation();
   const site = useQuest((s) => s.site);
-  const number = useQuest((s) => s.openCard);
   const open = useQuest((s) => s.open);
   const setPending = useQuest((s) => s.setPending);
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => { closeRef.current?.focus(); setError(null); }, [number]);
+  useEffect(() => { closeRef.current?.focus(); }, []);
   const pallet = site?.pallets.find((p) => p.number === number);
   if (!site || !pallet) return null;
   const workers = site.workers.filter((w) => w.carrying.includes(pallet.number));
@@ -181,13 +180,14 @@ function ErrorScreen() {
 }
 
 export function Overlays() {
+  const openCard = useQuest((s) => s.openCard);
   return (
     <>
       <div className="top-right">
         <LanguageSwitch />
         <Logbook />
       </div>
-      <PalletCard />
+      {openCard !== null && <PalletCard key={openCard} number={openCard} />}
       <ConfirmMove />
       <ErrorScreen />
     </>

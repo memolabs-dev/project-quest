@@ -18,10 +18,10 @@ The backlog of this project lives in Linear: project `project-quest` (P-MEM-9) i
 
 ## Commands
 
-- `npm run dev`: game and server
-- `npm test`: Vitest
-- `npm run build`: type check and build
-- `npx oxlint`: lint
+- `npm run dev:demo`: the demo site (nothing sent to GitHub); `npm run dev`: the configured board (`quest.config.json`)
+- `npm test`: Vitest; `npm run test:e2e`: Playwright on the installed Chrome; `npm run test:db`: logbook on Docker Postgres (port 5442)
+- `npm run check`: types, lint, unit tests (lefthook runs it before each push)
+- `npm run assets`: rebuild the 3D kit with Blender 5.3 headless
 
 ## GitHub API
 

@@ -1,0 +1,12 @@
+# Checked on this machine before anything reaches GitHub (git regime A: commits on main).
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      run: npx oxlint
+    types:
+      run: npx tsc -b
+pre-push:
+  commands:
+    check:
+      run: npm run check
