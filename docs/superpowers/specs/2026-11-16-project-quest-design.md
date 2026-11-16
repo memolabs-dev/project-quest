@@ -153,7 +153,7 @@ One package, three folders:
 
 - **Vitest**: mapping, quest rules, `prepare` of every gesture, locale parity, API coverage (already in place).
 - **Server tests** against recorded GraphQL responses (no network in CI).
-- **Integration** against the test board only (`memolabs-dev` project 6, issues marked `FICTIF`), run by hand.
+- **Integration** against the fictitious sandbox only (`memolabs-dev/project-quest-sandbox`, board `memolabs-dev` project 10, every issue `FICTIF`), run by hand. Never a real organisation's board.
 - **Playwright**: the site loads, a pallet card opens, the confirmation shows the exact payload; screenshots at 375 and 1280 px.
 - **Local first**: lefthook runs lint and types before each commit, tests before each push.
 
@@ -181,5 +181,5 @@ Each slice is an issue of this repository on the public board https://github.com
 
 - Unity, Unreal and the Blender MCP server.
 - Line-by-line code review and merging inside the game (GitHub's own page does it; see the API coverage).
-- Applying the game to the SOS MEDITERRANEE board before the owner validates v1.
+- Testing on any real organisation's board (SOS MEDITERRANEE, Data for Good, the Rescue Atlas lab): only the fictitious sandbox.
 - Any ranking of contributors.

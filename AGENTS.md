@@ -29,7 +29,7 @@ Every GitHub API operation (GraphQL mutations and root queries, REST endpoints, 
 
 ## Rules
 
-- **Test board only**: develop against `memolabs-dev` project 6 ("Rescue Atlas, le lab", private) and its repository `memolabs-dev/rescue-atlas-lab`. Never point the game at `dataforgoodfr` (project 44, the public SOS MEDITERRANEE repo) until the owner validates version 1.
+- **Fictitious boards only**: test on the sandbox, `memolabs-dev/project-quest-sandbox` and its board `memolabs-dev` project 10, filled with invented FICTIF issues by `scripts/seed-sandbox.ts`. Never test on a real organisation's project: not SOS MEDITERRANEE, not Data for Good (`dataforgoodfr`), not the Rescue Atlas lab (`memolabs-dev` project 6), whose issues mirror SOS's project (owner's rule, 2026-11-16).
 - **Every write is confirmed**: before a GitHub mutation, the game shows exactly what will be sent (issue, change, text). Nothing is written without the player's click. Each write goes to an action log.
 - **The browser never holds a token**: only the server talks to GitHub.
 - **No pressure on contributors**: only the player (the lead) scores. Never assign someone who did not ask for the issue.

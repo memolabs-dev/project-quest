@@ -1,11 +1,28 @@
 {
   "owner": "memolabs-dev",
-  "repo": "rescue-atlas-lab",
-  "projectNumber": 6,
-  "fields": { "status": "Status", "iteration": "Sprint", "size": "Size" },
-  "zones": ["Backlog", "Ready", "In progress", "In review", "Done"],
+  "repo": "project-quest-sandbox",
+  "projectNumber": 10,
+  "fields": {
+    "status": "Status",
+    "iteration": "Iteration",
+    "size": "Size"
+  },
+  "zones": [
+    "Backlog",
+    "Ready",
+    "In progress",
+    "In review",
+    "Done"
+  ],
   "labels": {
-    "bug": ["bug"],
-    "trades": { "back": "mason", "front": "painter", "data": "surveyor", "design": "architect" }
+    "bug": [
+      "bug"
+    ],
+    "trades": {
+      "back": "mason",
+      "front": "painter",
+      "data": "surveyor",
+      "design": "architect"
+    }
   }
 }

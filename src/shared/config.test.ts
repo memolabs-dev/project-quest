@@ -8,7 +8,8 @@ describe("config", () => {
   it("loads the repository's config", () => {
     const config = loadConfig(json);
     expect(config.zones).toEqual(["Backlog", "Ready", "In progress", "In review", "Done"]);
-    expect(config.fields.iteration).toBe("Sprint");
+    expect(config.fields.iteration).toBe("Iteration");
+    expect(config.repo).toMatch(/-sandbox$/);
   });
 
   it("rejects a config without zones, naming the field", () => {
