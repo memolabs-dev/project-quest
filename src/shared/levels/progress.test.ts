@@ -1,0 +1,22 @@
+import { describe, expect, it } from "vitest";
+import { APPRENTICE } from "./apprentice.ts";
+import { currentLevel, rankReached, unlocks } from "./progress.ts";
+
+const ids = APPRENTICE.map((l) => l.id);
+
+describe("progress", () => {
+  it("starts at the first level and ends when all are stamped", () => {
+    expect(currentLevel(APPRENTICE, new Set())?.id).toBe("a1-walk");
+    expect(currentLevel(APPRENTICE, new Set(ids.slice(0, 3)))?.id).toBe("a4-found-site");
+    expect(currentLevel(APPRENTICE, new Set(ids))).toBeNull();
+  });
+  it("reaches the Apprentice rank only with all seven stamps", () => {
+    expect(rankReached(APPRENTICE, new Set(ids.slice(0, 6)))).toBeNull();
+    expect(rankReached(APPRENTICE, new Set(ids))).toBe("apprentice");
+  });
+  it("unlocks the helmet and the skill book after the first level, the own site after founding", () => {
+    expect(unlocks(new Set())).toEqual({ helmet: false, skillBook: false, ownSite: false });
+    expect(unlocks(new Set(["a1-walk"]))).toEqual({ helmet: true, skillBook: true, ownSite: false });
+    expect(unlocks(new Set(ids.slice(0, 4)))).toEqual({ helmet: true, skillBook: true, ownSite: true });
+  });
+});
