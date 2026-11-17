@@ -35,10 +35,15 @@ Every level has the same shape: a goal, a short lesson from the mentor, the gest
 | Journeyman | 9 | Open a pull request linked to the issue (`Closes #N`) | your practice repo |
 | Journeyman | 10 | Answer a review: the inspector's remarks, a fix pushed | your practice repo |
 | Journeyman | 11 | Merge: the issue closes, the floor grows | your practice repo |
-| Team leader | 12 to 15 | Clone, branch, commit, push (git on your machine), then a pull request | your practice repo |
+| Team leader | 12 | Clone, branch, commit, push: a branch arrives with a commit made on your machine | your practice repo |
+| Team leader | 13 | Bring main's latest into your branch (after the mayor changes the plan on main) | your practice repo |
+| Team leader | 14 | Fix a pull request from your machine: a new commit pushed to it | your practice repo |
+| Team leader | 15 | Clean up: the pull request merged, its branch deleted | your practice repo |
 | Real project | 16 | Find a good first issue and ask for it in a comment | a real project, chosen by the player |
 
 On the real project, nobody is ever assigned without asking: the volunteer asks, a maintainer assigns.
+
+**Why the Team leader rank is cut this way (owner, 2026-11-17).** GitHub sees git work on a machine only at the push: cloning, branching and committing leave no trace before it. Each Team leader level therefore passes on something GitHub shows: a pushed branch whose head was committed on the machine (`committedViaWeb` false, on a branch other than the default and `practice-N`, beyond the default head; checked on 2026-11-17: API commits read `true`, but a REST contents commit reads `false`, so the branch rules matter), main's head inside the branch, a pushed commit on an open pull request, a merged pull request whose branch is gone. The game shows the commands to type; it never runs anything on the player's machine.
 
 ## 4. Rewards
 
