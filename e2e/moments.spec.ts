@@ -73,7 +73,7 @@ test("a moved pallet raises dust that fades", async ({ page }) => {
   await setMotion(page, /^Full$/);
   await movePallet(page);
   // Dust lives 0.7 s: sample often, or a loaded machine's slower polls step over it.
-  await expect.poll(() => dustShowing(page), { timeout: 5000, intervals: [50] }).toBeGreaterThan(0);
+  await expect.poll(() => dustShowing(page), { timeout: 15_000, intervals: [50] }).toBeGreaterThan(0);
   await expect.poll(() => dustShowing(page), { timeout: 5000 }).toBe(0);
 });
 

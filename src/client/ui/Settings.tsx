@@ -23,7 +23,9 @@ export function Settings() {
             <input type="range" min={0} max={1} step={0.05} value={settings.volume} disabled={!settings.sound}
               onChange={(e) => set({ volume: Number(e.target.value) })} />
           </label>
-          {/* The miniature effect's switch comes with the effect itself (living site, slice 6c). */}
+          <label className="field-inline">
+            <input type="checkbox" checked={settings.miniature} onChange={(e) => set({ miniature: e.target.checked })} /> {t("settings.miniature")}
+          </label>
           <fieldset className="choice">
             <legend>{t("settings.motion")}</legend>
             {MOTIONS.map((m) => (

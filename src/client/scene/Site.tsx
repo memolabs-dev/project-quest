@@ -1,5 +1,6 @@
 // The building site: ground, road, zone yards with their pallets, the buildings, the crane and the office.
-import { Html, KeyboardControls } from "@react-three/drei";
+import { Html, KeyboardControls, PerformanceMonitor } from "@react-three/drei";
+import { QUALITY_LEVELS, quality, stepQuality } from "./quality.ts";
 import { SiteLight } from "./Light.tsx";
 import { TeamRewards } from "./Rewards.tsx";
 import { Director } from "./Director.tsx";
@@ -132,7 +133,7 @@ function GateSign({ x }: { x: number }) {
   );
 }
 
-function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean }) {
+function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; reduceMotion: boolean; aoHalf: boolean; tiltShift: boolean }) {
   const layout = useMemo(() => layoutSite(site), [site]);
   // A cleared duplicate is neither in the player's way nor near them.
   const solid = useMemo(() => solidPallets(site, layout.pallets), [site, layout]);
@@ -209,18 +210,25 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         <Player pallets={solid} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
-      <Effects />
+      <Effects aoHalf={aoHalf} tiltShift={tiltShift} />
     </>
   );
 }
 
 export function SiteCanvas({ site }: { site: SiteModel }) {
   const reduceMotion = useReducedMotion();
+  const miniature = useQuest((s) => s.settings.miniature);
+  // A weak machine lowers the quality one step per drop of the frame rate, and raises it back when it holds.
+  const [level, setLevel] = useState(0);
+  const q = quality(level, miniature);
   return (
-    <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={[1, 2]} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
+    <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={q.dpr} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
+      {/* Each change rebuilds the effects' shaders: after three back-and-forths the lowest level stays. */}
+      <PerformanceMonitor flipflops={3} onFallback={() => setLevel(QUALITY_LEVELS - 1)}
+        onDecline={() => setLevel((l) => stepQuality(l, "decline"))} onIncline={() => setLevel((l) => stepQuality(l, "incline"))} />
       <KeyboardControls map={KEY_MAP}>
         <Suspense fallback={null}>
-          <Scene site={site} reduceMotion={reduceMotion} />
+          <Scene site={site} reduceMotion={reduceMotion} aoHalf={q.aoHalf} tiltShift={q.tiltShift} />
         </Suspense>
       </KeyboardControls>
     </Canvas>
