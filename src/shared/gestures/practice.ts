@@ -36,7 +36,9 @@ export interface PreparedEdit {
 }
 export interface PreparedPull { kind: "pull"; repo: string; branch: string; issueNumber: number; title: string; body: string; mutations: PracticeMutation[] }
 export interface PreparedMerge { kind: "merge"; repo: string; pullNumber: number; mutations: PracticeMutation[] }
-export type PreparedPractice = PreparedFound | PreparedIssue | PreparedTake | PreparedEdit | PreparedPull | PreparedMerge;
+/** The mayor changes the plan on main, so the player has something to bring into their branch. */
+export interface PreparedMayor { kind: "mayor"; repo: string; branch: string; line: string; mutations: PracticeMutation[] }
+export type PreparedPractice = PreparedFound | PreparedIssue | PreparedTake | PreparedEdit | PreparedPull | PreparedMerge | PreparedMayor;
 
 const MAX_TITLE = 256;
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
@@ -145,13 +147,14 @@ export function prepareEdit(
   return { kind: "edit", repo, branch, path: "README.md", content, message: headline, foundation, mutations };
 }
 
+/** `branch`: the trowel's practice-<n> by default, or the player's own branch pushed from their machine. */
 export function preparePull(
-  practice: PracticeSnapshot, viewer: { login: string }, issueNumber: number, title: string, why: string,
+  practice: PracticeSnapshot, viewer: { login: string }, issueNumber: number, title: string, why: string, branch = practiceBranch(issueNumber),
 ): PreparedPull {
   ownIssue(practice, viewer, issueNumber);
-  const branch = practiceBranch(issueNumber);
+  if (branch === practice.defaultBranch?.name) throw new GestureError("A pull request comes from a branch of your own, not from the main one");
   if (!practice.defaultBranch || !practice.branches.some((b) => b.name === branch)) {
-    throw new GestureError(`Edit a file first: there is no branch ${branch} yet`);
+    throw new GestureError(`Push your work first: there is no branch ${branch} yet`);
   }
   if (practice.pulls.some((p) => p.headRefName === branch && p.state === "OPEN")) {
     throw new GestureError(`A pull request from ${branch} is already open`);
@@ -178,5 +181,26 @@ export function prepareMerge(practice: PracticeSnapshot, viewer: { login: string
   return {
     kind: "merge", repo: practice.repo.nameWithOwner, pullNumber,
     mutations: [{ name: "mergePullRequest", input: { pullRequestId: pull.id, expectedHeadOid: pull.headRefOid, mergeMethod: "MERGE" } }],
+  };
+}
+
+export const MAYOR_LINE = "- FICTIF The mayor wants a bench by the gate.";
+
+export function prepareMayor(practice: PracticeSnapshot): PreparedMayor {
+  const main = practice.defaultBranch;
+  if (!main) throw new GestureError("Your site has no main branch yet: lay its foundation stone first");
+  const plan = practice.plan ?? "# Plan\n\n";
+  const text = `${plan.endsWith("\n") ? plan : `${plan}\n`}${MAYOR_LINE}\n`;
+  return {
+    kind: "mayor", repo: practice.repo.nameWithOwner, branch: main.name, line: MAYOR_LINE,
+    mutations: [{
+      name: "createCommitOnBranch",
+      input: {
+        branch: { repositoryNameWithOwner: practice.repo.nameWithOwner, branchName: main.name },
+        expectedHeadOid: main.oid,
+        message: { headline: "The mayor changes the plan" },
+        fileChanges: { additions: [{ path: "PLAN.md", contents: base64(text) }] },
+      },
+    }],
   };
 }

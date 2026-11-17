@@ -242,6 +242,14 @@ describe("practice gestures", () => {
     expect(v.practice.readme).toBe("# my first edit\n");
   });
 
+  it("sends the mayor's change the server rebuilt", async () => {
+    const { app, sent } = make(site({ defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" } }));
+    const mayor = (await (await app.request("/api/practice/mayor/prepare", post({}))).json()) as Record<string, unknown>;
+    expect((await app.request("/api/practice/mayor/apply", post(mayor))).status).toBe(200);
+    expect((await app.request("/api/practice/mayor/apply", post({ ...mayor, repo: "fictif-org/real-repo" }))).status).toBe(409);
+    expect(sent).toHaveLength(1);
+  });
+
   it("remembers the founded site's name", async () => {
     const { app, deps } = make(null);
     const prepared = await (await app.request("/api/practice/found/prepare", post({ visibility: "PRIVATE" }))).json();

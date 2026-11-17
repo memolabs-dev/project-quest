@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PracticeIssue, PracticePull, PracticeSnapshot } from "../levels/types.ts";
 import { GestureError } from "./move.ts";
-import { prepareEdit, prepareFound, prepareIssue, prepareMerge, preparePull, prepareTake } from "./practice.ts";
+import { prepareEdit, prepareFound, prepareIssue, prepareMayor, prepareMerge, preparePull, prepareTake } from "./practice.ts";
 
 const viewer = { login: "fictif-volunteer", id: "U_fictif" };
 const site = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
@@ -169,5 +169,40 @@ describe("never touching another repository", () => {
       expect(() => prepareEdit(branched(), viewer, 1, "text", text), text).toThrow(GestureError);
     }
     expect(() => preparePull(branched(), viewer, 1, "t", "See fictif-org/real-repo#3 for the idea")).not.toThrow();
+  });
+});
+
+describe("prepareMayor", () => {
+  it("the mayor adds a line to PLAN.md on main, at its head", () => {
+    const p = prepareMayor(branched({ plan: "# Plan\n" }));
+    expect(p).toMatchObject({ kind: "mayor", repo: "fictif-volunteer/my-first-site", branch: "main", line: "- FICTIF The mayor wants a bench by the gate." });
+    expect(p.mutations).toHaveLength(1);
+    expect(p.mutations[0]).toMatchObject({ name: "createCommitOnBranch", input: {
+      branch: { repositoryNameWithOwner: "fictif-volunteer/my-first-site", branchName: "main" },
+      expectedHeadOid: "a1", message: { headline: "The mayor changes the plan" },
+    } });
+    const additions = (p.mutations[0].input.fileChanges as { additions: { path: string; contents: string }[] }).additions;
+    expect(additions[0].path).toBe("PLAN.md");
+    expect(decode(additions[0].contents)).toBe("# Plan\n- FICTIF The mayor wants a bench by the gate.\n");
+  });
+  it("starts the plan when there is none, and refuses an empty repository", () => {
+    const additions = (prepareMayor(branched()).mutations[0].input.fileChanges as { additions: { contents: string }[] }).additions;
+    expect(decode(additions[0].contents)).toBe("# Plan\n\n- FICTIF The mayor wants a bench by the gate.\n");
+    expect(() => prepareMayor(site())).toThrow(GestureError);
+  });
+});
+
+describe("a pull request from your own branch", () => {
+  const work = (o: Partial<PracticeSnapshot> = {}) => branched({
+    branches: [{ name: "work-1", oid: "w1", author: "fictif-volunteer", url: "c", readme: null, viaWeb: false, history: [] }], ...o,
+  });
+  it("opens a pull request from your own branch", () => {
+    const p = preparePull(work(), viewer, 1, "Paint", "why", "work-1");
+    expect(p.branch).toBe("work-1");
+    expect(p.mutations[0].input).toMatchObject({ headRefName: "work-1", baseRefName: "main" });
+  });
+  it("refuses a pull request from the default branch, or a branch that does not exist", () => {
+    expect(() => preparePull(work(), viewer, 1, "t", "w", "main")).toThrow(GestureError);
+    expect(() => preparePull(work(), viewer, 1, "t", "w", "nowhere")).toThrow(GestureError);
   });
 });

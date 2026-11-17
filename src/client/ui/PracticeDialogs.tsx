@@ -38,6 +38,7 @@ function summarize(p: PreparedPractice, t: TFunction): string {
         .filter(Boolean).join(" ");
     case "pull": return t("practice.summary.pull", { branch: p.branch, title: p.title, number: p.issueNumber });
     case "merge": return t("practice.summary.merge", { number: p.pullNumber, repo: p.repo });
+    case "mayor": return t("practice.summary.mayor", { branch: p.branch, repo: p.repo });
   }
 }
 

@@ -8,7 +8,7 @@ import { z } from "zod";
 import type { QuestConfig } from "../shared/config.ts";
 import { GestureError, prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
 import {
-  prepareEdit, prepareFound, prepareIssue, prepareMerge, preparePull, prepareTake, type PreparedPractice,
+  prepareEdit, prepareFound, prepareIssue, prepareMayor, prepareMerge, preparePull, prepareTake, type PreparedPractice,
 } from "../shared/gestures/practice.ts";
 import type { PracticeSnapshot } from "../shared/levels/types.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
@@ -40,8 +40,9 @@ const practiceClaim = z.discriminatedUnion("kind", [
   z.looseObject({ kind: z.literal("issue"), repo: z.string(), title: z.string(), body: z.string(), mutations }),
   z.looseObject({ kind: z.literal("take"), repo: z.string(), issueNumber: z.number(), comment: z.string(), mutations }),
   z.looseObject({ kind: z.literal("edit"), repo: z.string(), issueNumber: z.number().optional(), branch: z.string(), content: z.string(), message: z.string(), mutations }),
-  z.looseObject({ kind: z.literal("pull"), repo: z.string(), issueNumber: z.number(), title: z.string(), body: z.string(), mutations }),
+  z.looseObject({ kind: z.literal("pull"), repo: z.string(), branch: z.string(), issueNumber: z.number(), title: z.string(), body: z.string(), mutations }),
   z.looseObject({ kind: z.literal("merge"), repo: z.string(), pullNumber: z.number(), mutations }),
+  z.looseObject({ kind: z.literal("mayor"), repo: z.string(), branch: z.string(), mutations }),
 ]);
 
 /** The issue a practice branch works on: "practice-<n>". */
@@ -55,8 +56,9 @@ function rebuild(claim: PreparedPractice, viewer: { login: string; id: string },
     case "issue": return prepareIssue(practice, claim.title, claim.body);
     case "take": return prepareTake(practice, viewer, claim.issueNumber, claim.comment);
     case "edit": return prepareEdit(practice, viewer, issueOfBranch(claim.branch), claim.content, claim.message);
-    case "pull": return preparePull(practice, viewer, claim.issueNumber, claim.title, claim.body.replace(/\n\nCloses #\d+$/, ""));
+    case "pull": return preparePull(practice, viewer, claim.issueNumber, claim.title, claim.body.replace(/\n\nCloses #\d+$/, ""), claim.branch);
     case "merge": return prepareMerge(practice, viewer, claim.pullNumber);
+    case "mayor": return prepareMayor(practice);
   }
 }
 
@@ -205,18 +207,25 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       const { issueNumber, content, message } = c.req.valid("json");
       return c.json(prepareEdit(practice, { login, id: "" }, issueNumber, content, message));
     })
-    .post("/api/practice/pull/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), title: z.string(), why: z.string() })), async (c) => {
+    .post("/api/practice/pull/prepare", zValidator("json", z.object({
+      issueNumber: z.number().int(), title: z.string(), why: z.string(), branch: z.string().optional(),
+    })), async (c) => {
       const { login, practice } = await practiceContext(live);
       if (!practice) return c.json(PRACTICE_MISSING, 404);
-      const { issueNumber, title, why } = c.req.valid("json");
-      return c.json(preparePull(practice, { login }, issueNumber, title, why));
+      const { issueNumber, title, why, branch } = c.req.valid("json");
+      return c.json(preparePull(practice, { login }, issueNumber, title, why, branch));
+    })
+    .post("/api/practice/mayor/prepare", async (c) => {
+      const { practice } = await practiceContext(live);
+      if (!practice) return c.json(PRACTICE_MISSING, 404);
+      return c.json(prepareMayor(practice));
     })
     .post("/api/practice/merge/prepare", zValidator("json", z.object({ pullNumber: z.number().int() })), async (c) => {
       const { login, practice } = await practiceContext(live);
       if (!practice) return c.json(PRACTICE_MISSING, 404);
       return c.json(prepareMerge(practice, { login }, c.req.valid("json").pullNumber));
     })
-    .post("/api/practice/:kind{found|issue|take|edit|pull|merge}/apply", zValidator("json", practiceClaim), async (c) => {
+    .post("/api/practice/:kind{found|issue|take|edit|pull|merge|mayor}/apply", zValidator("json", practiceClaim), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedPractice;
       // A page marked demo never sends, even on a server that could.
       if (c.req.query("demo")) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
