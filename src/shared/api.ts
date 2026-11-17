@@ -78,6 +78,8 @@ export interface LevelsView {
     bulletin: { status: string | null; body: string } | null;
     /** The site radio's draft of tonight's bulletin. */
     radio: string;
+    /** The fictitious team's day has been played (a game event: GitHub cannot show it afterwards). */
+    teamDay: boolean;
   };
 }
 

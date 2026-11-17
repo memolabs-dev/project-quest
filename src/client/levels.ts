@@ -7,7 +7,8 @@ import { LEVELS } from "../shared/levels/index.ts";
 export type SiteKind = "main" | "demo" | "practice" | "team";
 export type MentorAction =
   | "to-tutorial" | "to-practice" | "to-main" | "to-team" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge" | "mayor"
-  | "commands" | "found-team" | "parcels" | "sprint-field" | "capacity" | "milestone";
+  | "commands" | "found-team" | "parcels" | "sprint-field" | "capacity" | "milestone"
+  | "bulletin" | "wip-limit" | "team-day" | "visit";
 
 export function siteKindFromUrl(search: string): SiteKind {
   const q = new URLSearchParams(search);
@@ -33,6 +34,10 @@ export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | n
     // A sprint needs a week running, then the capacity the team can carry; the loading is on the cards.
     if (level.id === "l5-sprint") return !view.team.sprint.current ? "sprint-field" : view.team.sprint.capacity === null ? "capacity" : null;
     if (level.id === "l6-milestone") return "milestone";
+    if (level.id === "l9-bulletin") return "bulletin";
+    // The limit first, then the team's day pushes it over; bringing it back under is done on the cards' moves.
+    if (level.id === "l10-wip") return view.team.wip.limit === null ? "wip-limit" : !view.team.teamDay ? "team-day" : null;
+    if (level.id === "l11-visit") return "visit";
     return null;
   }
   if (level.where === "tutorial") return kind === "demo" ? null : "to-tutorial";
@@ -71,10 +76,10 @@ export const noGoodFirst = (view: LevelsView, pallets: { goodFirst: boolean; clo
 /** Before anything else, a new player says which path they are on; someone already playing keeps the volunteer's. */
 export const needsPath = (view: LevelsView) => view.path === null && view.stamps.length === 0;
 
-export type Speaker = "meme" | "mayor" | "inspector" | "crane";
+export type Speaker = "meme" | "mayor" | "inspector" | "crane" | "radio";
 const SPEAKERS: Record<string, Speaker> = {
   "l2-sort-parcels": "mayor", "l3-ready": "inspector", "l4-size": "inspector",
-  "l6-milestone": "mayor", "l7-split": "crane", "l8-rope": "crane",
+  "l6-milestone": "mayor", "l7-split": "crane", "l8-rope": "crane", "l9-bulletin": "radio", "l11-visit": "mayor",
 };
 /** Who teaches a level: Mémé by default; the mayor, the inspector and Gérard on the lead's path (lead's path spec, section 6). */
 export const speakerOf = (levelId: string): Speaker => SPEAKERS[levelId] ?? "meme";
@@ -96,6 +101,7 @@ export function cardGestures(view: LevelsView, pallet: number): TeamKind[] {
     case "l6-milestone": return view.team.milestones.length > 0 ? ["attach"] : [];
     case "l7-split": return ["split"];
     case "l8-rope": return ["rope"];
+    case "l11-visit": return view.team.milestones.length > 0 ? ["finish"] : [];
     default: return [];
   }
 }
@@ -107,6 +113,9 @@ export function teamRewards(view: LevelsView, kind: SiteKind) {
   return {
     truck: kind === "team" && s.current ? { title: s.current, points: s.points, capacity: s.capacity } : null,
     ribbon: kind === "team" && next ? { title: next.title, dueOn: next.dueOn!.slice(0, 10) } : null,
+    // The Project director's reward: the radio mast broadcasts the last bulletin's status and first line.
+    mast: kind === "team" && view.team.bulletin
+      ? { status: view.team.bulletin.status, line: view.team.bulletin.body.split("\n")[0] } : null,
   };
 }
 

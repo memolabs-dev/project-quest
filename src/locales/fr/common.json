@@ -102,7 +102,8 @@
       "over": "Capacité dépassée : retire quelque chose.",
       "unsized": "Sans taille : {{numbers}}.",
       "change": "Changer la capacité"
-    }
+    },
+    "wip": "En pose : {{count}} sur {{limit}}."
   },
   "skills": {
     "title": "Compétences",
@@ -372,7 +373,8 @@
     "meme": "Mémé Truelle",
     "mayor": "La maire",
     "inspector": "L'inspectrice",
-    "crane": "Gérard le grutier"
+    "crane": "Gérard le grutier",
+    "radio": "La radio du chantier"
   },
   "team": {
     "found-team": {
@@ -473,10 +475,52 @@
       "title": "Encorder l'issue n°{{number}}",
       "body": "Celle-ci ne peut pas commencer avant que l'autre soit finie : GitHub la marque bloquée par elle.",
       "field": "Elle attend"
+    },
+    "bulletin": {
+      "open": "Écrire le bulletin du soir",
+      "title": "Le bulletin du soir",
+      "body": "La radio du chantier l'a préparé à partir de ton tableau. Dis où en est le chantier ce soir, puis publie-le comme statut du tableau.",
+      "status": "Comment va le chantier ?",
+      "field": "Le bulletin",
+      "statuses": {
+        "ON_TRACK": "Dans les temps",
+        "AT_RISK": "À risque",
+        "OFF_TRACK": "En retard",
+        "COMPLETE": "Terminé",
+        "INACTIVE": "À l'arrêt"
+      }
+    },
+    "wip-limit": {
+      "open": "Fixer la limite de En pose",
+      "title": "Une limite pour En pose",
+      "body": "Combien de boulots peut-on poser à la fois ? Le jeu écrit la limite dans la description de cette zone sur GitHub, là où tout le monde la voit.",
+      "field": "Boulots au plus"
+    },
+    "team-day": {
+      "open": "Lancer la journée de l'équipe",
+      "title": "La journée de l'équipe",
+      "body": "L'équipe fictive commence des boulots, plus que la limite ne le permet. Chaque déplacement est listé ci-dessous avant tout envoi. Ensuite, ramène En pose sous sa limite."
+    },
+    "finish": {
+      "open": "Poser : fini",
+      "title": "Finir l'issue n°{{number}}",
+      "body": "Le boulot est fini : ferme-le comme terminé et pose-le dans la dernière zone."
+    },
+    "close-visit": {
+      "open": "Fermer la visite",
+      "title": "La visite de la maire est prête",
+      "body": "Chaque boulot de sa visite est fini : ferme le jalon."
+    },
+    "move-visit": {
+      "open": "Déplacer la date",
+      "title": "Déplacer la visite de la maire",
+      "body": "Ce ne sera pas prêt à temps : déplace la date maintenant, et dis-le dans le bulletin.",
+      "field": "Nouvelle date"
     }
   },
   "rewards": {
     "truck": "{{sprint}} · {{points}}/{{capacity}} pts",
-    "ribbon": "{{title}} · {{date}}"
+    "ribbon": "{{title}} · {{date}}",
+    "mast": "{{status}} · {{line}}"
   }
 }

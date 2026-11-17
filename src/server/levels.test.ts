@@ -66,7 +66,7 @@ describe("levels", () => {
     });
     expect(v.team).toEqual({ exists: false, parcels: false, labels: [], milestones: [],
       sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
-      wip: { limit: null, count: 0 }, bulletin: null, radio: expect.any(String) });
+      wip: { limit: null, count: 0 }, bulletin: null, radio: expect.any(String), teamDay: false });
   });
 
   it("refuses an unknown tutorial event", async () => {

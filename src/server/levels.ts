@@ -87,6 +87,7 @@ async function view(
       wip: { limit: wipLimit(team), count: inProgress(team) },
       bulletin: bulletin ? { status: bulletin.status, body: bulletin.body } : null,
       radio: radioRecap(team, todayOf(deps), capacity),
+      teamDay: (await deps.progress.events(login)).includes("team-day"),
     },
   };
 }

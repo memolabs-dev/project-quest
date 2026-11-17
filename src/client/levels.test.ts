@@ -8,7 +8,7 @@ import {
 const ids = LEVELS.map((l) => l.id);
 const NO_TEAM: LevelsView["team"] = {
   exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
-  wip: { limit: null, count: 0 }, bulletin: null, radio: "FICTIF Evening bulletin, 2026-11-17.",
+  wip: { limit: null, count: 0 }, bulletin: null, radio: "FICTIF Evening bulletin, 2026-11-17.", teamDay: false,
 };
 const view = (stamped: number, exists = false): LevelsView => ({
   login: "fictif-volunteer", canWrite: true, path: null, ranks: { volunteer: null, lead: null },
@@ -151,9 +151,30 @@ describe("the lead's path", () => {
       exists: true, sprint: { ...NO_TEAM.sprint, field: true, current: "Sprint 1", points: 5, capacity: 8 },
       milestones: [{ number: 2, title: "FICTIF Later", dueOn: "2026-12-20T12:00:00Z", openIssues: 0 }, { number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z", openIssues: 0 }, { number: 3, title: "FICTIF No date", dueOn: null, openIssues: 0 }],
     });
-    expect(teamRewards(v, "team")).toEqual({ truck: { title: "Sprint 1", points: 5, capacity: 8 }, ribbon: { title: "FICTIF Visit", dueOn: "2026-11-29" } });
-    expect(teamRewards(v, "main")).toEqual({ truck: null, ribbon: null });
-    expect(teamRewards(lead("l5-sprint"), "team")).toEqual({ truck: null, ribbon: null });
+    expect(teamRewards(v, "team")).toEqual({ truck: { title: "Sprint 1", points: 5, capacity: 8 }, ribbon: { title: "FICTIF Visit", dueOn: "2026-11-29" }, mast: null });
+    expect(teamRewards(v, "main")).toEqual({ truck: null, ribbon: null, mast: null });
+    expect(teamRewards(lead("l5-sprint"), "team")).toEqual({ truck: null, ribbon: null, mast: null });
+  });
+  it("the radio reads the bulletin", () => {
+    expect(mentorAction(lead("l9-bulletin", { exists: true }), "team")).toBe("bulletin");
+    expect(speakerOf("l9-bulletin")).toBe("radio");
+  });
+  it("the limit, then the team's day, then the moves", () => {
+    expect(mentorAction(lead("l10-wip", { exists: true }), "team")).toBe("wip-limit");
+    const limited = lead("l10-wip", { exists: true, wip: { limit: 2, count: 0 } });
+    expect(mentorAction(limited, "team")).toBe("team-day");
+    expect(mentorAction(lead("l10-wip", { exists: true, wip: { limit: 2, count: 4 }, teamDay: true }), "team")).toBeNull();
+  });
+  it("the mayor's visit ends", () => {
+    const v = lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", openIssues: 1 }] });
+    expect(speakerOf("l11-visit")).toBe("mayor");
+    expect(mentorAction(v, "team")).toBe("visit");
+    expect(cardGestures(v, 2)).toEqual(["finish"]);
+  });
+  it("the mast broadcasts the last bulletin", () => {
+    const v = lead("l10-wip", { exists: true, bulletin: { status: "AT_RISK", body: "FICTIF Evening bulletin.\nSprint 1: 2 of 3." } });
+    expect(teamRewards(v, "team").mast).toEqual({ status: "AT_RISK", line: "FICTIF Evening bulletin." });
+    expect(teamRewards(lead("l10-wip", { exists: true }), "team").mast).toBeNull();
   });
   it("gives each lead level its speaker", () => {
     expect(speakerOf("l1-found-team")).toBe("meme");

@@ -177,10 +177,18 @@ export function Mentor() {
         {action === "to-practice" && <a className="primary" href="?site=practice">{t("mentor.toPractice")}</a>}
         {action === "to-main" && <a className="primary" href="./">{t("mentor.toMain")}</a>}
         {action === "to-team" && <a className="primary" href="?site=team">{t("mentor.toTeam")}</a>}
-        {(action === "found-team" || action === "parcels" || action === "sprint-field" || action === "milestone") && (
+        {(action === "found-team" || action === "parcels" || action === "sprint-field" || action === "milestone"
+          || action === "bulletin" || action === "wip-limit" || action === "team-day") && (
           <button type="button" className="primary" onClick={() => openTeam({ kind: action === "found-team" ? "team-found" : action })}>
             {t(`team.${action}.open`)}
           </button>
+        )}
+        {action === "visit" && <>
+          <button type="button" className="primary" onClick={() => openTeam({ kind: "close-visit" })}>{t("team.close-visit.open")}</button>
+          <button type="button" onClick={() => openTeam({ kind: "move-visit" })}>{t("team.move-visit.open")}</button>
+        </>}
+        {current === "l10-wip" && levels.team.wip.limit !== null && (
+          <p className="mentor-load">{t("mentor.wip", { count: levels.team.wip.count, limit: levels.team.wip.limit })}</p>
         )}
         {action === "capacity" && <Capacity initial={null} />}
         {action !== "capacity" && capacityEditable(levels) && (changing
@@ -188,6 +196,7 @@ export function Mentor() {
           : <button type="button" onClick={() => setChanging(true)}>{t("mentor.sprint.change")}</button>)}
         {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "to-main" && action !== "to-team"
           && action !== "found-team" && action !== "parcels" && action !== "sprint-field" && action !== "milestone" && action !== "capacity"
+          && action !== "bulletin" && action !== "wip-limit" && action !== "team-day" && action !== "visit"
           && action !== "move" && action !== "commands" && (
           <button type="button" className="primary" onClick={() => openPractice(action)}>{t(`practice.${action}.open`)}</button>
         )}

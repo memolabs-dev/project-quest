@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { PreparedPractice } from "../../shared/api.ts";
 import type { PreparedAsk } from "../../shared/gestures/real.ts";
-import type { PreparedTeam, TeamArgs, TeamKind } from "../../shared/gestures/team.ts";
+import { BULLETIN_STATUSES, type PreparedTeam, type TeamArgs, type TeamKind } from "../../shared/gestures/team.ts";
 import { PARCELS, SIZES } from "../../shared/levels/parcels.ts";
 import { ApiFailure, api } from "../api.ts";
 import { useQuest } from "../store.ts";
@@ -338,7 +338,10 @@ const DIALOGS = { ask: AskDialog, mayor: MayorDialog, found: FoundDialog, write:
 const NO_LABELS: string[] = [];
 
 /** The lead's gestures on the team site: one small form each, then the exact request. */
-const NO_MILESTONES: { number: number; title: string; dueOn: string | null }[] = [];
+const NO_MILESTONES: { number: number; title: string; dueOn: string | null; openIssues: number }[] = [];
+/** A visit moved a week later by default: a day the player can change. */
+const weekAfter = (dueOn: string | null) =>
+  new Date(Date.parse(`${(dueOn ?? new Date().toISOString()).slice(0, 10)}T00:00:00Z`) + 7 * 86_400_000).toISOString().slice(0, 10);
 /** The mayor's visit, two weeks ahead by default: a day the player can change. */
 const inTwoWeeks = () => new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10);
 
@@ -362,6 +365,11 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
   const [dueOn, setDueOn] = useState(inTwoWeeks);
   const [chosen, setChosen] = useState<number[]>([]);
   const [milestone, setMilestone] = useState<number | null>(milestones[0]?.number ?? null);
+  const radio = useQuest((s) => s.levels?.team.radio ?? "");
+  const [status, setStatus] = useState<string>("ON_TRACK");
+  const [body, setBody] = useState(radio);
+  const [limit, setLimit] = useState(3);
+  const [later, setLater] = useState(() => weekAfter(milestones[0]?.dueOn ?? null));
   const step = useTwoSteps<PreparedTeam>();
   const args: TeamArgs = kind === "team-found" ? { visibility }
     : kind === "label" ? { issueNumber: issue, label }
@@ -372,7 +380,12 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
               : kind === "milestone" ? { title, dueOn, issues: chosen }
                 : kind === "attach" ? { issueNumber: issue, milestone: milestone ?? undefined }
                   : kind === "split" ? { issueNumber: issue, titles: items.split("\n") }
-                    : kind === "rope" ? { issueNumber: issue, blocking: original ?? undefined } : {};
+                    : kind === "rope" ? { issueNumber: issue, blocking: original ?? undefined }
+                      : kind === "bulletin" ? { status, body }
+                        : kind === "wip-limit" ? { limit }
+                          : kind === "finish" ? { issueNumber: issue }
+                            : kind === "close-visit" ? { milestone: milestone ?? undefined }
+                              : kind === "move-visit" ? { milestone: milestone ?? undefined, dueOn: later } : {};
   return (
     <Dialog title={t(`team.${kind}.title`, { number: issue })}>
       {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
@@ -425,6 +438,30 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
                 {milestones.map((m) => <option key={m.number} value={m.number}>{m.title}</option>)}
               </select>
             </label>
+          )}
+          {kind === "bulletin" && <>
+            <fieldset className="choice">
+              <legend>{t("team.bulletin.status")}</legend>
+              {BULLETIN_STATUSES.map((s) => (
+                <label key={s}><input type="radio" name="bstatus" checked={status === s} onChange={() => setStatus(s)} /> {t(`team.bulletin.statuses.${s}`)}</label>
+              ))}
+            </fieldset>
+            <label className="field">{t("team.bulletin.field")}<textarea rows={5} value={body} onChange={(e) => setBody(e.target.value)} /></label>
+          </>}
+          {kind === "wip-limit" && (
+            <label className="field">{t("team.wip-limit.field")}
+              <input type="number" min={1} max={10} value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
+            </label>
+          )}
+          {(kind === "close-visit" || kind === "move-visit") && (
+            <label className="field">{t("team.attach.field")}
+              <select value={milestone ?? ""} onChange={(e) => setMilestone(Number(e.target.value))}>
+                {milestones.map((m) => <option key={m.number} value={m.number}>{m.title} ({m.dueOn?.slice(0, 10) ?? "?"})</option>)}
+              </select>
+            </label>
+          )}
+          {kind === "move-visit" && (
+            <label className="field">{t("team.move-visit.field")}<input type="date" value={later} onChange={(e) => setLater(e.target.value)} /></label>
           )}
           {kind === "split" && (
             <label className="field">{t("team.split.field")}<textarea rows={4} value={items} onChange={(e) => setItems(e.target.value)} /></label>

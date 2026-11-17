@@ -102,7 +102,8 @@
       "over": "Over capacity: take something off.",
       "unsized": "Without a size: {{numbers}}.",
       "change": "Change the capacity"
-    }
+    },
+    "wip": "Being laid: {{count}} of {{limit}}."
   },
   "skills": {
     "title": "Skills",
@@ -372,7 +373,8 @@
     "meme": "Mémé Truelle",
     "mayor": "The mayor",
     "inspector": "The inspector",
-    "crane": "Gérard the crane operator"
+    "crane": "Gérard the crane operator",
+    "radio": "The site radio"
   },
   "team": {
     "found-team": {
@@ -473,10 +475,52 @@
       "title": "Rope issue #{{number}}",
       "body": "This one cannot start before the other is done: GitHub marks it blocked by it.",
       "field": "It waits for"
+    },
+    "bulletin": {
+      "open": "Write the evening bulletin",
+      "title": "The evening bulletin",
+      "body": "The site radio drafted it from your board. Say how the site stands tonight, then post it as the board's status.",
+      "status": "How is the site?",
+      "field": "The bulletin",
+      "statuses": {
+        "ON_TRACK": "On track",
+        "AT_RISK": "At risk",
+        "OFF_TRACK": "Off track",
+        "COMPLETE": "Complete",
+        "INACTIVE": "Inactive"
+      }
+    },
+    "wip-limit": {
+      "open": "Set the limit on Being laid",
+      "title": "A limit on Being laid",
+      "body": "How many jobs can be laid at once? The game writes the limit in that zone's description on GitHub, where everyone sees it.",
+      "field": "Jobs at most"
+    },
+    "team-day": {
+      "open": "Let the team's day begin",
+      "title": "The team's day",
+      "body": "The fictitious team starts jobs, more than the limit allows. Each move is listed below before anything is sent. Then bring Being laid back under its limit."
+    },
+    "finish": {
+      "open": "Lay it: done",
+      "title": "Finish issue #{{number}}",
+      "body": "The job is done: close it as completed and lay it in the last zone."
+    },
+    "close-visit": {
+      "open": "Close the visit",
+      "title": "The mayor's visit is ready",
+      "body": "Every job of her visit is done: close the milestone."
+    },
+    "move-visit": {
+      "open": "Move the date",
+      "title": "Move the mayor's visit",
+      "body": "It won't be ready in time: move the date now, and say it in the bulletin.",
+      "field": "New date"
     }
   },
   "rewards": {
     "truck": "{{sprint}} · {{points}}/{{capacity}} pts",
-    "ribbon": "{{title}} · {{date}}"
+    "ribbon": "{{title}} · {{date}}",
+    "mast": "{{status}} · {{line}}"
   }
 }

@@ -38,13 +38,14 @@ describe("locales", () => {
   });
 
   it("names every lead gesture, explains it and says who teaches each lead level", () => {
-    const kinds = ["team-found", "parcels", "label", "duplicate", "checklist", "size", "sprint-field", "load", "unload", "milestone", "attach", "split", "rope"];
+    const kinds = ["team-found", "parcels", "label", "duplicate", "checklist", "size", "sprint-field", "load", "unload", "milestone", "attach", "split", "rope",
+      "bulletin", "wip-limit", "team-day", "finish", "close-visit", "move-visit"];
     for (const k of kinds) {
       expect(en[`team.summary.${k}`], `summary.${k}`).toBeTruthy();
       expect(en[`team.${k}.title`], `${k}.title`).toBeTruthy();
       expect(en[`team.${k}.body`], `${k}.body`).toBeTruthy();
     }
-    for (const s of ["meme", "mayor", "inspector", "crane"]) expect(en[`speakers.${s}`], s).toBeTruthy();
+    for (const s of ["meme", "mayor", "inspector", "crane", "radio"]) expect(en[`speakers.${s}`], s).toBeTruthy();
   });
 
   it("uses no em or en dash in the French copy", () => {
