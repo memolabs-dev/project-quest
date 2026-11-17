@@ -65,7 +65,8 @@ describe("levels", () => {
       unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false,
     });
     expect(v.team).toEqual({ exists: false, parcels: false, labels: [], milestones: [],
-      sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] } });
+      sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
+      wip: { limit: null, count: 0 }, bulletin: null, radio: expect.any(String) });
   });
 
   it("refuses an unknown tutorial event", async () => {
@@ -210,7 +211,40 @@ describe("the team site", () => {
     const { app } = make(null, { progress, readPractice: reading(loaded), today: () => "2026-11-18" });
     const v = await view(await app.request("/api/levels/check", post({})));
     expect(v.team.sprint).toEqual({ field: true, current: "Sprint 1", points: 3, capacity: 5, loaded: [2, 3], unsized: [3] });
-    expect(v.team.milestones).toEqual([{ number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z" }]);
+    expect(v.team.milestones).toEqual([{ number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", openIssues: 0 }]);
+  });
+
+  it("records the team's day only once GitHub accepted it", async () => {
+    const zones = ["Backlog", "Ready", "In progress", "In review", "Done"].map((name, i) => ({ id: `z${i}`, name, description: name === "In progress" ? "Being laid. Limit: 1." : "" }));
+    const busy = {
+      ...team, board: { ...team.board!, statusFieldId: "F_status", statusOptionIds: zones },
+      issues: [1, 2, 3].map((n) => issue({ number: n, id: `I_${n}`, itemId: `PVTI_${n}`, status: "Backlog" })),
+    };
+    const refused = make(null, { readPractice: reading(busy), applyTeam: async () => ({ ok: false, reason: "github", message: "no", applied: [] }) });
+    const claim = await (await refused.app.request("/api/team/team-day/prepare", post({}))).json();
+    await refused.app.request("/api/team/team-day/apply", post(claim));
+    expect(await refused.deps.progress.events(VIEWER)).toEqual([]);
+    const { app, deps } = make(null, { readPractice: reading(busy) });
+    expect((await app.request("/api/team/team-day/apply", post(claim))).status).toBe(200);
+    expect(await deps.progress.events(VIEWER)).toEqual(["team-day"]);
+  });
+
+  it("the view tells \"Being laid\" against its limit and the last bulletin", async () => {
+    const progress = memoryProgress();
+    await progress.setPath(VIEWER, "lead");
+    const zones = ["Backlog", "Ready", "In progress", "In review", "Done"].map((name, i) => ({ id: `z${i}`, name, description: name === "In progress" ? "Being laid. Limit: 2." : "" }));
+    const lit = {
+      ...team,
+      board: { ...team.board!, statusOptionIds: zones, statusUpdates: [{ status: "AT_RISK", body: "FICTIF Late.", createdAt: "2026-11-17T18:00:00Z" }, { status: "ON_TRACK", body: "old", createdAt: "2026-11-16T18:00:00Z" }] },
+      milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", url: "m", closed: false, openIssues: 1, closedIssues: 1 }],
+      issues: [issue({ number: 2, status: "In progress" }), issue({ number: 3, status: "In progress" }), issue({ number: 4, status: "In progress" })],
+    };
+    const { app } = make(null, { progress, readPractice: reading(lit), today: () => "2026-11-17" });
+    const v = await view(await app.request("/api/levels/check", post({})));
+    expect(v.team.wip).toEqual({ limit: 2, count: 3 });
+    expect(v.team.bulletin).toEqual({ status: "AT_RISK", body: "FICTIF Late." });
+    expect(v.team.radio).toContain("Being laid: 3 (limit 2).");
+    expect(v.team.milestones[0]).toMatchObject({ number: 1, openIssues: 1 });
   });
 
   it("refuses a lead gesture that does not match a fresh read, or from a page marked demo", async () => {

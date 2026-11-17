@@ -8,6 +8,7 @@ import {
 const ids = LEVELS.map((l) => l.id);
 const NO_TEAM: LevelsView["team"] = {
   exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
+  wip: { limit: null, count: 0 }, bulletin: null, radio: "FICTIF Evening bulletin, 2026-11-17.",
 };
 const view = (stamped: number, exists = false): LevelsView => ({
   login: "fictif-volunteer", canWrite: true, path: null, ranks: { volunteer: null, lead: null },
@@ -134,7 +135,7 @@ describe("the lead's path", () => {
   it("the mayor sets the visit", () => {
     expect(mentorAction(lead("l6-milestone", { exists: true }), "team")).toBe("milestone");
     expect(speakerOf("l6-milestone")).toBe("mayor");
-    const set = lead("l6-milestone", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z" }] });
+    const set = lead("l6-milestone", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z", openIssues: 0 }] });
     expect(cardGestures(set, 2)).toEqual(["attach"]);
     expect(cardGestures(lead("l6-milestone", { exists: true }), 2)).toEqual([]);
   });
@@ -148,7 +149,7 @@ describe("the lead's path", () => {
   it("puts the sprint truck and the mayor's ribbon on the team site", () => {
     const v = lead("l7-split", {
       exists: true, sprint: { ...NO_TEAM.sprint, field: true, current: "Sprint 1", points: 5, capacity: 8 },
-      milestones: [{ number: 2, title: "FICTIF Later", dueOn: "2026-12-20T12:00:00Z" }, { number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z" }, { number: 3, title: "FICTIF No date", dueOn: null }],
+      milestones: [{ number: 2, title: "FICTIF Later", dueOn: "2026-12-20T12:00:00Z", openIssues: 0 }, { number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z", openIssues: 0 }, { number: 3, title: "FICTIF No date", dueOn: null, openIssues: 0 }],
     });
     expect(teamRewards(v, "team")).toEqual({ truck: { title: "Sprint 1", points: 5, capacity: 8 }, ribbon: { title: "FICTIF Visit", dueOn: "2026-11-29" } });
     expect(teamRewards(v, "main")).toEqual({ truck: null, ribbon: null });

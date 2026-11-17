@@ -2,7 +2,7 @@
 // the levels' checks decide, and each passing level is stamped with its proof. Never another player's progress.
 import type { LevelsView } from "../shared/api.ts";
 import { levelsOf } from "../shared/levels/index.ts";
-import { sprintFieldOf, sprintLoad } from "../shared/levels/lead.ts";
+import { inProgress, radioRecap, sprintFieldOf, sprintLoad, wipLimit } from "../shared/levels/lead.ts";
 import { PARCELS, parcelOf } from "../shared/levels/parcels.ts";
 import { currentLevel, rankReached, unlocks } from "../shared/levels/progress.ts";
 import type { Observed, Path, PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
@@ -56,6 +56,8 @@ async function view(
   const path = await deps.progress.path(login);
   const shown = levelsOf(path ?? "volunteer");
   const load = sprintLoad(team, todayOf(deps));
+  const capacity = path === "lead" ? await deps.progress.capacity(login) : null;
+  const bulletin = team?.board?.statusUpdates?.[0] ?? null;
   return {
     login,
     canWrite: deps.mode === "live",
@@ -76,11 +78,15 @@ async function view(
         field: sprintFieldOf(team) !== undefined,
         current: load.iteration?.title ?? null,
         points: load.points,
-        capacity: path === "lead" ? await deps.progress.capacity(login) : null,
+        capacity,
         loaded: load.pallets.map((i) => i.number).sort((a, b) => a - b),
         unsized: load.unsized,
       },
-      milestones: (team?.milestones ?? []).filter((m) => !m.closed).map((m) => ({ number: m.number, title: m.title, dueOn: m.dueOn })),
+      milestones: (team?.milestones ?? []).filter((m) => !m.closed)
+        .map((m) => ({ number: m.number, title: m.title, dueOn: m.dueOn, openIssues: m.openIssues })),
+      wip: { limit: wipLimit(team), count: inProgress(team) },
+      bulletin: bulletin ? { status: bulletin.status, body: bulletin.body } : null,
+      radio: radioRecap(team, todayOf(deps), capacity),
     },
   };
 }
