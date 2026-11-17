@@ -93,7 +93,7 @@ One game session is one working day, 10 to 15 minutes, matching the lead's real 
 - **the lead's path**: from "what is an issue" to running a board, a sprint, a milestone and a review round;
 - **the contributor's path**: from "what is GitHub" to taking an issue, opening a pull request and answering a review.
 
-Each level teaches one GitHub skill, plays it first on the fictitious site (nothing sent), then unlocks it as a real gesture. Rewards, levels and skills are personal: a player sees their own, never a comparison with others (principle 3 stands). This supersedes the earlier "no up-front tutorial" line. Detailed design, volunteer's path first: `2026-11-17-levels-design.md`.
+Each level teaches one GitHub skill, plays it first on the fictitious site (nothing sent), then unlocks it as a real gesture. Rewards, levels and skills are personal: a player sees their own, never a comparison with others (principle 3 stands). This supersedes the earlier "no up-front tutorial" line. Detailed design: the volunteer's path in `2026-11-17-levels-design.md`, the lead's path in `2026-11-17-lead-path-design.md`.
 
 - **Unlocks earned by real progress**: the giant crane at the first milestone met, the forklift at 10 tasks finished, the termite net at the first bug fixed. There is always a next thing to unlock.
 - **One new lesson at a time**: the inspector introduces one gesture at a time (the DoR, the limit of work in progress, review, splitting a task too big), in a few words.
