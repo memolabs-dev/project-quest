@@ -11,6 +11,8 @@ import { useQuest } from "../store.ts";
 /** One page per rank, in the order they are reached, for one path. */
 const ranksOf = (path: Path) => [...new Set(LEVELS.filter((l) => l.path === path).map((l) => l.rank))] as Rank[];
 
+const PATHS: Path[] = ["volunteer", "lead"];
+
 export function SkillBook() {
   const { t, i18n } = useTranslation();
   const levels = useQuest((s) => s.levels);
@@ -32,11 +34,22 @@ export function SkillBook() {
       <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>{t("skills.title")}</button>
       {open && (
         <section className="skill-panel" aria-label={t("skills.title")}>
-          <div className="skill-paths" role="tablist">
-            {(["volunteer", "lead"] as Path[]).map((p) => (
-              <button key={p} type="button" role="tab" aria-selected={p === path} onClick={() => setShown(p)}>{t(`skills.paths.${p}`)}</button>
+          <div className="skill-paths" role="tablist" aria-label={t("skills.title")}>
+            {PATHS.map((p, i) => (
+              <button key={p} id={`skill-tab-${p}`} type="button" role="tab" aria-selected={p === path} aria-controls={`skill-panel-${p}`}
+                tabIndex={p === path ? 0 : -1} onClick={() => setShown(p)}
+                onKeyDown={(e) => {
+                  // The arrows move between the two paths, as in any tab list.
+                  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+                  const next = PATHS[(i + (e.key === "ArrowRight" ? 1 : PATHS.length - 1)) % PATHS.length];
+                  setShown(next);
+                  document.getElementById(`skill-tab-${next}`)?.focus();
+                }}>
+                {t(`skills.paths.${p}`)}
+              </button>
             ))}
           </div>
+          <div id={`skill-panel-${path}`} role="tabpanel" aria-labelledby={`skill-tab-${path}`}>
           {canFollow(levels, path) && (
             <button type="button" className="follow-path" onClick={() => void follow(path)}>{t("skills.follow")}</button>
           )}
@@ -65,6 +78,7 @@ export function SkillBook() {
               </ol>
             </section>
           ))}
+          </div>
         </section>
       )}
     </div>

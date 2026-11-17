@@ -130,20 +130,18 @@ export function Mentor() {
     return <button type="button" className="mentor-tab" onClick={() => setFolded(false)}>{t("mentor.name")}</button>;
   }
   return (
-    <aside className="mentor" aria-label={t("mentor.name")} aria-live="polite">
+    <aside className="mentor" aria-label={t("mentor.name")}>
       <div className="mentor-head">
         <span className="mentor-face" aria-hidden="true">{t(`speakers.${speaker}`).charAt(0)}</span>
         <b>{t(`speakers.${speaker}`)}</b>
         <button type="button" className="mentor-fold" aria-label={t("mentor.fold")} onClick={() => setFolded(true)}>×</button>
       </div>
+      {/* Only her words are announced, never her buttons. */}
+      <div className="mentor-words" aria-live="polite">
       {needsPath(levels) ? (
         <>
           <p>{t("mentor.hello")}</p>
           <p className="mentor-goal">{t("mentor.choose.question")}</p>
-          <div className="mentor-actions">
-            <button type="button" className="primary" onClick={() => void choose("volunteer")}>{t("mentor.choose.volunteer")}</button>
-            <button type="button" className="primary" onClick={() => void choose("lead")}>{t("mentor.choose.lead")}</button>
-          </div>
         </>
       ) : cheer ? (
         <p className="mentor-cheer">
@@ -170,6 +168,13 @@ export function Mentor() {
           )}
           {notYet && <p className="mentor-notyet">{t("mentor.notYet")}</p>}
         </>
+      )}
+      </div>
+      {needsPath(levels) && (
+        <div className="mentor-actions">
+          <button type="button" className="primary" onClick={() => void choose("volunteer")}>{t("mentor.choose.volunteer")}</button>
+          <button type="button" className="primary" onClick={() => void choose("lead")}>{t("mentor.choose.lead")}</button>
+        </div>
       )}
       {action === "commands" && current && <Commands level={current} />}
       {!needsPath(levels) && <div className="mentor-actions">

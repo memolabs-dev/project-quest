@@ -1,6 +1,6 @@
 // The practice site's three gestures: found it, write an issue, take one. Each dialog asks, then shows exactly
 // what will be sent to GitHub, then sends only on the player's click. On the demo site nothing can be sent.
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { PreparedPractice } from "../../shared/api.ts";
@@ -11,20 +11,47 @@ import { ApiFailure, api } from "../api.ts";
 import { radioDraft, requestsOf } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
+/** Set while a gesture is being sent: Escape must not close the dialog then. */
+const Sending = createContext<(busy: boolean) => void>(() => {});
+
+const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex='0']";
+
+/** A modal dialog: the keyboard stays inside, Escape closes it (never while sending), the focus goes back to the opener. */
 function Dialog({ title, children }: { title: string; children: ReactNode }) {
-  const close = useQuest((s) => s.openPractice);
+  const closePractice = useQuest((s) => s.openPractice);
+  const closeTeam = useQuest((s) => s.openTeam);
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => { ref.current?.querySelector<HTMLElement>("input, textarea, select, button")?.focus(); }, []);
+  const busy = useRef(false);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(null); };
+    const opener = document.activeElement as HTMLElement | null;
+    ref.current?.querySelector<HTMLElement>("input, textarea, select, button")?.focus();
+    return () => { if (opener?.isConnected) opener.focus(); };
+  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !busy.current) {
+        closePractice(null);
+        closeTeam(null);
+      }
+      if (e.key !== "Tab" || !ref.current) return;
+      const all = [...ref.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      if (all.length === 0) return;
+      const first = all[0];
+      const last = all[all.length - 1];
+      const inside = ref.current.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === first || !inside)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !inside)) { e.preventDefault(); first.focus(); }
+    };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [close]);
+  }, [closePractice, closeTeam]);
   return (
-    <div ref={ref} className="confirm practice" role="dialog" aria-modal="true" aria-labelledby="practice-title">
-      <h2 id="practice-title">{title}</h2>
-      {children}
-    </div>
+    <Sending.Provider value={(b) => { busy.current = b; }}>
+      <div ref={ref} className="confirm practice" role="dialog" aria-modal="true" aria-labelledby="practice-title">
+        <h2 id="practice-title">{title}</h2>
+        {children}
+      </div>
+    </Sending.Provider>
   );
 }
 
@@ -68,6 +95,8 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
   const refreshLevels = useQuest((s) => s.refreshLevels);
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
+  const setBusy = useContext(Sending);
+  useEffect(() => setBusy(state === "sending"), [state, setBusy]);
 
   const send = async () => {
     setState("sending");

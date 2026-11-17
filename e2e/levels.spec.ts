@@ -202,3 +202,39 @@ test("a project director writes the evening bulletin from the radio's draft, and
   await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
   await page.screenshot({ path: "e2e/screenshots/lead-bulletin.png" });
 });
+
+test("a dialog keeps the keyboard inside, Escape closes it and the focus goes back; the skill book's tabs follow the arrows", async ({ page }) => {
+  await page.goto("/?site=team");
+  await expect(page.getByTestId("site-canvas")).toBeVisible();
+  await page.evaluate(async () => {
+    const { useQuest } = await import("/src/client/store.ts");
+    useQuest.getState().setLevels({
+      login: "you", canWrite: false, path: "lead", ranks: { volunteer: null, lead: "site-manager" }, current: "l9-bulletin", rank: "site-manager",
+      stamps: [{ levelId: "a1-walk", proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" }],
+      unlocks: { helmet: true, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false },
+      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
+      real: null,
+      team: {
+        exists: true, parcels: true, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
+        wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false,
+      },
+    });
+  });
+  const opener = page.getByRole("button", { name: /Write the evening bulletin/ });
+  await opener.click();
+  const dialog = page.getByRole("dialog", { name: /The evening bulletin/ });
+  for (let i = 0; i < 12; i++) await page.keyboard.press("Tab");
+  expect(await dialog.evaluate((d) => d.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(opener).toBeFocused();
+
+  await page.getByRole("button", { name: "Skills" }).click();
+  const lead = page.getByRole("tab", { name: /Run the site|lead/i });
+  await lead.focus();
+  await page.keyboard.press("ArrowLeft");
+  const volunteer = page.getByRole("tab", { selected: true });
+  await expect(volunteer).toBeFocused();
+  const panel = await volunteer.getAttribute("aria-controls");
+  await expect(page.locator(`#${panel}`)).toHaveAttribute("role", "tabpanel");
+});
