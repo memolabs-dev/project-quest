@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { LoggedActionView } from "../../shared/api.ts";
 import { ApiFailure, api } from "../api.ts";
 import { zoneLabel } from "../i18n.ts";
+import { cardGestures } from "../levels.ts";
 import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
 import { Mentor } from "./Mentor.tsx";
@@ -18,7 +19,7 @@ function PalletCard({ number }: { number: number }) {
   const sendEvent = useQuest((s) => s.sendEvent);
   const reading = useQuest((s) => s.siteKind === "demo" && s.levels?.current === "a2-read-issue");
   const asking = useQuest((s) => s.siteKind === "main" && s.levels?.current === "a16-ask-good-first");
-  const leading = useQuest((s) => (s.siteKind === "team" && s.levels?.path === "lead" ? s.levels.current : null));
+  const leading = useQuest((s) => (s.siteKind === "team" && s.levels?.path === "lead" ? s.levels : null));
   const openTeam = useQuest((s) => s.openTeam);
   const ask = useQuest((s) => s.ask);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,7 @@ function PalletCard({ number }: { number: number }) {
   useEffect(() => { closeRef.current?.focus(); sendEvent("card-opened"); }, [sendEvent]);
   const pallet = site?.pallets.find((p) => p.number === number);
   if (!site || !pallet) return null;
+  const gestures = leading ? cardGestures(leading, pallet.number) : [];
   const workers = site.workers.filter((w) => w.carrying.includes(pallet.number));
   const zoneIndex = site.zones.find((z) => z.name === pallet.zone)?.index ?? 0;
   const titleId = `card-title-${pallet.number}`;
@@ -67,18 +69,11 @@ function PalletCard({ number }: { number: number }) {
       )}
       {error && <p className="error" role="alert">{error}</p>}
       {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
-      {leading && !pallet.closed && (
+      {gestures.length > 0 && !pallet.closed && (
         <div className="lead-actions">
-          {leading === "l2-sort-parcels" && <>
-            <button type="button" className="got-it" onClick={() => openTeam({ kind: "label", issue: pallet.number })}>{t("team.label.open")}</button>
-            <button type="button" className="got-it" onClick={() => openTeam({ kind: "duplicate", issue: pallet.number })}>{t("team.duplicate.open")}</button>
-          </>}
-          {leading === "l3-ready" && (
-            <button type="button" className="got-it" onClick={() => openTeam({ kind: "checklist", issue: pallet.number })}>{t("team.checklist.open")}</button>
-          )}
-          {leading === "l4-size" && (
-            <button type="button" className="got-it" onClick={() => openTeam({ kind: "size", issue: pallet.number })}>{t("team.size.open")}</button>
-          )}
+          {gestures.map((g) => (
+            <button key={g} type="button" className="got-it" onClick={() => openTeam({ kind: g, issue: pallet.number })}>{t(`team.${g}.open`)}</button>
+          ))}
         </div>
       )}
       {asking && pallet.goodFirst && !pallet.closed && workers.length === 0 && (

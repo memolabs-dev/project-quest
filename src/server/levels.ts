@@ -77,6 +77,7 @@ async function view(
         current: load.iteration?.title ?? null,
         points: load.points,
         capacity: path === "lead" ? await deps.progress.capacity(login) : null,
+        loaded: load.pallets.map((i) => i.number).sort((a, b) => a - b),
         unsized: load.unsized,
       },
       milestones: (team?.milestones ?? []).filter((m) => !m.closed).map((m) => ({ number: m.number, title: m.title, dueOn: m.dueOn })),

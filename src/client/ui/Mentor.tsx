@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commandsFor, safeBranch } from "../commands.ts";
 import { api } from "../api.ts";
+import { SIZE_POINTS } from "../../shared/levels/lead.ts";
 import { boardCatchingUp, mentorAction, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
@@ -45,6 +46,31 @@ function Commands({ level }: { level: string }) {
         ))}
       </ol>
       <p className="sr-only" aria-live="polite">{copied !== null ? t("mentor.copied") : ""}</p>
+    </div>
+  );
+}
+
+/** The sprint's capacity: the game's rule, said as such, with the points each size counts. */
+function Capacity() {
+  const { t } = useTranslation();
+  const setLevels = useQuest((s) => s.setLevels);
+  const [points, setPoints] = useState(8);
+  const [error, setError] = useState(false);
+  const save = async () => {
+    try {
+      setLevels(await api.setCapacity(points));
+    } catch {
+      setError(true);
+    }
+  };
+  return (
+    <div className="mentor-capacity">
+      <p>{t("mentor.sprint.rule", { points: Object.entries(SIZE_POINTS).map(([s, n]) => `${s} ${n}`).join(", ") })}</p>
+      <label className="field">{t("mentor.sprint.capacity")}
+        <input type="number" min={1} max={100} value={points} onChange={(e) => setPoints(Number(e.target.value))} />
+      </label>
+      {error && <p className="error" role="alert">{t("mentor.sprint.refused")}</p>}
+      <button type="button" className="primary" onClick={() => void save()}>{t("mentor.sprint.save")}</button>
     </div>
   );
 }
@@ -134,6 +160,13 @@ export function Mentor() {
           {current === "a10-answer-review" && (
             <p className="mentor-inspector"><b>{t("inspector.name")}</b><br />{t("inspector.remark")}</p>
           )}
+          {current === "l5-sprint" && levels.team.sprint.current && levels.team.sprint.capacity !== null && (
+            <p className="mentor-load">
+              {t("mentor.sprint.load", { sprint: levels.team.sprint.current, points: levels.team.sprint.points, capacity: levels.team.sprint.capacity })}
+              {levels.team.sprint.points > levels.team.sprint.capacity && <> {t("mentor.sprint.over")}</>}
+              {levels.team.sprint.unsized.length > 0 && <> {t("mentor.sprint.unsized", { numbers: levels.team.sprint.unsized.map((n) => `#${n}`).join(", ") })}</>}
+            </p>
+          )}
           {notYet && <p className="mentor-notyet">{t("mentor.notYet")}</p>}
         </>
       )}
@@ -143,13 +176,15 @@ export function Mentor() {
         {action === "to-practice" && <a className="primary" href="?site=practice">{t("mentor.toPractice")}</a>}
         {action === "to-main" && <a className="primary" href="./">{t("mentor.toMain")}</a>}
         {action === "to-team" && <a className="primary" href="?site=team">{t("mentor.toTeam")}</a>}
-        {(action === "found-team" || action === "parcels") && (
-          <button type="button" className="primary" onClick={() => openTeam({ kind: action === "found-team" ? "team-found" : "parcels" })}>
+        {(action === "found-team" || action === "parcels" || action === "sprint-field" || action === "milestone") && (
+          <button type="button" className="primary" onClick={() => openTeam({ kind: action === "found-team" ? "team-found" : action })}>
             {t(`team.${action}.open`)}
           </button>
         )}
+        {action === "capacity" && <Capacity />}
         {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "to-main" && action !== "to-team"
-          && action !== "found-team" && action !== "parcels" && action !== "move" && action !== "commands" && (
+          && action !== "found-team" && action !== "parcels" && action !== "sprint-field" && action !== "milestone" && action !== "capacity"
+          && action !== "move" && action !== "commands" && (
           <button type="button" className="primary" onClick={() => openPractice(action)}>{t(`practice.${action}.open`)}</button>
         )}
         {current !== null && (

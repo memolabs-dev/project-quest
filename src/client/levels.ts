@@ -1,12 +1,13 @@
 // What the mentor offers next, decided from the levels and the site being played. Pure.
 import type { LevelsView } from "../shared/api.ts";
+import type { TeamKind } from "../shared/gestures/team.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 
 /** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site; team: the lead's. */
 export type SiteKind = "main" | "demo" | "practice" | "team";
 export type MentorAction =
   | "to-tutorial" | "to-practice" | "to-main" | "to-team" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge" | "mayor"
-  | "commands" | "found-team" | "parcels";
+  | "commands" | "found-team" | "parcels" | "sprint-field" | "capacity" | "milestone";
 
 export function siteKindFromUrl(search: string): SiteKind {
   const q = new URLSearchParams(search);
@@ -29,6 +30,9 @@ export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | n
     if (kind !== "team") return "to-team";
     if (level.id === "l1-found-team") return "found-team";
     if (level.id === "l2-sort-parcels" && !view.team.parcels) return "parcels";
+    // A sprint needs a week running, then the capacity the team can carry; the loading is on the cards.
+    if (level.id === "l5-sprint") return !view.team.sprint.current ? "sprint-field" : view.team.sprint.capacity === null ? "capacity" : null;
+    if (level.id === "l6-milestone") return "milestone";
     return null;
   }
   if (level.where === "tutorial") return kind === "demo" ? null : "to-tutorial";
@@ -67,9 +71,12 @@ export const noGoodFirst = (view: LevelsView, pallets: { goodFirst: boolean; clo
 /** Before anything else, a new player says which path they are on; someone already playing keeps the volunteer's. */
 export const needsPath = (view: LevelsView) => view.path === null && view.stamps.length === 0;
 
-export type Speaker = "meme" | "mayor" | "inspector";
-const SPEAKERS: Record<string, Speaker> = { "l2-sort-parcels": "mayor", "l3-ready": "inspector", "l4-size": "inspector" };
-/** Who teaches a level: Mémé by default; the mayor and the inspector on the lead's path (lead's path spec, section 6). */
+export type Speaker = "meme" | "mayor" | "inspector" | "crane";
+const SPEAKERS: Record<string, Speaker> = {
+  "l2-sort-parcels": "mayor", "l3-ready": "inspector", "l4-size": "inspector",
+  "l6-milestone": "mayor", "l7-split": "crane", "l8-rope": "crane",
+};
+/** Who teaches a level: Mémé by default; the mayor, the inspector and Gérard on the lead's path (lead's path spec, section 6). */
 export const speakerOf = (levelId: string): Speaker => SPEAKERS[levelId] ?? "meme";
 
 /** The parcels exist but GitHub has not listed them on the board yet (seen in the real run: about a minute). */
@@ -78,3 +85,27 @@ export const boardCatchingUp = (view: LevelsView, kind: SiteKind, pallets: numbe
 
 /** The skill book offers to follow a path the player is not on. */
 export const canFollow = (view: LevelsView, path: "volunteer" | "lead") => (view.path ?? "volunteer") !== path;
+
+/** The gestures an open pallet's card offers the lead, for the level being played. */
+export function cardGestures(view: LevelsView, pallet: number): TeamKind[] {
+  switch (view.current) {
+    case "l2-sort-parcels": return ["label", "duplicate"];
+    case "l3-ready": return ["checklist"];
+    case "l4-size": return ["size"];
+    case "l5-sprint": return !view.team.sprint.current ? [] : view.team.sprint.loaded.includes(pallet) ? ["unload"] : ["load"];
+    case "l6-milestone": return view.team.milestones.length > 0 ? ["attach"] : [];
+    case "l7-split": return ["split"];
+    case "l8-rope": return ["rope"];
+    default: return [];
+  }
+}
+
+/** The Site manager's rewards on the team site: the sprint truck while a sprint runs, the mayor's ribbon on her next visit. */
+export function teamRewards(view: LevelsView, kind: SiteKind) {
+  const s = view.team.sprint;
+  const next = view.team.milestones.filter((m) => m.dueOn).sort((a, b) => a.dueOn!.localeCompare(b.dueOn!))[0];
+  return {
+    truck: kind === "team" && s.current ? { title: s.current, points: s.points, capacity: s.capacity } : null,
+    ribbon: kind === "team" && next ? { title: next.title, dueOn: next.dueOn!.slice(0, 10) } : null,
+  };
+}

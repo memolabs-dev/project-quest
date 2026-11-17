@@ -69,7 +69,7 @@ export interface LevelsView {
   team: {
     exists: boolean; parcels: boolean; labels: string[];
     /** This week's sprint: its title, its open pallets' points against the declared capacity, those without a size. */
-    sprint: { field: boolean; current: string | null; points: number; capacity: number | null; unsized: number[] };
+    sprint: { field: boolean; current: string | null; points: number; capacity: number | null; loaded: number[]; unsized: number[] };
     /** The open milestones: the mayor's visits. */
     milestones: { number: number; title: string; dueOn: string | null }[];
   };

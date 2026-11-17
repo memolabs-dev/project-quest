@@ -218,3 +218,9 @@
   .mentor { right: 8px; left: 8px; width: auto; top: 118px; bottom: auto; max-height: 40vh; overflow: auto; }
   .mentor-tab { top: 118px; bottom: auto; right: 8px; }
 }
+
+/* The Site manager's rewards and the sprint's load */
+.reward-label { white-space: nowrap; pointer-events: none; }
+.mentor-load { font-weight: 700; }
+.mentor-capacity { display: grid; gap: 6px; width: 100%; }
+.mentor-capacity input { width: 6em; }

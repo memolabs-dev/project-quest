@@ -1,5 +1,6 @@
 // The building site: ground, road, zone yards with their pallets, the buildings, the crane and the office.
 import { Html, KeyboardControls, Sky } from "@react-three/drei";
+import { TeamRewards } from "./Rewards.tsx";
 import { Canvas } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
@@ -160,6 +161,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         {/* Keyed by colour too: a new jacket means a new skeleton, which the animations must bind to. */}
         {spots.map((s) => <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} />)}
         <GateSign x={-width / 2 + 1.5} />
+        <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} />
         <Player pallets={layout.pallets} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />

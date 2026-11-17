@@ -336,25 +336,41 @@ const DIALOGS = { ask: AskDialog, mayor: MayorDialog, found: FoundDialog, write:
 const NO_LABELS: string[] = [];
 
 /** The lead's gestures on the team site: one small form each, then the exact request. */
+const NO_MILESTONES: { number: number; title: string; dueOn: string | null }[] = [];
+/** The mayor's visit, two weeks ahead by default: a day the player can change. */
+const inTwoWeeks = () => new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10);
+
 function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
   const { t } = useTranslation();
   const close = useQuest((s) => s.openTeam);
   // Select stable references from the store, then derive: a selector that builds a new list loops forever.
   const teamLabels = useQuest((s) => s.levels?.team.labels);
+  const teamMilestones = useQuest((s) => s.levels?.team.milestones);
   const pallets = useQuest((s) => s.site?.pallets);
   const labels = teamLabels ?? NO_LABELS;
-  const others = (pallets ?? []).filter((p) => p.number !== issue && !p.closed);
+  const milestones = teamMilestones ?? NO_MILESTONES;
+  const open = (pallets ?? []).filter((p) => !p.closed);
+  const others = open.filter((p) => p.number !== issue);
   const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PRIVATE");
   const [label, setLabel] = useState(labels[0] ?? "");
   const [original, setOriginal] = useState<number | null>(others[0]?.number ?? null);
   const [items, setItems] = useState("");
   const [size, setSize] = useState<string>(SIZES[1]);
+  const [title, setTitle] = useState(() => t("team.milestone.default"));
+  const [dueOn, setDueOn] = useState(inTwoWeeks);
+  const [chosen, setChosen] = useState<number[]>([]);
+  const [milestone, setMilestone] = useState<number | null>(milestones[0]?.number ?? null);
   const step = useTwoSteps<PreparedTeam>();
   const args: TeamArgs = kind === "team-found" ? { visibility }
     : kind === "label" ? { issueNumber: issue, label }
       : kind === "duplicate" ? { issueNumber: issue, original: original ?? undefined }
         : kind === "checklist" ? { issueNumber: issue, items: items.split("\n") }
-          : kind === "size" ? { issueNumber: issue, size } : {};
+          : kind === "size" ? { issueNumber: issue, size }
+            : kind === "load" || kind === "unload" ? { issueNumber: issue }
+              : kind === "milestone" ? { title, dueOn, issues: chosen }
+                : kind === "attach" ? { issueNumber: issue, milestone: milestone ?? undefined }
+                  : kind === "split" ? { issueNumber: issue, titles: items.split("\n") }
+                    : kind === "rope" ? { issueNumber: issue, blocking: original ?? undefined } : {};
   return (
     <Dialog title={t(`team.${kind}.title`, { number: issue })}>
       {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
@@ -386,6 +402,36 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
           {kind === "size" && (
             <label className="field">{t("team.size.field")}
               <select value={size} onChange={(e) => setSize(e.target.value)}>{SIZES.map((x) => <option key={x} value={x}>{x}</option>)}</select>
+            </label>
+          )}
+          {kind === "milestone" && <>
+            <label className="field">{t("team.milestone.field")}<input value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+            <label className="field">{t("team.milestone.due")}<input type="date" value={dueOn} onChange={(e) => setDueOn(e.target.value)} /></label>
+            <fieldset className="choice">
+              <legend>{t("team.milestone.jobs")}</legend>
+              {open.map((p) => (
+                <label key={p.number}>
+                  <input type="checkbox" checked={chosen.includes(p.number)}
+                    onChange={(e) => setChosen((c) => (e.target.checked ? [...c, p.number] : c.filter((n) => n !== p.number)))} /> #{p.number} {p.title}
+                </label>
+              ))}
+            </fieldset>
+          </>}
+          {kind === "attach" && (
+            <label className="field">{t("team.attach.field")}
+              <select value={milestone ?? ""} onChange={(e) => setMilestone(Number(e.target.value))}>
+                {milestones.map((m) => <option key={m.number} value={m.number}>{m.title}</option>)}
+              </select>
+            </label>
+          )}
+          {kind === "split" && (
+            <label className="field">{t("team.split.field")}<textarea rows={4} value={items} onChange={(e) => setItems(e.target.value)} /></label>
+          )}
+          {kind === "rope" && (
+            <label className="field">{t("team.rope.field")}
+              <select value={original ?? ""} onChange={(e) => setOriginal(Number(e.target.value))}>
+                {others.map((p) => <option key={p.number} value={p.number}>#{p.number} {p.title}</option>)}
+              </select>
             </label>
           )}
           {step.error && <p className="error" role="alert">{step.error}</p>}

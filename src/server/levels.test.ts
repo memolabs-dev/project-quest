@@ -65,7 +65,7 @@ describe("levels", () => {
       unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false,
     });
     expect(v.team).toEqual({ exists: false, parcels: false, labels: [], milestones: [],
-      sprint: { field: false, current: null, points: 0, capacity: null, unsized: [] } });
+      sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] } });
   });
 
   it("refuses an unknown tutorial event", async () => {
@@ -209,7 +209,7 @@ describe("the team site", () => {
     };
     const { app } = make(null, { progress, readPractice: reading(loaded), today: () => "2026-11-18" });
     const v = await view(await app.request("/api/levels/check", post({})));
-    expect(v.team.sprint).toEqual({ field: true, current: "Sprint 1", points: 3, capacity: 5, unsized: [3] });
+    expect(v.team.sprint).toEqual({ field: true, current: "Sprint 1", points: 3, capacity: 5, loaded: [2, 3], unsized: [3] });
     expect(v.team.milestones).toEqual([{ number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z" }]);
   });
 

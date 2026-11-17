@@ -91,7 +91,16 @@
       "lead": "Run the site"
     },
     "toTeam": "To your team site",
-    "boardCatchingUp": "GitHub is still putting the parcels on your board: it can take a minute. Reload the site in a moment."
+    "boardCatchingUp": "GitHub is still putting the parcels on your board: it can take a minute. Reload the site in a moment.",
+    "sprint": {
+      "rule": "The game's rule, not GitHub's: say how many points the team can carry this week. Each size counts {{points}}.",
+      "capacity": "Points the team can carry",
+      "save": "Keep this capacity",
+      "refused": "A capacity is a whole number from 1 to 100.",
+      "load": "{{sprint}}: {{points}} of {{capacity}} points loaded.",
+      "over": "Over capacity: take something off.",
+      "unsized": "Without a size: {{numbers}}."
+    }
   },
   "skills": {
     "title": "Skills",
@@ -342,7 +351,8 @@
   "speakers": {
     "meme": "Mémé Truelle",
     "mayor": "The mayor",
-    "inspector": "The inspector"
+    "inspector": "The inspector",
+    "crane": "Gérard the crane operator"
   },
   "team": {
     "found-team": {
@@ -395,6 +405,52 @@
       "attach": "Put issue #{{issueNumber}} under milestone {{milestone}}.",
       "split": "Cut issue #{{issueNumber}} into {{count}} FICTIF parts, each its own issue on the board.",
       "rope": "Mark issue #{{issueNumber}} as blocked by #{{blocking}}."
+    },
+    "sprint-field": {
+      "open": "Start the week's sprint",
+      "title": "Start a sprint",
+      "body": "The game adds a Sprint field to your board: one week, from today. Then you load the truck with what the team can carry."
+    },
+    "load": {
+      "open": "Load on the sprint truck",
+      "title": "Load issue #{{number}} on the sprint",
+      "body": "It goes on this week's sprint. Mind the capacity: only the game counts it, GitHub does not."
+    },
+    "unload": {
+      "open": "Take off the sprint",
+      "title": "Take issue #{{number}} off the sprint",
+      "body": "Too much on the truck? Take this one off; it waits for a later sprint."
+    },
+    "milestone": {
+      "open": "Set the mayor's visit",
+      "title": "Set the mayor's visit",
+      "body": "A milestone is a date everyone sees, with the jobs that must be laid by then.",
+      "default": "FICTIF The mayor's visit",
+      "field": "Title",
+      "due": "Due date",
+      "jobs": "What the mayor will see"
+    },
+    "attach": {
+      "open": "Put under the visit",
+      "title": "Put issue #{{number}} under a milestone",
+      "body": "The mayor will see this one too on her visit.",
+      "field": "Milestone"
+    },
+    "split": {
+      "open": "Split it",
+      "title": "Split issue #{{number}}",
+      "body": "One part per line, at least two. Each becomes a FICTIF issue on the board, and a sub-issue of this one.",
+      "field": "The parts"
+    },
+    "rope": {
+      "open": "Rope it to another",
+      "title": "Rope issue #{{number}}",
+      "body": "This one cannot start before the other is done: GitHub marks it blocked by it.",
+      "field": "It waits for"
     }
+  },
+  "rewards": {
+    "truck": "{{sprint}} · {{points}}/{{capacity}} pts",
+    "ribbon": "{{title}} · {{date}}"
   }
 }

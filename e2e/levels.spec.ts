@@ -91,7 +91,7 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
       stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false, van: false, realProjects: false },
       practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
-      real: null, team: { exists: false, parcels: false, labels: [] },
+      real: null, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] } },
     });
   });
   const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
@@ -114,7 +114,7 @@ test("at the last level, a good first issue's card offers to ask for it, and the
       stamps: Array.from({ length: 15 }, (_, i) => ({ levelId: `x${i}`, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: true, van: true, realProjects: true },
       practice: { name: "my-first-site", exists: true, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
-      real: { issues: 1 }, team: { exists: false, parcels: false, labels: [] },
+      real: { issues: 1 }, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] } },
     });
   });
   await openPallet(page, /Lay the square's paving/);
@@ -142,4 +142,35 @@ test("a lead chooses to run the site, then founds the team site: the requests ar
   await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
   await page.screenshot({ path: "e2e/screenshots/lead-found.png" });
   await startAgain(page);
+});
+
+test("a site manager declares the sprint's capacity as the game's rule, and sets the mayor's visit", async ({ page }) => {
+  await page.goto("/?site=team");
+  await expect(page.getByTestId("site-canvas")).toBeVisible();
+  const lead = (current: string, team: Record<string, unknown>) => page.evaluate(async ([current, team]) => {
+    const { useQuest } = await import("/src/client/store.ts");
+    useQuest.getState().setLevels({
+      login: "you", canWrite: false, path: "lead", ranks: { volunteer: null, lead: "site-foreman" }, current: current as string, rank: "site-foreman",
+      stamps: ["l1-found-team", "l2-sort-parcels", "l3-ready", "l4-size"].map((levelId) => ({ levelId, proof: "u", stampedAt: "2026-11-17T00:00:00Z" })),
+      unlocks: { helmet: false, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false },
+      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
+      real: null,
+      team: { exists: true, parcels: true, labels: [], milestones: [], sprint: { field: true, current: "Sprint 1", points: 0, capacity: null, loaded: [], unsized: [] }, ...(team as object) },
+    });
+  }, [current, team] as const);
+  await lead("l5-sprint", {});
+  const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
+  await expect(mentor).toContainText(/The game's rule, not GitHub's/);
+  await expect(mentor).toContainText("XS 1, S 2, M 3, L 5, XL 8");
+  await expect(mentor.getByLabel(/Points the team can carry/)).toHaveValue("8");
+  await page.screenshot({ path: "e2e/screenshots/lead-capacity.png" });
+
+  await lead("l6-milestone", {});
+  await expect(mentor).toContainText("The mayor");
+  await mentor.getByRole("button", { name: /Set the mayor's visit/ }).click();
+  const dialog = page.getByRole("dialog", { name: /Set the mayor's visit/ });
+  await expect(dialog.getByLabel("Title")).toHaveValue("FICTIF The mayor's visit");
+  await expect(dialog.getByLabel("Due date")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
+  await page.screenshot({ path: "e2e/screenshots/lead-milestone.png" });
 });

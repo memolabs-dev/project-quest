@@ -39,6 +39,8 @@ const moves = () => (own() ? `/api/${own()}/moves` : "/api/moves");
 export const api = {
   site: () => call<SiteResponse>(own() ? `/api/site?site=${own()}` : "/api/site"),
   choosePath: (path: "volunteer" | "lead") => call<LevelsView>("/api/levels/path", { path }),
+  /** The game's rule, kept with the player's progress: nothing goes to GitHub. */
+  setCapacity: (points: number) => call<LevelsView>("/api/levels/capacity", { points }),
   prepareTeam: (kind: TeamKind, args: TeamArgs) => call<PreparedTeam>(`/api/team/${kind}/prepare`, args),
   applyTeam: (p: PreparedTeam) => call<PracticeApplyResponse>(`/api/team/${p.kind}/apply`, p),
   prepareMove: (itemId: string, toZone: string) => call<PreparedMove>(`${moves()}/prepare`, { itemId, toZone }),

@@ -37,6 +37,16 @@ describe("locales", () => {
     for (const k of ["found", "foundReuse", "issue", "take", "edit", "foundation", "pull", "merge"]) expect(en[`practice.summary.${k}`], k).toBeTruthy();
   });
 
+  it("names every lead gesture, explains it and says who teaches each lead level", () => {
+    const kinds = ["team-found", "parcels", "label", "duplicate", "checklist", "size", "sprint-field", "load", "unload", "milestone", "attach", "split", "rope"];
+    for (const k of kinds) {
+      expect(en[`team.summary.${k}`], `summary.${k}`).toBeTruthy();
+      expect(en[`team.${k}.title`], `${k}.title`).toBeTruthy();
+      expect(en[`team.${k}.body`], `${k}.body`).toBeTruthy();
+    }
+    for (const s of ["meme", "mayor", "inspector", "crane"]) expect(en[`speakers.${s}`], s).toBeTruthy();
+  });
+
   it("uses no em or en dash in the French copy", () => {
     expect(Object.values(fr).filter((v) => /[—–]/.test(v))).toEqual([]);
   });

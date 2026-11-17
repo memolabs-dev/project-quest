@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
-import { boardCatchingUp, canFollow, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf } from "./levels.ts";
+import {
+  boardCatchingUp, canFollow, cardGestures, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
+} from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
 const NO_TEAM: LevelsView["team"] = {
-  exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, unsized: [] },
+  exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
 };
 const view = (stamped: number, exists = false): LevelsView => ({
   login: "fictif-volunteer", canWrite: true, path: null, ranks: { volunteer: null, lead: null },
@@ -112,6 +114,39 @@ describe("the lead's path", () => {
     expect(boardCatchingUp(arrived, "team", 6)).toBe(false);
     expect(boardCatchingUp(lead("l2-sort-parcels"), "team", 0)).toBe(false);
     expect(boardCatchingUp(arrived, "main", 0)).toBe(false);
+  });
+  it("the sprint first, then the capacity, then the loading", () => {
+    const sprint = (o: Partial<LevelsView["team"]["sprint"]>) => ({ ...NO_TEAM.sprint, field: true, ...o });
+    expect(mentorAction(lead("l5-sprint", { exists: true }), "team")).toBe("sprint-field");
+    expect(mentorAction(lead("l5-sprint", { exists: true, sprint: sprint({ current: null }) }), "team")).toBe("sprint-field");
+    expect(mentorAction(lead("l5-sprint", { exists: true, sprint: sprint({ current: "Sprint 1" }) }), "team")).toBe("capacity");
+    expect(mentorAction(lead("l5-sprint", { exists: true, sprint: sprint({ current: "Sprint 1", capacity: 8 }) }), "team")).toBeNull();
+    const loading = lead("l5-sprint", { exists: true, sprint: sprint({ current: "Sprint 1", capacity: 8, loaded: [2] }) });
+    expect(cardGestures(loading, 2)).toEqual(["unload"]);
+    expect(cardGestures(loading, 3)).toEqual(["load"]);
+  });
+  it("the mayor sets the visit", () => {
+    expect(mentorAction(lead("l6-milestone", { exists: true }), "team")).toBe("milestone");
+    expect(speakerOf("l6-milestone")).toBe("mayor");
+    const set = lead("l6-milestone", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z" }] });
+    expect(cardGestures(set, 2)).toEqual(["attach"]);
+    expect(cardGestures(lead("l6-milestone", { exists: true }), 2)).toEqual([]);
+  });
+  it("Gérard teaches the split and the rope", () => {
+    expect(speakerOf("l7-split")).toBe("crane");
+    expect(speakerOf("l8-rope")).toBe("crane");
+    expect(cardGestures(lead("l7-split", { exists: true }), 3)).toEqual(["split"]);
+    expect(cardGestures(lead("l8-rope", { exists: true }), 3)).toEqual(["rope"]);
+    expect(cardGestures(lead("l4-size", { exists: true }), 3)).toEqual(["size"]);
+  });
+  it("puts the sprint truck and the mayor's ribbon on the team site", () => {
+    const v = lead("l7-split", {
+      exists: true, sprint: { ...NO_TEAM.sprint, field: true, current: "Sprint 1", points: 5, capacity: 8 },
+      milestones: [{ number: 2, title: "FICTIF Later", dueOn: "2026-12-20T12:00:00Z" }, { number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z" }, { number: 3, title: "FICTIF No date", dueOn: null }],
+    });
+    expect(teamRewards(v, "team")).toEqual({ truck: { title: "Sprint 1", points: 5, capacity: 8 }, ribbon: { title: "FICTIF Visit", dueOn: "2026-11-29" } });
+    expect(teamRewards(v, "main")).toEqual({ truck: null, ribbon: null });
+    expect(teamRewards(lead("l5-sprint"), "team")).toEqual({ truck: null, ribbon: null });
   });
   it("gives each lead level its speaker", () => {
     expect(speakerOf("l1-found-team")).toBe("meme");

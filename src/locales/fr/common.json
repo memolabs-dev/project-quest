@@ -91,7 +91,16 @@
       "lead": "Mener le chantier"
     },
     "toTeam": "Vers ton chantier d'équipe",
-    "boardCatchingUp": "GitHub pose encore les colis sur ton tableau : ça peut prendre une minute. Recharge le chantier dans un instant."
+    "boardCatchingUp": "GitHub pose encore les colis sur ton tableau : ça peut prendre une minute. Recharge le chantier dans un instant.",
+    "sprint": {
+      "rule": "Règle du jeu, pas de GitHub : dis combien de points l'équipe peut porter cette semaine. Chaque taille compte {{points}}.",
+      "capacity": "Points que l'équipe peut porter",
+      "save": "Garder cette capacité",
+      "refused": "Une capacité est un nombre entier de 1 à 100.",
+      "load": "{{sprint}} : {{points}} points chargés sur {{capacity}}.",
+      "over": "Capacité dépassée : retire quelque chose.",
+      "unsized": "Sans taille : {{numbers}}."
+    }
   },
   "skills": {
     "title": "Compétences",
@@ -342,7 +351,8 @@
   "speakers": {
     "meme": "Mémé Truelle",
     "mayor": "La maire",
-    "inspector": "L'inspectrice"
+    "inspector": "L'inspectrice",
+    "crane": "Gérard le grutier"
   },
   "team": {
     "found-team": {
@@ -395,6 +405,52 @@
       "attach": "Mettre l'issue n°{{issueNumber}} sous le jalon {{milestone}}.",
       "split": "Couper l'issue n°{{issueNumber}} en {{count}} parties FICTIF, chacune son issue sur le tableau.",
       "rope": "Marquer l'issue n°{{issueNumber}} comme bloquée par le n°{{blocking}}."
+    },
+    "sprint-field": {
+      "open": "Lancer le sprint de la semaine",
+      "title": "Lancer un sprint",
+      "body": "Le jeu ajoute un champ Sprint à ton tableau : une semaine, à partir d'aujourd'hui. Ensuite, tu charges le camion avec ce que l'équipe peut porter."
+    },
+    "load": {
+      "open": "Charger sur le camion du sprint",
+      "title": "Charger l'issue n°{{number}} sur le sprint",
+      "body": "Elle part sur le sprint de la semaine. Attention à la capacité : seul le jeu la compte, pas GitHub."
+    },
+    "unload": {
+      "open": "Retirer du sprint",
+      "title": "Retirer l'issue n°{{number}} du sprint",
+      "body": "Trop de charge sur le camion ? Retire celle-ci, elle attend un prochain sprint."
+    },
+    "milestone": {
+      "open": "Fixer la visite de la maire",
+      "title": "Fixer la visite de la maire",
+      "body": "Un jalon, c'est une date que tout le monde voit, avec les boulots qui doivent être posés avant.",
+      "default": "FICTIF La visite de la maire",
+      "field": "Titre",
+      "due": "Date",
+      "jobs": "Ce que la maire verra"
+    },
+    "attach": {
+      "open": "Mettre sous la visite",
+      "title": "Mettre l'issue n°{{number}} sous un jalon",
+      "body": "La maire verra aussi celle-ci pendant sa visite.",
+      "field": "Jalon"
+    },
+    "split": {
+      "open": "Découper",
+      "title": "Découper l'issue n°{{number}}",
+      "body": "Une partie par ligne, au moins deux. Chacune devient une issue FICTIF sur le tableau, et une sous-issue de celle-ci.",
+      "field": "Les parties"
+    },
+    "rope": {
+      "open": "Encorder à une autre",
+      "title": "Encorder l'issue n°{{number}}",
+      "body": "Celle-ci ne peut pas commencer avant que l'autre soit finie : GitHub la marque bloquée par elle.",
+      "field": "Elle attend"
     }
+  },
+  "rewards": {
+    "truck": "{{sprint}} · {{points}}/{{capacity}} pts",
+    "ribbon": "{{title}} · {{date}}"
   }
 }
