@@ -80,6 +80,10 @@ export interface LevelsView {
     radio: string;
     /** The fictitious team's day has been played (a game event: GitHub cannot show it afterwards). */
     teamDay: boolean;
+    /** The open jobs under an open visit: those "Lay it: done" is offered on. */
+    visitJobs: number[];
+    /** The mayor's duplicate parcel is closed, but not as a duplicate (level 2 then waits). */
+    duplicateWrong: boolean;
   };
 }
 

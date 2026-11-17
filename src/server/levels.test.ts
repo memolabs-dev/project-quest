@@ -66,7 +66,7 @@ describe("levels", () => {
     });
     expect(v.team).toEqual({ exists: false, parcels: false, labels: [], milestones: [],
       sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
-      wip: { limit: null, count: 0 }, bulletin: null, radio: expect.any(String), teamDay: false });
+      wip: { limit: null, count: 0 }, bulletin: null, radio: expect.any(String), teamDay: false, visitJobs: [], duplicateWrong: false });
   });
 
   it("refuses an unknown tutorial event", async () => {
@@ -264,6 +264,25 @@ describe("the team site", () => {
     expect(v.team.bulletin).toEqual({ status: "AT_RISK", body: "FICTIF Late." });
     expect(v.team.radio).toContain("Being laid: 3 (limit 2).");
     expect(v.team.milestones[0]).toMatchObject({ number: 1, openIssues: 1 });
+  });
+
+  it("tells the visit's open jobs, and a duplicate closed with the wrong reason", async () => {
+    const progress = memoryProgress();
+    await progress.setPath(VIEWER, "lead");
+    const { PARCELS, parcelBody } = await import("../shared/levels/parcels.ts");
+    const dup = PARCELS.find((p) => p.duplicateOf)!;
+    const t = {
+      ...team,
+      milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: false, openIssues: 1, closedIssues: 0 }],
+      issues: [
+        issue({ number: 2, milestone: 1 }), issue({ number: 3, milestone: 1, closed: true }), issue({ number: 4 }),
+        issue({ number: 6, closed: true, stateReason: "NOT_PLANNED", body: parcelBody(dup) }),
+      ],
+    };
+    const { app } = make(null, { progress, readPractice: reading(t) });
+    const v = await view(await app.request("/api/levels/check", post({})));
+    expect(v.team.visitJobs).toEqual([2]);
+    expect(v.team.duplicateWrong).toBe(true);
   });
 
   it("refuses a lead gesture that does not match a fresh read, or from a page marked demo", async () => {

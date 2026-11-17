@@ -107,7 +107,8 @@
     },
     "wip": "En pose : {{count}} sur {{limit}}.",
     "changeLimit": "Changer la limite",
-    "noVisit": "Aucune visite ouverte : rouvre le jalon sur GitHub, ou demande une nouvelle visite à la maire."
+    "noVisit": "Aucune visite ouverte : rouvre le jalon sur GitHub, ou demande une nouvelle visite à la maire.",
+    "duplicateReason": "Le doublon est fermé, mais pas comme doublon : rouvre-le sur GitHub, puis ferme-le comme doublon de l'original."
   },
   "skills": {
     "title": "Compétences",

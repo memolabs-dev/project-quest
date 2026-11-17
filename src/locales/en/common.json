@@ -107,7 +107,8 @@
     },
     "wip": "Being laid: {{count}} of {{limit}}.",
     "changeLimit": "Change the limit",
-    "noVisit": "No visit is open: reopen the milestone on GitHub, or ask the mayor for a new one."
+    "noVisit": "No visit is open: reopen the milestone on GitHub, or ask the mayor for a new one.",
+    "duplicateReason": "The duplicate is closed, but not as a duplicate: reopen it on GitHub, then close it as a duplicate of the original."
   },
   "skills": {
     "title": "Skills",

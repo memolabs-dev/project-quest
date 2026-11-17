@@ -34,7 +34,8 @@ function summarize(p: PreparedPractice | PreparedAsk | PreparedTeam, t: TFunctio
     case "sprint-field": case "load": case "unload": case "milestone": case "attach": case "split": case "rope":
     case "bulletin": case "wip-limit": case "team-day": case "finish": case "close-visit": case "move-visit":
       return t(`team.summary.${p.kind}`, {
-        repo: p.repo, ...p.args, items: (p.args.items ?? []).length,
+        repo: p.repo, ...p.args, items: (p.args.items ?? []).filter((x) => x.trim()).length,
+        ...(p.args.status ? { status: t(`team.bulletin.statuses.${p.args.status}`) } : {}),
         count: p.kind === "milestone" ? (p.args.issues ?? []).length : p.kind === "split" ? p.mutations.length / 3
           : p.kind === "team-day" ? p.mutations.length : p.mutations.length / 2,
       });
@@ -457,7 +458,11 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
           )}
           {(kind === "close-visit" || kind === "move-visit") && (
             <label className="field">{t("team.attach.field")}
-              <select value={milestone ?? ""} onChange={(e) => setMilestone(Number(e.target.value))}>
+              <select value={milestone ?? ""} onChange={(e) => {
+                const n = Number(e.target.value);
+                setMilestone(n);
+                setLater(weekAfter(milestones.find((m) => m.number === n)?.dueOn ?? null));
+              }}>
                 {milestones.map((m) => <option key={m.number} value={m.number}>{m.title} ({m.dueOn?.slice(0, 10) ?? "?"})</option>)}
               </select>
             </label>

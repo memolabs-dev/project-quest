@@ -9,6 +9,7 @@ const ids = LEVELS.map((l) => l.id);
 const NO_TEAM: LevelsView["team"] = {
   exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
   wip: { limit: null, count: 0 }, bulletin: null, radio: "FICTIF Evening bulletin, 2026-11-17.", teamDay: false,
+  visitJobs: [], duplicateWrong: false,
 };
 const view = (stamped: number, exists = false): LevelsView => ({
   login: "fictif-volunteer", canWrite: true, path: null, ranks: { volunteer: null, lead: null },
@@ -179,7 +180,8 @@ describe("the lead's path", () => {
     const v = lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", openIssues: 1 }] });
     expect(speakerOf("l11-visit")).toBe("mayor");
     expect(mentorAction(v, "team")).toBe("visit");
-    expect(cardGestures(v, 2)).toEqual(["finish"]);
+    expect(cardGestures({ ...v, team: { ...v.team, visitJobs: [2] } }, 2)).toEqual(["finish"]);
+    expect(cardGestures({ ...v, team: { ...v.team, visitJobs: [2] } }, 5)).toEqual([]);
   });
   it("the mast broadcasts the last bulletin", () => {
     const v = lead("l10-wip", { exists: true, bulletin: { status: "AT_RISK", body: "FICTIF Evening bulletin.\nSprint 1: 2 of 3." } });

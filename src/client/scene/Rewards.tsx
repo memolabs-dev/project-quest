@@ -49,7 +49,10 @@ export function TeamRewards({ truckAt, ribbonAt, mastAt }: {
           <Box size={[0.22, 0.22, 0.22]} position={[0, 4.3, 0]} color="#E8483B" />
           <Html position={[0, 4.9, 0]} center distanceFactor={14} zIndexRange={[5, 0]}>
             <div className="sign-label reward-label">
-              {t("rewards.mast", { status: t(`team.bulletin.statuses.${rewards.mast.status ?? "ON_TRACK"}`), line: rewards.mast.line })}
+              {/* A status update posted on GitHub without a status shows its words only. */}
+              {rewards.mast.status
+                ? t("rewards.mast", { status: t(`team.bulletin.statuses.${rewards.mast.status}`), line: rewards.mast.line })
+                : rewards.mast.line}
             </div>
           </Html>
         </group>

@@ -101,7 +101,7 @@ export function cardGestures(view: LevelsView, pallet: number): TeamKind[] {
     case "l6-milestone": return view.team.milestones.length > 0 ? ["attach"] : [];
     case "l7-split": return ["split"];
     case "l8-rope": return ["rope"];
-    case "l11-visit": return view.team.milestones.length > 0 ? ["finish"] : [];
+    case "l11-visit": return view.team.visitJobs.includes(pallet) ? ["finish"] : [];
     default: return [];
   }
 }

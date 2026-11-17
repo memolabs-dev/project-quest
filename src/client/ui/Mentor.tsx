@@ -191,6 +191,7 @@ export function Mentor() {
           <button type="button" onClick={() => openTeam({ kind: "wip-limit" })}>{t("mentor.changeLimit")}</button>
         )}
         {noOpenVisit(levels) && <p className="mentor-notyet">{t("mentor.noVisit")}</p>}
+        {current === "l2-sort-parcels" && levels.team.duplicateWrong && <p className="mentor-notyet">{t("mentor.duplicateReason")}</p>}
         {current === "l10-wip" && levels.team.wip.limit !== null && (
           <p className="mentor-load">{t("mentor.wip", { count: levels.team.wip.count, limit: levels.team.wip.limit })}</p>
         )}
