@@ -99,7 +99,8 @@ function GateSign({ x }: { x: number }) {
   if (!login) return null;
   return (
     <Html position={[x, 1.7, 1.9]} center transform distanceFactor={6} zIndexRange={[5, 0]}>
-      <div className="gate-sign">{t("practice.gate", { login })}</div>
+      {/* The demo player is called "you": no possessive on it. */}
+      <div className="gate-sign">{login === "you" ? t("practice.gateYou") : t("practice.gate", { login })}</div>
     </Html>
   );
 }

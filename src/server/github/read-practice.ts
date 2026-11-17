@@ -12,7 +12,7 @@ export const PRACTICE_QUERY = /* GraphQL */ `
       defaultBranchRef { name target { oid ... on Commit { committedDate history(first: 50) { nodes { oid } } } } }
       plan: object(expression: "HEAD:PLAN.md") { ... on Blob { text } }
       object(expression: "HEAD:README.md") { ... on Blob { text } }
-      refs(refPrefix: "refs/heads/", first: 20) {
+      refs(refPrefix: "refs/heads/", first: 100, orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
         nodes { name target { ... on Commit {
           oid url committedViaWeb author { user { login } } file(path: "README.md") { object { ... on Blob { text } } }
           history(first: 30) { nodes { oid committedDate committedViaWeb } }

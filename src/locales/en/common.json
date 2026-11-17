@@ -331,7 +331,7 @@
       "foundation": "First, lay the foundation stone: a README as the first commit of {{repo}}.",
       "edit": "Write {{path}} on the branch {{branch}}, with the message \"{{message}}\".",
       "pull": "Open a pull request from {{branch}}, \"{{title}}\", which closes issue #{{number}}.",
-      "merge": "Merge pull request #{{number}} into the main branch of {{repo}}.",
+      "merge": "Merge pull request #{{number}} into the default branch of {{repo}}.",
       "mayor": "Add the mayor's line to PLAN.md on {{branch}} of {{repo}}.",
       "ask": "Comment on issue #{{number}} of {{repo}}: \"{{comment}}\""
     },
@@ -367,7 +367,8 @@
       "body": "The game adds your comment to the issue. It assigns nobody: a maintainer decides.",
       "commentLabel": "Your comment",
       "comment": "Hello! I'd like to work on this one, if nobody has it yet. Could you assign it to me?"
-    }
+    },
+    "gateYou": "Your site"
   },
   "inspector": {
     "name": "The inspector",

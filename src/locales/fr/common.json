@@ -331,7 +331,7 @@
       "foundation": "D'abord, poser la première pierre : un README comme premier commit de {{repo}}.",
       "edit": "Écrire {{path}} sur la branche {{branch}}, avec le message « {{message}} ».",
       "pull": "Ouvrir une pull request depuis {{branch}}, « {{title}} », qui ferme l'issue n°{{number}}.",
-      "merge": "Fusionner la pull request n°{{number}} dans la branche principale de {{repo}}.",
+      "merge": "Fusionner la pull request n°{{number}} dans la branche par défaut de {{repo}}.",
       "mayor": "Ajouter la ligne de la maire à PLAN.md sur {{branch}} de {{repo}}.",
       "ask": "Commenter l'issue n°{{number}} de {{repo}} : « {{comment}} »"
     },
@@ -367,7 +367,8 @@
       "body": "Le jeu ajoute ton commentaire à l'issue. Il n'assigne personne : une personne qui mène le projet décide.",
       "commentLabel": "Ton commentaire",
       "comment": "Bonjour ! J'aimerais travailler sur celle-ci, si personne ne l'a encore. Pourriez-vous me l'assigner ?"
-    }
+    },
+    "gateYou": "Ton chantier"
   },
   "inspector": {
     "name": "L'inspectrice",

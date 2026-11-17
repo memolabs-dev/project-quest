@@ -318,6 +318,24 @@ describe("the sprint's capacity", () => {
   });
 });
 
+describe("the branch pushed from the machine", () => {
+  it("is the newest one, not the first by name", async () => {
+    const branch = (name: string, date: string, oid: string) => ({
+      name, oid, author: VIEWER, url: "u", readme: null, viaWeb: false, history: [{ oid, committedDate: date, viaWeb: false }],
+    });
+    const practice = site({
+      defaultBranch: { name: "main", oid: "m1", committedDate: "2026-11-17T08:00:00Z" }, mainHistory: ["m1"],
+      branches: [branch("a-old", "2026-11-16T10:00:00Z", "o1"), branch("z-new", "2026-11-17T10:00:00Z", "o2")],
+    });
+    const v = await view(await make(practice).app.request("/api/levels/check", post({})));
+    expect(v.practice.workBranch).toBe("z-new");
+  });
+  it("is read among the newest hundred branches, newest first", async () => {
+    const { PRACTICE_QUERY } = await import("./github/read-practice.ts");
+    expect(PRACTICE_QUERY).toContain('refs(refPrefix: "refs/heads/", first: 100, orderBy: { field: TAG_COMMIT_DATE, direction: DESC })');
+  });
+});
+
 describe("after a write GitHub accepted", () => {
   it("answers ok even when reading the levels again fails, so the player never sees an error for a done gesture", async () => {
     let reads = 0;
