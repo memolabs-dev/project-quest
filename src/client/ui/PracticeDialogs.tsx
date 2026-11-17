@@ -31,7 +31,11 @@ function Dialog({ title, children }: { title: string; children: ReactNode }) {
 function summarize(p: PreparedPractice | PreparedAsk | PreparedTeam, t: TFunction): string {
   switch (p.kind) {
     case "team-found": case "parcels": case "label": case "duplicate": case "checklist": case "size":
-      return t(`team.summary.${p.kind}`, { repo: p.repo, ...p.args, count: p.mutations.length / 2, items: (p.args.items ?? []).length });
+    case "sprint-field": case "load": case "unload": case "milestone": case "attach": case "split": case "rope":
+      return t(`team.summary.${p.kind}`, {
+        repo: p.repo, ...p.args, items: (p.args.items ?? []).length,
+        count: p.kind === "milestone" ? (p.args.issues ?? []).length : p.kind === "split" ? p.mutations.length / 3 : p.mutations.length / 2,
+      });
     case "ask": return t("practice.summary.ask", { number: p.issueNumber, repo: p.repo, comment: p.comment });
     case "found":
       return t(p.reuse ? "practice.summary.foundReuse" : "practice.summary.found", {

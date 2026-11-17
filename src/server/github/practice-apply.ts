@@ -9,7 +9,7 @@ export type { Rest };
 
 export type PracticeResult = { ok: true } | { ok: false; reason: "github"; message: string; applied: PracticeMutationName[] };
 
-const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContents">, { inputType: string; returns: string }> = {
+const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContents" | "createMilestone">, { inputType: string; returns: string }> = {
   createRepository: { inputType: "CreateRepositoryInput", returns: "repository { id }" },
   createProjectV2: { inputType: "CreateProjectV2Input", returns: 'projectV2 { id field(name: "Status") { ... on ProjectV2SingleSelectField { id } } }' },
   createIssue: { inputType: "CreateIssueInput", returns: "issue { id }" },
@@ -26,12 +26,15 @@ const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContent
   closeIssue: { inputType: "CloseIssueInput", returns: "issue { id }" },
   updateIssue: { inputType: "UpdateIssueInput", returns: "issue { id }" },
   updateProjectV2ItemFieldValue: { inputType: "UpdateProjectV2ItemFieldValueInput", returns: "clientMutationId" },
+  clearProjectV2ItemFieldValue: { inputType: "ClearProjectV2ItemFieldValueInput", returns: "clientMutationId" },
+  addSubIssue: { inputType: "AddSubIssueInput", returns: "clientMutationId" },
+  addBlockedBy: { inputType: "AddBlockedByInput", returns: "clientMutationId" },
 };
 
 const githubMessage = (e: unknown) =>
   (e as { errors?: { message: string }[] }).errors?.[0]?.message ?? (e instanceof Error ? e.message : String(e));
 
-/** "$repositoryId" and "$issueId" placeholders, replaced by the ids GitHub returned earlier in the same gesture. */
+/** "$repositoryId", "$issueId", "$milestoneId"... placeholders, replaced by the ids GitHub returned earlier in the same gesture. */
 const fill = (input: Record<string, unknown>, ids: Record<string, string>) =>
   Object.fromEntries(Object.entries(input).map(([k, v]) => [k, typeof v === "string" && v.startsWith("$") && ids[v.slice(1)] ? ids[v.slice(1)] : v]));
 
@@ -46,6 +49,13 @@ export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPrac
         const { path, ...body } = m.input as { path: string; message: string; content: string };
         const r = (await rest("PUT", `/repos/${prepared.kind === "found" ? `${prepared.owner}/${prepared.name}` : prepared.repo}/contents/${path}`, body)) as { commit?: { sha?: string } };
         if (r.commit?.sha) ids.headOid = r.commit.sha;
+        applied.push(m.name);
+        continue;
+      }
+      if (m.name === "createMilestone") {
+        // GraphQL has no milestone mutation: REST creates it, its node id goes to the issues put under it.
+        const r = (await rest("POST", `/repos/${"repo" in prepared ? prepared.repo : ""}/milestones`, m.input)) as { node_id?: string };
+        if (r.node_id) ids.milestoneId = r.node_id;
         applied.push(m.name);
         continue;
       }

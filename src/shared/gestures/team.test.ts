@@ -3,7 +3,8 @@ import { PARCELS, SIZES, ZONES, parcelBody } from "../levels/parcels.ts";
 import type { PracticeIssue, PracticeSnapshot } from "../levels/types.ts";
 import { GestureError } from "./move.ts";
 import {
-  prepareChecklist, prepareCloseDuplicate, prepareFoundTeam, prepareLabel, prepareParcels, prepareSize,
+  prepareAttach, prepareChecklist, prepareCloseDuplicate, prepareFoundTeam, prepareLabel, prepareLoad, prepareMilestone,
+  prepareParcels, prepareRope, prepareSize, prepareSplit, prepareSprintField, prepareUnload,
 } from "./team.ts";
 
 const viewer = { login: "fictif-lead", id: "U_lead" };
@@ -101,5 +102,86 @@ describe("the sorting gestures", () => {
       projectId: "PVT_team", itemId: "PVTI_2", fieldId: "F_size", value: { singleSelectOptionId: "s2" },
     } }]);
     expect(() => prepareSize(team({ issues: [issue(2)] }), 2, "XXL")).toThrow(GestureError);
+  });
+});
+
+describe("the Site manager's gestures", () => {
+  const TODAY = "2026-11-17";
+  const sprint = (iterations = [{ id: "it1", title: "Sprint 1", startDate: "2026-11-17", duration: 7 }]) =>
+    ({ id: "F_sprint", name: "Sprint", dataType: "ITERATION", iterations });
+  const withSprint = (o: Partial<PracticeSnapshot> = {}, iterations?: Parameters<typeof sprint>[0]) =>
+    team({ board: { ...team().board!, fields: [sizeField, sprint(iterations)] }, ...o });
+
+  it("creates the Sprint field with its first week", () => {
+    const p = prepareSprintField(team(), TODAY);
+    expect(p.mutations).toEqual([{ name: "createProjectV2Field", input: {
+      projectId: "PVT_team", name: "Sprint", dataType: "ITERATION",
+      iterationConfiguration: { startDate: TODAY, duration: 7, iterations: [{ title: "Sprint 1", startDate: TODAY, duration: 7 }] },
+    } }]);
+    expect(() => prepareSprintField(withSprint(), TODAY)).toThrow(GestureError);
+  });
+  it("adds the next sprint, keeping the past ones", () => {
+    const past = [{ id: "it1", title: "Sprint 1", startDate: "2026-11-03", duration: 7 }, { id: "it2", title: "Sprint 2", startDate: "2026-11-10", duration: 7 }];
+    const p = prepareSprintField(withSprint({}, past), TODAY);
+    expect(p.mutations).toEqual([{ name: "updateProjectV2Field", input: {
+      fieldId: "F_sprint",
+      iterationConfiguration: { startDate: "2026-11-03", duration: 7, iterations: [...past, { title: "Sprint 3", startDate: TODAY, duration: 7 }] },
+    } }]);
+  });
+  it("loads and unloads a pallet on the current sprint", () => {
+    const t = withSprint({ issues: [issue(2), issue(3, { iteration: "it1" }), issue(4, { itemId: null })] });
+    expect(prepareLoad(t, 2, TODAY).mutations).toEqual([{ name: "updateProjectV2ItemFieldValue", input: {
+      projectId: "PVT_team", itemId: "PVTI_2", fieldId: "F_sprint", value: { iterationId: "it1" },
+    } }]);
+    expect(prepareUnload(t, 3).mutations).toEqual([{ name: "clearProjectV2ItemFieldValue", input: { projectId: "PVT_team", itemId: "PVTI_3", fieldId: "F_sprint" } }]);
+    expect(() => prepareLoad(t, 3, TODAY)).toThrow(/already/);
+    expect(() => prepareLoad(t, 4, TODAY)).toThrow(GestureError);
+    expect(() => prepareUnload(t, 2)).toThrow(GestureError);
+    expect(() => prepareLoad(t, 2, "2026-12-01")).toThrow(/sprint/);
+  });
+  it("sets the mayor's visit and puts issues under it", () => {
+    const p = prepareMilestone(team({ issues: [issue(2), issue(3)] }), " FICTIF The mayor visits ", "2026-11-29", [2, 3], TODAY);
+    expect(p.mutations).toEqual([
+      { name: "createMilestone", input: { title: "FICTIF The mayor visits", description: "Written by project-quest for practice.", due_on: "2026-11-29T12:00:00Z" } },
+      { name: "updateIssue", input: { id: "I_2", milestoneId: "$milestoneId" } },
+      { name: "updateIssue", input: { id: "I_3", milestoneId: "$milestoneId" } },
+    ]);
+    const visit = { id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "m", closed: false };
+    expect(prepareAttach(team({ issues: [issue(4)], milestones: [visit] }), 4, 1).mutations).toEqual([{ name: "updateIssue", input: { id: "I_4", milestoneId: "MI_1" } }]);
+  });
+  it("refuses a past or malformed due date, and a title in use", () => {
+    const t = team({ issues: [issue(2)], milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: false }] });
+    for (const due of ["2026-11-16", "29/11/2026", "2026-02-30", ""]) {
+      expect(() => prepareMilestone(t, "FICTIF Other", due, [2], TODAY), due).toThrow(GestureError);
+    }
+    expect(() => prepareMilestone(t, "FICTIF Visit", "2026-11-29", [2], TODAY)).toThrow(/already/);
+    expect(() => prepareMilestone(t, "  ", "2026-11-29", [2], TODAY)).toThrow(GestureError);
+    expect(() => prepareMilestone(t, "FICTIF Other", "2026-11-29", [], TODAY)).toThrow(GestureError);
+    expect(prepareMilestone(t, "FICTIF Other", TODAY, [2], TODAY).mutations).toHaveLength(2);
+  });
+  it("splits into FICTIF parts, each a sub-issue on the board", () => {
+    const p = prepareSplit(team({ issues: [issue(3)] }), 3, ["New paving", " ", "FICTIF New lights"]);
+    expect(p.mutations).toEqual([
+      { name: "createIssue", input: { repositoryId: "R_team", title: "FICTIF New paving", body: "Part of #3.\n\nWritten by project-quest for practice." } },
+      { name: "addProjectV2ItemById", input: { projectId: "PVT_team", contentId: "$issueId" } },
+      { name: "addSubIssue", input: { issueId: "I_3", subIssueId: "$issueId" } },
+      { name: "createIssue", input: { repositoryId: "R_team", title: "FICTIF New lights", body: "Part of #3.\n\nWritten by project-quest for practice." } },
+      { name: "addProjectV2ItemById", input: { projectId: "PVT_team", contentId: "$issueId" } },
+      { name: "addSubIssue", input: { issueId: "I_3", subIssueId: "$issueId" } },
+    ]);
+  });
+  it("refuses a split in fewer than two parts", () => {
+    expect(() => prepareSplit(team({ issues: [issue(3)] }), 3, ["Only one", "  "])).toThrow(GestureError);
+    expect(() => prepareSplit(team({ issues: [issue(3, { closed: true })] }), 3, ["a", "b"])).toThrow(GestureError);
+  });
+  it("ropes one pallet behind another", () => {
+    expect(prepareRope(team({ issues: [issue(2), issue(5)] }), 5, 2).mutations).toEqual([
+      { name: "addBlockedBy", input: { issueId: "I_5", blockingIssueId: "I_2" } },
+    ]);
+  });
+  it("refuses a rope to itself or a circle", () => {
+    expect(() => prepareRope(team({ issues: [issue(2)] }), 2, 2)).toThrow(GestureError);
+    expect(() => prepareRope(team({ issues: [issue(2), issue(5, { blockedBy: [2] })] }), 5, 2)).toThrow(/already/);
+    expect(() => prepareRope(team({ issues: [issue(2, { blockedBy: [5] }), issue(5)] }), 5, 2)).toThrow(GestureError);
   });
 });

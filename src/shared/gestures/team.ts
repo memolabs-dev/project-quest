@@ -1,14 +1,20 @@
 // The lead's gestures on their team site (lead's path spec). Each prepare builds exactly what the confirmation shows;
 // the server rebuilds it from a fresh read before sending. Ids a mutation only learns from the one before it are shown
 // as "$repositoryId", "$projectId", "$statusFieldId" or "$issueId" and filled in when sent.
-import { PARCELS, SIZES, ZONES, parcelBody, parcelOf } from "../levels/parcels.ts";
+import { SPRINT_FIELD, currentIteration, sprintFieldOf } from "../levels/lead.ts";
+import { PARCELS, PRACTICE_LINE, SIZES, ZONES, parcelBody, parcelOf } from "../levels/parcels.ts";
 import type { PracticeSnapshot } from "../levels/types.ts";
 import { GestureError } from "./move.ts";
 import type { PracticeMutation } from "./practice.ts";
 
-export type TeamKind = "team-found" | "parcels" | "label" | "duplicate" | "checklist" | "size";
+export type TeamKind =
+  | "team-found" | "parcels" | "label" | "duplicate" | "checklist" | "size"
+  | "sprint-field" | "load" | "unload" | "milestone" | "attach" | "split" | "rope";
 /** The inputs the player gave: what the server rebuilds the gesture from. */
-export type TeamArgs = { visibility?: "PUBLIC" | "PRIVATE"; issueNumber?: number; label?: string; original?: number; items?: string[]; size?: string };
+export type TeamArgs = {
+  visibility?: "PUBLIC" | "PRIVATE"; issueNumber?: number; label?: string; original?: number; items?: string[]; size?: string;
+  title?: string; dueOn?: string; issues?: number[]; milestone?: number; titles?: string[]; blocking?: number;
+};
 export interface PreparedTeam { kind: TeamKind; repo: string; args: TeamArgs; mutations: PracticeMutation[] }
 
 const ZONE_LOOK: Record<(typeof ZONES)[number], { color: string; description: string }> = {
@@ -126,9 +132,126 @@ export function prepareSize(team: PracticeSnapshot, issueNumber: number, size: s
   };
 }
 
+const SPRINT_DAYS = 7;
+
+/** The sprint field with its first week from today; once the last week is over, the next week, keeping the past ones. */
+export function prepareSprintField(team: PracticeSnapshot, today: string): PreparedTeam {
+  const board = team.board;
+  if (!board) throw new GestureError("Found your team site first: it has no board yet");
+  const field = sprintFieldOf(team);
+  const repo = team.repo.nameWithOwner;
+  if (!field) {
+    return { kind: "sprint-field", repo, args: {}, mutations: [{ name: "createProjectV2Field", input: {
+      projectId: board.id, name: SPRINT_FIELD, dataType: "ITERATION",
+      iterationConfiguration: { startDate: today, duration: SPRINT_DAYS, iterations: [{ title: "Sprint 1", startDate: today, duration: SPRINT_DAYS }] },
+    } }] };
+  }
+  if (currentIteration(field, today)) throw new GestureError("A sprint is already running this week");
+  const past = field.iterations ?? [];
+  return { kind: "sprint-field", repo, args: {}, mutations: [{ name: "updateProjectV2Field", input: {
+    fieldId: field.id,
+    iterationConfiguration: {
+      startDate: past[0]?.startDate ?? today, duration: SPRINT_DAYS,
+      // Each past iteration is sent with its id, or GitHub would forget which items it held.
+      iterations: [...past, { title: `Sprint ${past.length + 1}`, startDate: today, duration: SPRINT_DAYS }],
+    },
+  } }] };
+}
+
+const onBoard = (team: PracticeSnapshot, issueNumber: number) => {
+  const i = issueOf(team, issueNumber);
+  if (!team.board || !i.itemId) throw new GestureError(`Issue #${issueNumber} is not on your board`);
+  return { i, board: team.board, itemId: i.itemId };
+};
+
+export function prepareLoad(team: PracticeSnapshot, issueNumber: number, today: string): PreparedTeam {
+  const { i, board, itemId } = onBoard(team, issueNumber);
+  const field = sprintFieldOf(team);
+  const now = currentIteration(field, today);
+  if (!field || !now) throw new GestureError("No sprint is running this week: start one first");
+  if (i.iteration === now.id) throw new GestureError(`Issue #${issueNumber} is already on this sprint`);
+  return {
+    kind: "load", repo: team.repo.nameWithOwner, args: { issueNumber },
+    mutations: [{ name: "updateProjectV2ItemFieldValue", input: { projectId: board.id, itemId, fieldId: field.id, value: { iterationId: now.id } } }],
+  };
+}
+
+export function prepareUnload(team: PracticeSnapshot, issueNumber: number): PreparedTeam {
+  const { i, board, itemId } = onBoard(team, issueNumber);
+  const field = sprintFieldOf(team);
+  if (!field || !i.iteration) throw new GestureError(`Issue #${issueNumber} is on no sprint`);
+  return {
+    kind: "unload", repo: team.repo.nameWithOwner, args: { issueNumber },
+    mutations: [{ name: "clearProjectV2ItemFieldValue", input: { projectId: board.id, itemId, fieldId: field.id } }],
+  };
+}
+
+const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(`${d}T00:00:00Z`))
+  && new Date(`${d}T00:00:00Z`).toISOString().startsWith(d);
+
+/** GraphQL has no milestone mutation: it is created over REST, then each issue is put under it. */
+export function prepareMilestone(team: PracticeSnapshot, title: string, dueOn: string, issues: number[], today: string): PreparedTeam {
+  const name = title.trim();
+  if (!name) throw new GestureError("The visit needs a title");
+  if ((team.milestones ?? []).some((m) => !m.closed && m.title === name)) throw new GestureError(`A milestone "${name}" is already open`);
+  if (!isDate(dueOn)) throw new GestureError("The due date must be a day, written YYYY-MM-DD");
+  if (dueOn < today) throw new GestureError("The due date is already past");
+  if (issues.length === 0) throw new GestureError("Choose at least one job the mayor will see");
+  const ids = issues.map((n) => issueOf(team, n).id);
+  return {
+    kind: "milestone", repo: team.repo.nameWithOwner, args: { title, dueOn, issues },
+    mutations: [
+      // Midday UTC, so no timezone moves the date a day.
+      { name: "createMilestone", input: { title: name, description: PRACTICE_LINE, due_on: `${dueOn}T12:00:00Z` } },
+      ...ids.map((id) => ({ name: "updateIssue" as const, input: { id, milestoneId: "$milestoneId" } })),
+    ],
+  };
+}
+
+export function prepareAttach(team: PracticeSnapshot, issueNumber: number, milestoneNumber: number): PreparedTeam {
+  const i = issueOf(team, issueNumber);
+  const m = (team.milestones ?? []).find((x) => x.number === milestoneNumber && !x.closed);
+  if (!m) throw new GestureError(`No open milestone number ${milestoneNumber}`);
+  if (i.milestone === milestoneNumber) throw new GestureError(`Issue #${issueNumber} is already under it`);
+  return {
+    kind: "attach", repo: team.repo.nameWithOwner, args: { issueNumber, milestone: milestoneNumber },
+    mutations: [{ name: "updateIssue", input: { id: i.id, milestoneId: m.id } }],
+  };
+}
+
+/** Each part is a FICTIF issue on the board, then a sub-issue of the big one. */
+export function prepareSplit(team: PracticeSnapshot, issueNumber: number, titles: string[]): PreparedTeam {
+  const parent = issueOf(team, issueNumber);
+  if (parent.closed) throw new GestureError(`Issue #${issueNumber} is closed`);
+  if (!team.board) throw new GestureError("Found your team site first: it has no board yet");
+  const parts = titles.map((t) => t.trim()).filter(Boolean).map((t) => (t.startsWith("FICTIF ") ? t : `FICTIF ${t}`));
+  if (parts.length < 2) throw new GestureError("Splitting needs two parts at least");
+  const board = team.board;
+  return {
+    kind: "split", repo: team.repo.nameWithOwner, args: { issueNumber, titles },
+    mutations: parts.flatMap((title): PracticeMutation[] => [
+      { name: "createIssue", input: { repositoryId: team.repo.id, title, body: `Part of #${issueNumber}.\n\n${PRACTICE_LINE}` } },
+      { name: "addProjectV2ItemById", input: { projectId: board.id, contentId: "$issueId" } },
+      { name: "addSubIssue", input: { issueId: parent.id, subIssueId: "$issueId" } },
+    ]),
+  };
+}
+
+export function prepareRope(team: PracticeSnapshot, issueNumber: number, blockingNumber: number): PreparedTeam {
+  if (issueNumber === blockingNumber) throw new GestureError("A pallet cannot wait for itself");
+  const i = issueOf(team, issueNumber);
+  const blocking = issueOf(team, blockingNumber);
+  if ((i.blockedBy ?? []).includes(blockingNumber)) throw new GestureError(`#${issueNumber} already waits for #${blockingNumber}`);
+  if ((blocking.blockedBy ?? []).includes(issueNumber)) throw new GestureError(`#${blockingNumber} already waits for #${issueNumber}: they would wait for each other`);
+  return {
+    kind: "rope", repo: team.repo.nameWithOwner, args: { issueNumber, blocking: blockingNumber },
+    mutations: [{ name: "addBlockedBy", input: { issueId: i.id, blockingIssueId: blocking.id } }],
+  };
+}
+
 /** The server's own copy of a lead's gesture, from the player's inputs and a fresh read of the team site. */
 export function rebuildTeam(
-  kind: TeamKind, args: TeamArgs, viewer: { login: string; id: string }, name: string, team: PracticeSnapshot | null,
+  kind: TeamKind, args: TeamArgs, viewer: { login: string; id: string }, name: string, team: PracticeSnapshot | null, today: string,
 ): PreparedTeam {
   if (kind === "team-found") return prepareFoundTeam(viewer, team, name, args.visibility ?? "PRIVATE");
   if (!team) throw new GestureError("Found your team site first");
@@ -139,5 +262,12 @@ export function rebuildTeam(
     case "duplicate": return prepareCloseDuplicate(team, n, args.original ?? NaN);
     case "checklist": return prepareChecklist(team, n, args.items ?? []);
     case "size": return prepareSize(team, n, args.size ?? "");
+    case "sprint-field": return prepareSprintField(team, today);
+    case "load": return prepareLoad(team, n, today);
+    case "unload": return prepareUnload(team, n);
+    case "milestone": return prepareMilestone(team, args.title ?? "", args.dueOn ?? "", args.issues ?? [], today);
+    case "attach": return prepareAttach(team, n, args.milestone ?? NaN);
+    case "split": return prepareSplit(team, n, args.titles ?? []);
+    case "rope": return prepareRope(team, n, args.blocking ?? NaN);
   }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { prepareEdit, prepareFound, prepareIssue } from "../../shared/gestures/practice.ts";
+import { prepareMilestone, prepareRope, prepareSplit } from "../../shared/gestures/team.ts";
 import type { PracticeSnapshot } from "../../shared/levels/types.ts";
 import type { Gql } from "./client.ts";
 
@@ -110,5 +111,37 @@ describe("founding a team site", () => {
     expect(calls[1].input).toMatchObject({ repositoryId: "R_team" });
     expect(calls[2].input).toMatchObject({ fieldId: "F_status_new" });
     expect(calls[3].input).toMatchObject({ projectId: "PVT_new" });
+  });
+});
+
+describe("the lead's REST step", () => {
+  it("creates the milestone over REST and fills its id", async () => {
+    const { gql, calls } = recording();
+    const posted: { method: string; path: string; body: unknown }[] = [];
+    const rest = (async (method: string, path: string, body: unknown) => {
+      posted.push({ method, path, body });
+      return { node_id: "MI_new", number: 1 };
+    }) as Rest;
+    const team: PracticeSnapshot = { ...site, repo: { id: "R_team", nameWithOwner: "fictif-lead/my-first-team", url: "u" },
+      issues: [{ id: "I_2", number: 2, url: "u2", author: "fictif-lead", assignees: [], comments: [], status: "Backlog", closed: false }] };
+    const r = await applyPractice(gql, rest, prepareMilestone(team, "FICTIF The mayor visits", "2026-11-29", [2], "2026-11-17"));
+    expect(r).toEqual({ ok: true });
+    expect(posted).toEqual([{ method: "POST", path: "/repos/fictif-lead/my-first-team/milestones", body: {
+      title: "FICTIF The mayor visits", description: "Written by project-quest for practice.", due_on: "2026-11-29T12:00:00Z",
+    } }]);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].query).toContain("updateIssue");
+    expect(calls[0].input).toEqual({ id: "I_2", milestoneId: "MI_new" });
+  });
+  it("knows the Site manager's mutations", async () => {
+    const { gql, calls } = recording();
+    const team: PracticeSnapshot = { ...site, issues: [
+      { id: "I_2", number: 2, url: "u2", author: "a", assignees: [], comments: [], status: "Backlog", closed: false },
+      { id: "I_3", number: 3, url: "u3", author: "a", assignees: [], comments: [], status: "Backlog", closed: false },
+    ] };
+    await applyPractice(gql, noRest, prepareRope(team, 3, 2));
+    await applyPractice(gql, noRest, prepareSplit(team, 2, ["a", "b"]));
+    expect(calls.map((c) => c.query.match(/\{ (\w+)\(input/)?.[1])).toEqual(["addBlockedBy", "createIssue", "addProjectV2ItemById", "addSubIssue", "createIssue", "addProjectV2ItemById", "addSubIssue"]);
+    expect(calls[3].input).toEqual({ issueId: "I_2", subIssueId: "I_new" });
   });
 });

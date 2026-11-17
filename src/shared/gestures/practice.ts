@@ -10,7 +10,10 @@ export type PracticeMutationName =
   | "createOrUpdateFileContents"
   | "createRef" | "createCommitOnBranch" | "createPullRequest" | "mergePullRequest"
   /** The lead's team site. */
-  | "updateProjectV2Field" | "createProjectV2Field" | "addLabelsToLabelable" | "closeIssue" | "updateIssue" | "updateProjectV2ItemFieldValue";
+  | "updateProjectV2Field" | "createProjectV2Field" | "addLabelsToLabelable" | "closeIssue" | "updateIssue" | "updateProjectV2ItemFieldValue"
+  | "clearProjectV2ItemFieldValue" | "addSubIssue" | "addBlockedBy"
+  /** REST: GraphQL has no milestone mutation. */
+  | "createMilestone";
 export interface PracticeMutation { name: PracticeMutationName; input: Record<string, unknown> }
 
 export interface PreparedFound {

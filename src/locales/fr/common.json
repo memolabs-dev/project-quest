@@ -387,7 +387,14 @@
       "label": "Mettre l'étiquette « {{label}} » sur l'issue n°{{issueNumber}}.",
       "duplicate": "Fermer l'issue n°{{issueNumber}} comme doublon du n°{{original}}.",
       "checklist": "Ajouter une définition de prêt de {{items}} lignes sous l'issue n°{{issueNumber}}.",
-      "size": "Donner la taille {{size}} à l'issue n°{{issueNumber}}."
+      "size": "Donner la taille {{size}} à l'issue n°{{issueNumber}}.",
+      "sprint-field": "Lancer un sprint d'une semaine sur le tableau de {{repo}}, à partir d'aujourd'hui.",
+      "load": "Charger l'issue n°{{issueNumber}} sur le sprint de la semaine.",
+      "unload": "Retirer l'issue n°{{issueNumber}} du sprint.",
+      "milestone": "Créer le jalon « {{title}} » dans {{repo}}, pour le {{dueOn}}, et y mettre {{count}} boulots.",
+      "attach": "Mettre l'issue n°{{issueNumber}} sous le jalon {{milestone}}.",
+      "split": "Couper l'issue n°{{issueNumber}} en {{count}} parties FICTIF, chacune son issue sur le tableau.",
+      "rope": "Marquer l'issue n°{{issueNumber}} comme bloquée par le n°{{blocking}}."
     }
   }
 }

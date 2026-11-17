@@ -20,7 +20,7 @@ import { GitHubAuthError } from "./github/client.ts";
 import { BoardNotFoundError, GitHubScopeError } from "./github/errors.ts";
 import type { ApplyResult } from "./github/move-item.ts";
 import { practiceConfig } from "./github/read-practice.ts";
-import { checkLevels, practiceNameOf } from "./levels.ts";
+import { checkLevels, practiceNameOf, todayOf } from "./levels.ts";
 
 const prepareBody = z.object({ itemId: z.string().min(1), toZone: z.string().min(1) });
 const preparedBody = z.object({
@@ -323,7 +323,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
     .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size}/prepare", zValidator("json", teamArgs), async (c) => {
       const { login, name, practice } = await teamContext(live);
       const viewer = { login, id: c.req.param("kind") === "team-found" ? await live.viewerId() : "" };
-      return c.json(rebuildTeam(c.req.param("kind") as TeamKind, c.req.valid("json"), viewer, name, practice));
+      return c.json(rebuildTeam(c.req.param("kind") as TeamKind, c.req.valid("json"), viewer, name, practice, todayOf(live)));
     })
     .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size}/apply", zValidator("json", z.looseObject({
       kind: z.string(), repo: z.string(), args: teamArgs, mutations,
@@ -336,7 +336,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
         return c.json({ error: "gesture" as const, message: "The lead's gestures write only to your own team site: nothing was sent" }, 409);
       }
       const viewer = { login, id: claim.kind === "team-found" ? await live.viewerId() : "" };
-      const rebuilt = rebuildTeam(claim.kind, claim.args, viewer, name, practice);
+      const rebuilt = rebuildTeam(claim.kind, claim.args, viewer, name, practice, todayOf(live));
       if (!isDeepStrictEqual(rebuilt, claim)) {
         return c.json({ error: "gesture" as const, message: "This gesture does not match your team site: nothing was sent" }, 409);
       }

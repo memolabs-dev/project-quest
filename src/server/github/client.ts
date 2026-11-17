@@ -26,9 +26,9 @@ export async function githubGql(): Promise<Gql> {
   return withGitHubErrors(<T>(query: string, variables: Record<string, unknown>) => client<T>(query, variables));
 }
 
-export type Rest = (method: "PUT", path: string, body: Record<string, unknown>) => Promise<unknown>;
+export type Rest = (method: "PUT" | "POST", path: string, body: Record<string, unknown>) => Promise<unknown>;
 
-/** The REST door, for the one write GraphQL cannot do (the first commit of an empty repository). */
+/** The REST door, for the writes GraphQL cannot do: the first commit of an empty repository, a milestone. */
 export async function githubRest(): Promise<Rest> {
   const token = await githubToken();
   return async (method, path, body) => {

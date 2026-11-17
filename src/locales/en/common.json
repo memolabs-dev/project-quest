@@ -387,7 +387,14 @@
       "label": "Put the label \"{{label}}\" on issue #{{issueNumber}}.",
       "duplicate": "Close issue #{{issueNumber}} as a duplicate of #{{original}}.",
       "checklist": "Add a Definition of Ready of {{items}} lines under issue #{{issueNumber}}.",
-      "size": "Give issue #{{issueNumber}} the size {{size}}."
+      "size": "Give issue #{{issueNumber}} the size {{size}}.",
+      "sprint-field": "Start a one-week sprint on the board of {{repo}}, from today.",
+      "load": "Load issue #{{issueNumber}} on this week's sprint.",
+      "unload": "Take issue #{{issueNumber}} off the sprint.",
+      "milestone": "Create the milestone \"{{title}}\" in {{repo}}, due {{dueOn}}, and put {{count}} jobs under it.",
+      "attach": "Put issue #{{issueNumber}} under milestone {{milestone}}.",
+      "split": "Cut issue #{{issueNumber}} into {{count}} FICTIF parts, each its own issue on the board.",
+      "rope": "Mark issue #{{issueNumber}} as blocked by #{{blocking}}."
     }
   }
 }
