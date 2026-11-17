@@ -1,7 +1,10 @@
 // A level is data: its rank, where it plays, and a pure check over what the server observed.
 // Its words live in the locales under levels.<id>.skill, .goal and .lesson.
 
-export type Rank = "apprentice" | "journeyman" | "team-leader" | "real-project";
+export type Rank = "apprentice" | "journeyman" | "team-leader" | "real-project" | "site-foreman" | "site-manager" | "project-director";
+
+/** Two paths: lending a hand on a project, or running one. */
+export type Path = "volunteer" | "lead";
 
 /** What the tutorial on the fictitious site reports; nothing there is sent to GitHub. */
 export const TUTORIAL_EVENTS = ["walked", "card-opened", "card-read", "pallet-moved"] as const;
@@ -89,6 +92,7 @@ export interface Check { done: boolean; proof: string | null }
 export interface Level {
   id: string;
   rank: Rank;
+  path: Path;
   where: "tutorial" | "practice" | "real";
   check(o: Observed): Check;
 }

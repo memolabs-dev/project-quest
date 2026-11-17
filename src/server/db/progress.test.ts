@@ -50,6 +50,14 @@ const behaves = (name: string, make: () => ProgressStore, cleanup?: () => Promis
       await cleanup?.();
     });
 
+    it("remembers the chosen path", async () => {
+      const p = make();
+      expect(await p.path("fictif-a")).toBeNull();
+      await p.setPath("Fictif-A", "lead");
+      expect(await p.path("fictif-a")).toBe("lead");
+      await cleanup?.();
+    });
+
     it("remembers the practice repository's name", async () => {
       const p = make();
       expect(await p.practiceRepo("fictif-a")).toBeNull();

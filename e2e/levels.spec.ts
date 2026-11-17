@@ -86,7 +86,7 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
     const s = useQuest.getState();
     const ids = ["a1-walk", "a2-read-issue", "a3-read-board", "a4-found-site", "a5-write-issue", "a6-take-issue", "a7-move-issue"];
     s.setLevels({
-      login: "you", canWrite: false, current: "a8-edit-file", rank: "apprentice",
+      login: "you", canWrite: false, path: null, ranks: { volunteer: null, lead: null }, current: "a8-edit-file", rank: "apprentice",
       stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false, van: false, realProjects: false },
       practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
@@ -108,7 +108,7 @@ test("at the last level, a good first issue's card offers to ask for it, and the
   await page.evaluate(async () => {
     const { useQuest } = await import("/src/client/store.ts");
     useQuest.getState().setLevels({
-      login: "you", canWrite: false, current: "a16-ask-good-first", rank: "team-leader",
+      login: "you", canWrite: false, path: null, ranks: { volunteer: null, lead: null }, current: "a16-ask-good-first", rank: "team-leader",
       stamps: Array.from({ length: 15 }, (_, i) => ({ levelId: `x${i}`, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: true, van: true, realProjects: true },
       practice: { name: "my-first-site", exists: true, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },

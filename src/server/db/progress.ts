@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import type { Stamp, TutorialEvent } from "../../shared/levels/types.ts";
+import type { Path, Stamp, TutorialEvent } from "../../shared/levels/types.ts";
 import { players, progress, tutorialEvents } from "./schema.ts";
 
 export type { Stamp };
@@ -16,6 +16,8 @@ export interface ProgressStore {
   addEvent(login: string, e: TutorialEvent): Promise<void>;
   practiceRepo(login: string): Promise<string | null>;
   setPracticeRepo(login: string, name: string): Promise<void>;
+  path(login: string): Promise<Path | null>;
+  setPath(login: string, path: Path): Promise<void>;
   /** Forgets a player's stamps and tutorial events (the demo site's "start again"). */
   reset(login: string): Promise<void>;
 }
@@ -26,6 +28,7 @@ export function memoryProgress(): ProgressStore {
   const stamps = new Map<string, Stamp[]>();
   const events = new Map<string, Set<TutorialEvent>>();
   const repos = new Map<string, string>();
+  const paths = new Map<string, Path>();
   return {
     async stamps(login) {
       return [...(stamps.get(key(login)) ?? [])];
@@ -46,6 +49,12 @@ export function memoryProgress(): ProgressStore {
     },
     async setPracticeRepo(login, name) {
       repos.set(key(login), name);
+    },
+    async path(login) {
+      return paths.get(key(login)) ?? null;
+    },
+    async setPath(login, path) {
+      paths.set(key(login), path);
     },
     async reset(login) {
       stamps.delete(key(login));
@@ -78,6 +87,14 @@ export function pgProgress(url: string): ProgressStore & { clearForTests(): Prom
     async setPracticeRepo(login, name) {
       await db.insert(players).values({ githubLogin: key(login), practiceRepo: name })
         .onConflictDoUpdate({ target: players.githubLogin, set: { practiceRepo: name } });
+    },
+    async path(login) {
+      const [row] = await db.select({ path: players.path }).from(players).where(eq(players.githubLogin, key(login)));
+      return (row?.path as Path | null | undefined) ?? null;
+    },
+    async setPath(login, path) {
+      await db.insert(players).values({ githubLogin: key(login), path })
+        .onConflictDoUpdate({ target: players.githubLogin, set: { path } });
     },
     async reset(login) {
       await db.delete(progress).where(eq(progress.playerLogin, key(login)));

@@ -2,7 +2,7 @@
 import type { PreparedMove } from "./gestures/move.ts";
 import type { PreparedPractice } from "./gestures/practice.ts";
 import type { unlocks } from "./levels/progress.ts";
-import type { Rank, Stamp } from "./levels/types.ts";
+import type { Path, Rank, Stamp } from "./levels/types.ts";
 import type { Site } from "./site.ts";
 
 export interface SiteResponse {
@@ -38,9 +38,13 @@ export interface LevelsView {
   /** False on the demo site: gestures are shown, never sent. */
   canWrite: boolean;
   stamps: Stamp[];
-  /** The next level to play, null when every level is stamped. */
+  /** The path the player chose; null before choosing (the volunteer's path is shown then). */
+  path: Path | null;
+  /** The next level of the shown path, null when all its levels are stamped. */
   current: string | null;
+  /** The rank reached on the shown path. */
   rank: Rank | null;
+  ranks: Record<Path, Rank | null>;
   unlocks: ReturnType<typeof unlocks>;
   practice: {
     name: string;

@@ -1,9 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { APPRENTICE } from "./apprentice.ts";
-import { LEVELS } from "./index.ts";
+import { LEVELS, levelsOf } from "./index.ts";
+import type { Level } from "./types.ts";
 import { currentLevel, rankReached, unlocks } from "./progress.ts";
 
 const ids = APPRENTICE.map((l) => l.id);
+
+describe("paths", () => {
+  const lead = (id: string): Level => ({ id, rank: "site-foreman", path: "lead", where: "practice", check: () => ({ done: false, proof: null }) });
+  it("each path has its own current level and rank", () => {
+    const leadLevels = [lead("l1"), lead("l2")];
+    const stamped = new Set([...ids, "l1"]);
+    expect(currentLevel(levelsOf("volunteer", [...APPRENTICE, ...leadLevels]), stamped)?.id).toBeUndefined();
+    expect(currentLevel(levelsOf("lead", [...APPRENTICE, ...leadLevels]), stamped)?.id).toBe("l2");
+    expect(rankReached(levelsOf("lead", [...APPRENTICE, ...leadLevels]), stamped)).toBeNull();
+    expect(rankReached(levelsOf("volunteer", [...APPRENTICE, ...leadLevels]), stamped)).toBe("apprentice");
+  });
+  it("puts every existing level on the volunteer's path", () => {
+    expect(LEVELS.filter((l) => l.rank === "apprentice" || l.rank === "real-project").every((l) => l.path === "volunteer")).toBe(true);
+  });
+});
 
 describe("progress", () => {
   it("starts at the first level and ends when all are stamped", () => {

@@ -172,6 +172,10 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
     // ---------- Levels ----------
     .get("/api/levels", async (c) => c.json(await levels()))
     .post("/api/levels/check", async (c) => c.json(await levels()))
+    .post("/api/levels/path", zValidator("json", z.object({ path: z.enum(["volunteer", "lead"]) })), async (c) => {
+      await live.progress.setPath((await live.viewer()).login, c.req.valid("json").path);
+      return c.json(await levels());
+    })
     // "Start again" exists on the demo site only: real progress is never thrown away.
     .post("/api/levels/reset", async (c) => {
       if (live.mode !== "demo") return c.json({ error: "gesture" as const, message: "Only the demo site starts again" }, 404);

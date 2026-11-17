@@ -8,7 +8,7 @@ const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 const mine = (o: Observed): PracticePull[] =>
   (o.practice?.pulls ?? []).filter((p) => same(p.author, o.viewer) && p.closes.length > 0);
 
-const level = (id: string, check: (o: Observed) => Check): Level => ({ id, rank: "journeyman", where: "practice", check });
+const level = (id: string, check: (o: Observed) => Check): Level => ({ id, rank: "journeyman", path: "volunteer", where: "practice", check });
 
 export const JOURNEYMAN: Level[] = [
   level("a8-edit-file", (o) => {

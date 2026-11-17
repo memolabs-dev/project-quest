@@ -153,6 +153,23 @@ describe("asking for a good first issue", () => {
   });
 });
 
+describe("paths", () => {
+  it("choosing a path is remembered, and the volunteer's stamps stay", async () => {
+    const progress = memoryProgress();
+    for (const e of ["walked", "card-opened"] as const) await progress.addEvent(VIEWER, e);
+    const { app } = make(null, { progress });
+    expect((await view(await app.request("/api/levels", {}))).path).toBeNull();
+    const v = await view(await app.request("/api/levels/path", post({ path: "lead" })));
+    expect(v.path).toBe("lead");
+    expect(v.stamps.map((s) => s.levelId)).toContain("a1-walk");
+    expect(v.ranks.volunteer).toBeNull();
+    expect(await progress.path(VIEWER)).toBe("lead");
+  });
+  it("refuses an unknown path", async () => {
+    expect((await make(null).app.request("/api/levels/path", post({ path: "pirate" }))).status).toBe(400);
+  });
+});
+
 describe("starting again", () => {
   it("resets the player's levels on the demo site only", async () => {
     const progress = memoryProgress();

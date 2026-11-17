@@ -6,11 +6,11 @@ const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 const byNumber = (a: PracticeIssue, b: PracticeIssue) => a.number - b.number;
 
 const tutorial = (id: string, needs: TutorialEvent[]): Level => ({
-  id, rank: "apprentice", where: "tutorial",
+  id, rank: "apprentice", path: "volunteer", where: "tutorial",
   check: (o) => (needs.every((e) => o.events.includes(e)) ? { done: true, proof: "tutorial" } : NOT_YET),
 });
 
-const practice = (id: string, check: (o: Observed) => Check): Level => ({ id, rank: "apprentice", where: "practice", check });
+const practice = (id: string, check: (o: Observed) => Check): Level => ({ id, rank: "apprentice", path: "volunteer", where: "practice", check });
 
 /** Open issues assigned to the viewer, lowest number first. */
 const mine = (o: Observed) =>

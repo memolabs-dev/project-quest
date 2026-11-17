@@ -1,9 +1,9 @@
 // Where the viewer stands in the levels: the server observes (tutorial events, the practice site on GitHub),
 // the levels' checks decide, and each passing level is stamped with its proof. Never another player's progress.
 import type { LevelsView } from "../shared/api.ts";
-import { LEVELS } from "../shared/levels/index.ts";
+import { levelsOf } from "../shared/levels/index.ts";
 import { currentLevel, rankReached, unlocks } from "../shared/levels/progress.ts";
-import type { Observed, PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
+import type { Observed, Path, PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { Deps } from "./deps.ts";
 
 export const practiceNameOf = async (deps: Deps, login: string) => (await deps.progress.practiceRepo(login)) ?? deps.practiceName;
@@ -21,16 +21,21 @@ export async function observe(deps: Deps, login: string): Promise<Observed> {
   return { viewer: login, events, practice, real, realSince: since };
 }
 
+const PATHS: Path[] = ["volunteer", "lead"];
+
 /** Runs the checks in order, stamps every newly passing level, stops at the first that does not pass. */
 export async function checkLevels(deps: Deps, login: string, seen?: Observed): Promise<LevelsView> {
   const o = seen ?? (await observe(deps, login));
   const stamped = new Set((await deps.progress.stamps(login)).map((s) => s.levelId));
-  for (const level of LEVELS) {
-    if (stamped.has(level.id)) continue;
-    const c = level.check(o);
-    if (!c.done || !c.proof) break;
-    await deps.progress.stamp(login, level.id, c.proof);
-    stamped.add(level.id);
+  // Each path runs on its own: a level not passed on one never holds back the other.
+  for (const path of PATHS) {
+    for (const level of levelsOf(path)) {
+      if (stamped.has(level.id)) continue;
+      const c = level.check(o);
+      if (!c.done || !c.proof) break;
+      await deps.progress.stamp(login, level.id, c.proof);
+      stamped.add(level.id);
+    }
   }
   return view(deps, login, o.practice, o.real ?? null);
 }
@@ -38,12 +43,16 @@ export async function checkLevels(deps: Deps, login: string, seen?: Observed): P
 async function view(deps: Deps, login: string, practice: PracticeSnapshot | null, real: RealSnapshot | null): Promise<LevelsView> {
   const stamps = await deps.progress.stamps(login);
   const done = new Set(stamps.map((s) => s.levelId));
+  const path = await deps.progress.path(login);
+  const shown = levelsOf(path ?? "volunteer");
   return {
     login,
     canWrite: deps.mode === "live",
     stamps,
-    current: currentLevel(LEVELS, done)?.id ?? null,
-    rank: rankReached(LEVELS, done),
+    path,
+    current: currentLevel(shown, done)?.id ?? null,
+    rank: rankReached(shown, done),
+    ranks: { volunteer: rankReached(levelsOf("volunteer"), done), lead: rankReached(levelsOf("lead"), done) },
     unlocks: unlocks(done),
     practice: { name: await practiceNameOf(deps, login), exists: practice !== null, ...forGestures(practice, login) },
     real: real ? { issues: real.issues.length } : null,

@@ -7,6 +7,8 @@ export const players = pgTable("players", {
   language: text("language").notNull().default("en"),
   /** The practice repository the player founded in their own account (levels). */
   practiceRepo: text("practice_repo"),
+  /** The path the player chose: "volunteer" or "lead". */
+  path: text("path"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

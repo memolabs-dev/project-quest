@@ -28,7 +28,7 @@ const workPulls = (o: Observed) => {
   return p.pulls.filter((x) => same(x.author, o.viewer) && x.closes.length > 0 && isWork(x.headRefName, p));
 };
 
-const level = (id: string, check: (o: Observed) => Check): Level => ({ id, rank: "team-leader", where: "practice", check });
+const level = (id: string, check: (o: Observed) => Check): Level => ({ id, rank: "team-leader", path: "volunteer", where: "practice", check });
 
 export const TEAM_LEADER: Level[] = [
   level("a12-push-branch", (o) => {
