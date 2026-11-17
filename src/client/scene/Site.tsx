@@ -7,7 +7,7 @@ import { useReducedMotion } from "./motion.ts";
 import { Canvas } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import type { Site as SiteModel } from "../../shared/site.ts";
@@ -17,7 +17,8 @@ import { useQuest } from "../store.ts";
 import { Building } from "./Building.tsx";
 import { zoneColor } from "./colors.ts";
 import { Effects } from "./Effects.tsx";
-import { Piece } from "./kit.tsx";
+import { Piece, PieceRow } from "./kit.tsx";
+import { dashesAt, fenceAt } from "./rows.ts";
 import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "./layout.ts";
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
@@ -31,6 +32,31 @@ import { Worker } from "./Worker.tsx";
 
 const YARD_DEPTH = 6;
 const GROUND_SIZE = 400;
+
+const dash = new THREE.Object3D();
+
+/** The road's dashes, one instanced mesh. */
+function RoadDashes({ width }: { width: number }) {
+  const xs = useMemo(() => dashesAt(width), [width]);
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const row = ref.current;
+    if (!row) return;
+    xs.forEach((x, i) => {
+      dash.position.set(x, 0.02, 0);
+      dash.rotation.set(-Math.PI / 2, 0, 0);
+      dash.updateMatrix();
+      row.setMatrixAt(i, dash.matrix);
+    });
+    row.instanceMatrix.needsUpdate = true;
+  }, [xs]);
+  return (
+    <instancedMesh key={xs.length} ref={ref} args={[undefined, undefined, xs.length]} frustumCulled={false}>
+      <planeGeometry args={[1.4, 0.16]} />
+      <meshStandardMaterial color="#F7F2E8" />
+    </instancedMesh>
+  );
+}
 
 function Ground({ width }: { width: number }) {
   const texture = useMemo(() => {
@@ -51,12 +77,7 @@ function Ground({ width }: { width: number }) {
         <planeGeometry args={[width + 40, 3.2]} />
         <meshStandardMaterial color="#5E626B" roughness={0.95} />
       </mesh>
-      {Array.from({ length: Math.ceil((width + 40) / 3) }, (_, i) => (
-        <mesh key={i} rotation-x={-Math.PI / 2} position={[-(width + 40) / 2 + 1.5 + i * 3, 0.02, 0]}>
-          <planeGeometry args={[1.4, 0.16]} />
-          <meshStandardMaterial color="#F7F2E8" />
-        </mesh>
-      ))}
+      <RoadDashes width={width} />
     </RigidBody>
   );
 }
@@ -121,6 +142,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   const zoneIndex = new Map(site.zones.map((z) => [z.name, z.index]));
   const width = site.zones.length * ZONE_SPACING + 10;
   const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
+  const fence = useMemo(() => fenceAt(width), [width]);
   // The twelve workers nearest the foreman live fully; refreshed every second, not every frame.
   const [lively, setLively] = useState(() => livelyWorkers(spots, playerPosition));
   useEffect(() => {
@@ -177,9 +199,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         <RigidBody type="fixed" colliders="cuboid" position={[-width / 2 + 1, 0, YARD_Z - 4]}>
           <Piece name="site_office" rotation-y={Math.PI / 2} />
         </RigidBody>
-        {Array.from({ length: Math.ceil((width + 8) / 2) }, (_, i) => (
-          <Piece key={i} name="fence" position={[-(width + 8) / 2 + 1 + i * 2, 0, 6]} outline={0.02} />
-        ))}
+        <PieceRow name="fence" xs={fence} z={6} outline={0.02} />
         {/* Keyed by colour too: a new jacket means a new skeleton, which the animations must bind to. */}
         {spots.map((s) => (
           <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} lively={lively.has(s.login)} reduceMotion={reduceMotion} />
