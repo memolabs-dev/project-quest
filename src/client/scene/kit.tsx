@@ -5,6 +5,7 @@ import type { ThreeElements } from "@react-three/fiber";
 import { useMemo } from "react";
 import * as THREE from "three";
 import { tinted } from "./tint.ts";
+import { toonOf } from "./toon.ts";
 
 const KIT_URL = "/models/site-kit.glb";
 export type KitPiece =
@@ -30,9 +31,9 @@ export function Piece({ name, recolor, crateColor, outline = 0.045, ...props }: 
     root.traverse((o) => {
       if ((o as THREE.Mesh).isMesh) {
         const m = o as THREE.Mesh;
-        let material = m.material as THREE.MeshStandardMaterial;
-        const color = colors[material.name];
-        if (color) material = tinted(material, color);
+        const base = m.material as THREE.MeshStandardMaterial;
+        const color = colors[base.name];
+        const material = toonOf(color ? tinted(base, color) : base);
         list.push({ geometry: m.geometry, material, matrix: m.matrixWorld.clone() });
       }
     });

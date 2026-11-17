@@ -10,6 +10,7 @@ import * as THREE from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { playerPosition } from "../moments/player.ts";
 import { headTurn } from "./head.ts";
+import { toonOf } from "./toon.ts";
 import { type ClipPlan, greeting, headYaw, nextClip } from "./people.ts";
 import { badgeInitial, idleOffset, jacketColor, type WorkerSpot } from "./show.ts";
 
@@ -51,9 +52,10 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
       m.castShadow = true;
       const mat = m.material as THREE.MeshStandardMaterial;
       if (mat.name === "jacket") {
-        m.material = mat.clone();
-        (m.material as THREE.MeshStandardMaterial).color = new THREE.Color(color);
-      }
+        const jacket = mat.clone();
+        jacket.color = new THREE.Color(color);
+        m.material = toonOf(jacket);
+      } else m.material = toonOf(mat);
     });
     const box = new THREE.Box3().setFromObject(body);
     const h = box.max.y - box.min.y;

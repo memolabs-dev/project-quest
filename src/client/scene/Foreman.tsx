@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
+import { toonOf } from "./toon.ts";
 import { useQuest } from "../store.ts";
 import { lastInput } from "../moments/player.ts";
 import { restState } from "./people.ts";
@@ -37,7 +38,13 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
   const scale = useMemo(() => {
     const box = new THREE.Box3().setFromObject(scene);
     const h = box.max.y - box.min.y;
-    scene.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      m.castShadow = true;
+      m.receiveShadow = true;
+      m.material = toonOf(m.material as THREE.Material);
+    });
     return h > 0 ? HEIGHT / h : 1;
   }, [scene]);
 
