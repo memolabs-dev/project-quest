@@ -26,6 +26,11 @@ const board = (items: BoardItem[]): BoardSnapshot => ({
 });
 
 describe("buildSite", () => {
+  it("marks a pallet for newcomers from the configured good first labels", () => {
+    const site = buildSite(board([item({ labels: ["good first issue"] }), item({ number: 2, labels: ["bug"] })]), config);
+    expect(site.pallets.map((p) => p.goodFirst)).toEqual([true, false]);
+  });
+
   it("groups pallets by zone in config order", () => {
     const site = buildSite(board([item({ status: "Ready" }), item({ status: "Backlog" })]), config);
     expect(site.zones.map((z) => z.name)).toEqual(config.zones);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
-import { laterView, mentorAction, newStamps, siteKindFromUrl } from "./levels.ts";
+import { laterView, mentorAction, newStamps, noGoodFirst, siteKindFromUrl } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
 const view = (stamped: number, exists = false): LevelsView => ({
@@ -11,6 +11,7 @@ const view = (stamped: number, exists = false): LevelsView => ({
   rank: stamped === ids.length ? "apprentice" : null,
   unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3, trowel: stamped > 6, firstBuilding: stamped > 10, van: stamped > 10, realProjects: stamped > 14 },
   practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
+  real: null,
 });
 
 describe("mentorAction", () => {
@@ -59,6 +60,16 @@ describe("mentorAction", () => {
     const at15 = view(14, true);
     expect(mentorAction({ ...at15, practice: { ...at15.practice, pull: 4 } }, "practice")).toBe("merge");
     expect(mentorAction(at15, "practice")).toBe("commands");
+  });
+  it("sends the player to the real site, then asks them to pick a good first issue", () => {
+    const at16 = view(15, true);
+    expect(mentorAction(at16, "practice")).toBe("to-main");
+    expect(mentorAction(at16, "main")).toBeNull();
+  });
+  it("says when the real project has no good first issue", () => {
+    expect(noGoodFirst({ ...view(15, true), real: { issues: 0 } })).toBe(true);
+    expect(noGoodFirst({ ...view(15, true), real: { issues: 2 } })).toBe(false);
+    expect(noGoodFirst(view(14, true))).toBe(false);
   });
   it("has nothing to ask once every level is done", () => {
     expect(mentorAction(view(ids.length, true), "practice")).toBeNull();

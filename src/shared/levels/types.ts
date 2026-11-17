@@ -87,6 +87,6 @@ export interface Check { done: boolean; proof: string | null }
 export interface Level {
   id: string;
   rank: Rank;
-  where: "tutorial" | "practice";
+  where: "tutorial" | "practice" | "real";
   check(o: Observed): Check;
 }

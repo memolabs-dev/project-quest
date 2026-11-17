@@ -30,13 +30,16 @@ interface QuestState {
   /** The practice gesture dialog open, if any. */
   practiceDialog: PracticeDialog | null;
   openPractice(d: PracticeDialog | null): void;
+  /** The real project's issue the player is asking for (level 16). */
+  askIssue: number | null;
+  ask(issue: number): void;
   setSite(site: Site): void;
   setNear(n: number | null): void;
   open(n: number | null): void;
   setPending(p: PreparedMove | null): void;
 }
 
-export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor";
+export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor" | "ask";
 
 const sent = new Set<TutorialEvent>();
 const EMPTY_PLOT: Site = { zones: [], buildings: [], pallets: [], workers: [] };
@@ -55,6 +58,8 @@ export const useQuest = create<QuestState>((set, get) => ({
   levelsBefore: null,
   practiceDialog: null,
   openPractice: (practiceDialog) => set({ practiceDialog }),
+  askIssue: null,
+  ask: (askIssue) => set({ askIssue, practiceDialog: "ask", openCard: null }),
   async refreshLevels(check = false) {
     try {
       const v = await (check ? api.checkLevels() : api.levels());

@@ -37,6 +37,8 @@ export interface Pallet {
   closed: boolean;
   building: number | null;
   isBug: boolean;
+  /** Marked for newcomers (config.labels.goodFirst). */
+  goodFirst: boolean;
   trade: string | null;
   size: string | null;
 }
@@ -67,7 +69,8 @@ export function buildSite(board: BoardSnapshot, config: QuestConfig): Site {
     const trade = i.labels.map((l) => config.labels.trades[l]).find(Boolean) ?? null;
     return {
       number: i.number, itemId: i.itemId, title: i.title, url: i.url, zone, closed: i.state === "CLOSED", building: epicOf(i)?.number ?? null,
-      isBug: i.labels.some((l) => config.labels.bug.includes(l)), trade, size: i.size,
+      isBug: i.labels.some((l) => config.labels.bug.includes(l)), goodFirst: i.labels.some((l) => config.labels.goodFirst.includes(l)),
+      trade, size: i.size,
     };
   });
 

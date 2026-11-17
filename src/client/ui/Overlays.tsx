@@ -17,6 +17,8 @@ function PalletCard({ number }: { number: number }) {
   const setPending = useQuest((s) => s.setPending);
   const sendEvent = useQuest((s) => s.sendEvent);
   const reading = useQuest((s) => s.siteKind === "demo" && s.levels?.current === "a2-read-issue");
+  const asking = useQuest((s) => s.siteKind === "main" && s.levels?.current === "a16-ask-good-first");
+  const ask = useQuest((s) => s.ask);
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { closeRef.current?.focus(); sendEvent("card-opened"); }, [sendEvent]);
@@ -63,6 +65,9 @@ function PalletCard({ number }: { number: number }) {
       )}
       {error && <p className="error" role="alert">{error}</p>}
       {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
+      {asking && pallet.goodFirst && !pallet.closed && (
+        <button type="button" className="got-it" onClick={() => ask(pallet.number)}>{t("practice.ask.open")}</button>
+      )}
       <div className="card-foot">
         <a href={pallet.url} target="_blank" rel="noreferrer">{t("card.openGitHub")}</a>
         <button ref={closeRef} type="button" onClick={() => open(null)}>{t("card.close")}</button>

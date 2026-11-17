@@ -71,7 +71,7 @@ for (const width of [1280, 375]) {
     await page.getByRole("button", { name: "Skills" }).click();
     const book = page.getByRole("region", { name: "Skills" });
     await expect(book.locator("li.earned")).toHaveCount(3);
-    await expect(book.locator("li.outline")).toHaveCount(12);
+    await expect(book.locator("li.outline")).toHaveCount(13);
     await page.screenshot({ path: `e2e/screenshots/levels-skillbook-${width}.png` });
   });
 }
@@ -100,4 +100,27 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
   await expect(dialog).toContainText(/still empty: the game lays its first stone/);
   await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
   await page.screenshot({ path: "e2e/screenshots/levels-edit.png" });
+});
+
+test("at the last level, a good first issue's card offers to ask for it, and the demo sends nothing", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".sign-label").first()).toBeVisible();
+  await page.evaluate(async () => {
+    const { useQuest } = await import("/src/client/store.ts");
+    useQuest.getState().setLevels({
+      login: "you", canWrite: false, current: "a16-ask-good-first", rank: "team-leader",
+      stamps: Array.from({ length: 15 }, (_, i) => ({ levelId: `x${i}`, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
+      unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: true, van: true, realProjects: true },
+      practice: { name: "my-first-site", exists: true, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
+      real: { issues: 1 },
+    });
+  });
+  await openPallet(page, /Lay the square's paving/);
+  await page.getByRole("dialog", { name: /Lay the square's paving/ }).getByRole("button", { name: "Ask for it" }).click();
+  const dialog = page.getByRole("dialog", { name: /Ask for this issue/ });
+  await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
+  await expect(dialog).toContainText("addComment");
+  await expect(dialog).toContainText(/I'd like to work on this one/);
+  await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
+  await page.screenshot({ path: "e2e/screenshots/levels-ask.png" });
 });

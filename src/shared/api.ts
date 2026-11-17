@@ -59,6 +59,8 @@ export interface LevelsView {
     /** Main moved after the work branch's first commit from the machine (the mayor's change landed). */
     mainMoved: boolean;
   };
+  /** The real project's good first issues, once read (after the Team leader rank). */
+  real: { issues: number } | null;
 }
 
 export type PracticeApplyResponse =

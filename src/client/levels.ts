@@ -5,7 +5,7 @@ import { LEVELS } from "../shared/levels/index.ts";
 /** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site. */
 export type SiteKind = "main" | "demo" | "practice";
 export type MentorAction =
-  | "to-tutorial" | "to-practice" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge" | "mayor" | "commands";
+  | "to-tutorial" | "to-practice" | "to-main" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge" | "mayor" | "commands";
 
 export function siteKindFromUrl(search: string): SiteKind {
   const q = new URLSearchParams(search);
@@ -23,6 +23,8 @@ export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | n
   const level = LEVELS.find((l) => l.id === view.current);
   if (!level) return null;
   if (level.where === "tutorial") return kind === "demo" ? null : "to-tutorial";
+  // The real project is the board the game is set up on: there, the player opens a pallet marked for newcomers.
+  if (level.where === "real") return kind === "main" ? null : "to-main";
   if (kind !== "practice") return "to-practice";
   if (!view.practice.exists) return "found";
   const p = view.practice;
@@ -48,3 +50,6 @@ export function newStamps(before: LevelsView | null, after: LevelsView): string[
 export function laterView(shown: LevelsView | null, next: LevelsView): LevelsView {
   return shown && next.stamps.length < shown.stamps.length ? shown : next;
 }
+
+/** At the last level, the real project has nothing marked for newcomers: the mentor says so instead of a dead end. */
+export const noGoodFirst = (view: LevelsView) => view.current === "a16-ask-good-first" && view.real?.issues === 0;

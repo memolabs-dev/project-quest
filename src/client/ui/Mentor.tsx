@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commandsFor, safeBranch } from "../commands.ts";
-import { mentorAction, newStamps } from "../levels.ts";
+import { mentorAction, newStamps, noGoodFirst } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
@@ -107,6 +107,7 @@ export function Mentor() {
           {levels.stamps.length === 0 && <p>{t("mentor.hello")}</p>}
           <p>{t(`levels.${current}.lesson`)}</p>
           <p className="mentor-goal">{t(`levels.${current}.goal`)}</p>
+          {noGoodFirst(levels) && <p className="mentor-notyet">{t("mentor.noGoodFirst")}</p>}
           {current === "a10-answer-review" && (
             <p className="mentor-inspector"><b>{t("inspector.name")}</b><br />{t("inspector.remark")}</p>
           )}
@@ -117,7 +118,8 @@ export function Mentor() {
       <div className="mentor-actions">
         {action === "to-tutorial" && <a className="primary" href="?demo=1">{t("mentor.toTutorial")}</a>}
         {action === "to-practice" && <a className="primary" href="?site=practice">{t("mentor.toPractice")}</a>}
-        {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "move" && action !== "commands" && (
+        {action === "to-main" && <a className="primary" href="./">{t("mentor.toMain")}</a>}
+        {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "to-main" && action !== "move" && action !== "commands" && (
           <button type="button" className="primary" onClick={() => openPractice(action)}>{t(`practice.${action}.open`)}</button>
         )}
         {current !== null && (

@@ -7,7 +7,7 @@ const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 export const REAL_PROJECT: Level[] = [{
   id: "a16-ask-good-first",
   rank: "real-project",
-  where: "practice",
+  where: "real",
   check: (o) => {
     for (const issue of o.real?.issues ?? []) {
       const asked = issue.comments.find((c) => same(c.author, o.viewer));

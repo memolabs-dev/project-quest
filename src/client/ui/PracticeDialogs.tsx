@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { PreparedPractice } from "../../shared/api.ts";
+import type { PreparedAsk } from "../../shared/gestures/real.ts";
 import { ApiFailure, api } from "../api.ts";
 import { useQuest } from "../store.ts";
 
@@ -25,8 +26,9 @@ function Dialog({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** What a gesture will do, in one plain sentence, above the exact request. */
-function summarize(p: PreparedPractice, t: TFunction): string {
+function summarize(p: PreparedPractice | PreparedAsk, t: TFunction): string {
   switch (p.kind) {
+    case "ask": return t("practice.summary.ask", { number: p.issueNumber, repo: p.repo, comment: p.comment });
     case "found":
       return t(p.reuse ? "practice.summary.foundReuse" : "practice.summary.found", {
         owner: p.owner, name: p.name, visibility: t(`practice.summary.${p.visibility === "PUBLIC" ? "public" : "private"}`),
@@ -43,7 +45,7 @@ function summarize(p: PreparedPractice, t: TFunction): string {
 }
 
 /** The second step, shared by the gestures: what leaves for GitHub, then Send or Back. */
-function Preview({ prepared, note, onBack }: { prepared: PreparedPractice; note?: string; onBack(): void }) {
+function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | PreparedAsk; note?: string; onBack(): void }) {
   const { t } = useTranslation();
   const canWrite = useQuest((s) => s.levels?.canWrite ?? false);
   const close = useQuest((s) => s.openPractice);
@@ -56,7 +58,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice; note?
     setState("sending");
     setError(null);
     try {
-      const r = await api.applyPractice(prepared);
+      const r = prepared.kind === "ask" ? await api.applyAsk(prepared) : await api.applyPractice(prepared);
       if (r.ok) {
         setLevels(r.levels);
         close(null);
@@ -94,7 +96,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice; note?
 }
 
 /** Asks, then shows the prepared gesture; `prepare` throws an ApiFailure the dialog explains. */
-function useTwoSteps<P extends PreparedPractice>() {
+function useTwoSteps<P extends PreparedPractice | PreparedAsk>() {
   const { t } = useTranslation();
   const [prepared, setPrepared] = useState<P | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -292,7 +294,33 @@ function MayorDialog() {
   );
 }
 
-const DIALOGS = { mayor: MayorDialog, found: FoundDialog, write: WriteDialog, take: TakeDialog, edit: EditDialog, pull: PullDialog, merge: MergeDialog };
+/** Level 16: one comment on the real project's issue, in the player's words. Nobody is assigned. */
+function AskDialog() {
+  const { t } = useTranslation();
+  const close = useQuest((s) => s.openPractice);
+  const issue = useQuest((s) => s.askIssue);
+  const title = useQuest((s) => s.site?.pallets.find((p) => p.number === s.askIssue)?.title ?? "");
+  const [comment, setComment] = useState(t("practice.ask.comment"));
+  const step = useTwoSteps<Awaited<ReturnType<typeof api.prepareAsk>>>();
+  return (
+    <Dialog title={t("practice.ask.title")}>
+      {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
+        <>
+          <p className="move">#{issue} {title}</p>
+          <p>{t("practice.ask.body")}</p>
+          <label className="field">{t("practice.ask.commentLabel")}<textarea rows={3} value={comment} onChange={(e) => setComment(e.target.value)} /></label>
+          {step.error && <p className="error" role="alert">{step.error}</p>}
+          <div className="actions">
+            <button type="button" className="primary" disabled={issue === null || !comment.trim()} onClick={() => void step.run(() => api.prepareAsk(issue!, comment))}>{t("practice.prepare")}</button>
+            <button type="button" onClick={() => close(null)}>{t("confirm.cancel")}</button>
+          </div>
+        </>
+      )}
+    </Dialog>
+  );
+}
+
+const DIALOGS = { ask: AskDialog, mayor: MayorDialog, found: FoundDialog, write: WriteDialog, take: TakeDialog, edit: EditDialog, pull: PullDialog, merge: MergeDialog };
 
 export function PracticeDialogs() {
   const d = useQuest((s) => s.practiceDialog);

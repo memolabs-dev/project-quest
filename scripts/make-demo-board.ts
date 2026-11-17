@@ -31,7 +31,7 @@ const plan: [BoardItem, string, string, Partial<BoardItem>?][] = [
   [town, "Paint the facade", "In progress", { labels: ["front"], assignees: [worker] }],
   [town, "Hang the clock", "Ready", { labels: ["design"] }],
   [town, "Termites in the attic", "In review", { labels: ["bug", "back"], assignees: [sam] }],
-  [town, "Lay the square's paving", "Backlog", { size: "M" }],
+  [town, "Lay the square's paving", "Backlog", { size: "M", labels: ["good first issue"] }],
   [library, "Measure the plot", "Done", { labels: ["data"], state: "CLOSED" }],
   [library, "Draw the reading room", "In review", { labels: ["design"], assignees: [jo] }],
   [library, "Build the shelves", "Ready", { labels: ["back"], size: "M" }],

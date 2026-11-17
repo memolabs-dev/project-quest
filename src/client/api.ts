@@ -5,6 +5,7 @@ import type {
 import type {
   PreparedEdit, PreparedFound, PreparedIssue, PreparedMayor, PreparedMerge, PreparedPull, PreparedTake,
 } from "../shared/gestures/practice.ts";
+import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import { siteKindFromUrl } from "./levels.ts";
 
@@ -50,6 +51,8 @@ export const api = {
   preparePull: (issueNumber: number, title: string, why: string, branch?: string) =>
     call<PreparedPull>("/api/practice/pull/prepare", { issueNumber, title, why, branch }),
   prepareMayor: () => call<PreparedMayor>("/api/practice/mayor/prepare", {}),
+  prepareAsk: (issueNumber: number, comment: string) => call<PreparedAsk>("/api/real/ask/prepare", { issueNumber, comment }),
+  applyAsk: (p: PreparedAsk) => call<PracticeApplyResponse>("/api/real/ask/apply", p),
   prepareMerge: (pullNumber: number) => call<PreparedMerge>("/api/practice/merge/prepare", { pullNumber }),
   applyPractice: (p: PreparedPractice) => call<PracticeApplyResponse>(`/api/practice/${p.kind}/apply`, p),
 };

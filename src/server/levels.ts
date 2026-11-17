@@ -3,7 +3,7 @@
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 import { currentLevel, rankReached, unlocks } from "../shared/levels/progress.ts";
-import type { Observed, PracticeSnapshot } from "../shared/levels/types.ts";
+import type { Observed, PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { Deps } from "./deps.ts";
 
 export const practiceNameOf = async (deps: Deps, login: string) => (await deps.progress.practiceRepo(login)) ?? deps.practiceName;
@@ -30,10 +30,10 @@ export async function checkLevels(deps: Deps, login: string, seen?: Observed): P
     await deps.progress.stamp(login, level.id, c.proof);
     stamped.add(level.id);
   }
-  return view(deps, login, o.practice);
+  return view(deps, login, o.practice, o.real ?? null);
 }
 
-async function view(deps: Deps, login: string, practice: PracticeSnapshot | null): Promise<LevelsView> {
+async function view(deps: Deps, login: string, practice: PracticeSnapshot | null, real: RealSnapshot | null): Promise<LevelsView> {
   const stamps = await deps.progress.stamps(login);
   const done = new Set(stamps.map((s) => s.levelId));
   return {
@@ -44,6 +44,7 @@ async function view(deps: Deps, login: string, practice: PracticeSnapshot | null
     rank: rankReached(LEVELS, done),
     unlocks: unlocks(done),
     practice: { name: await practiceNameOf(deps, login), exists: practice !== null, ...forGestures(practice, login) },
+    real: real ? { issues: real.issues.length } : null,
   };
 }
 
