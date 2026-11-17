@@ -9,17 +9,21 @@ export const PRACTICE_QUERY = /* GraphQL */ `
   query Practice($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
       id nameWithOwner url
-      defaultBranchRef { name target { oid } }
+      defaultBranchRef { name target { oid ... on Commit { committedDate } } }
+      plan: object(expression: "HEAD:PLAN.md") { ... on Blob { text } }
       object(expression: "HEAD:README.md") { ... on Blob { text } }
       refs(refPrefix: "refs/heads/", first: 20) {
-        nodes { name target { ... on Commit { oid url author { user { login } } file(path: "README.md") { object { ... on Blob { text } } } } } }
+        nodes { name target { ... on Commit {
+          oid url committedViaWeb author { user { login } } file(path: "README.md") { object { ... on Blob { text } } }
+          history(first: 30) { nodes { oid committedDate committedViaWeb } }
+        } } }
       }
       pullRequests(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
           id number url state createdAt headRefName headRefOid
           author { login }
           closingIssuesReferences(first: 5) { nodes { number repository { nameWithOwner } } }
-          commits(last: 20) { nodes { commit { oid url committedDate } } }
+          commits(last: 20) { nodes { commit { oid url committedDate committedViaWeb } } }
         }
       }
       projectsV2(first: 20) {
@@ -47,16 +51,19 @@ export const PRACTICE_QUERY = /* GraphQL */ `
 interface PracticeResponse {
   repository: {
     id: string; nameWithOwner: string; url: string;
-    defaultBranchRef: { name: string; target: { oid: string } } | null;
+    defaultBranchRef: { name: string; target: { oid: string; committedDate: string } } | null;
+    plan: { text?: string } | null;
     object: { text?: string } | null;
     refs: { nodes: { name: string; target: {
-      oid?: string; url?: string; author?: { user: { login: string } | null }; file?: { object: { text?: string } | null } | null;
+      oid?: string; url?: string; committedViaWeb?: boolean; author?: { user: { login: string } | null };
+      file?: { object: { text?: string } | null } | null;
+      history?: { nodes: { oid: string; committedDate: string; committedViaWeb: boolean }[] };
     } }[] };
     pullRequests: { nodes: {
       id: string; number: number; url: string; state: "OPEN" | "CLOSED" | "MERGED"; createdAt: string;
       headRefName: string; headRefOid: string; author: { login: string } | null;
       closingIssuesReferences: { nodes: { number: number; repository: { nameWithOwner: string } }[] };
-      commits: { nodes: { commit: { oid: string; url: string; committedDate: string } }[] };
+      commits: { nodes: { commit: { oid: string; url: string; committedDate: string; committedViaWeb: boolean } }[] };
     }[] };
     projectsV2: { nodes: {
       id: string; number: number; url: string; title: string; owner: { login?: string } | null;
@@ -102,20 +109,25 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
       comments: i.comments.nodes.map((c) => ({ author: login(c.author), url: c.url })),
       status: board ? i.projectItems.nodes.find((n) => n.project.id === board.id)?.status?.name ?? null : null,
     })),
-    defaultBranch: r.defaultBranchRef ? { name: r.defaultBranchRef.name, oid: r.defaultBranchRef.target.oid } : null,
+    defaultBranch: r.defaultBranchRef
+      ? { name: r.defaultBranchRef.name, oid: r.defaultBranchRef.target.oid, committedDate: r.defaultBranchRef.target.committedDate }
+      : null,
+    plan: r.plan?.text ?? null,
     readme: r.object?.text ?? null,
     branches: r.refs.nodes
       .filter((b) => b.name !== r.defaultBranchRef?.name && b.target.oid)
       .map((b) => ({
         name: b.name, oid: b.target.oid!, author: b.target.author?.user?.login ?? "ghost", url: b.target.url ?? "",
         readme: b.target.file?.object?.text ?? null,
+        viaWeb: b.target.committedViaWeb ?? true,
+        history: (b.target.history?.nodes ?? []).map((h) => ({ oid: h.oid, committedDate: h.committedDate, viaWeb: h.committedViaWeb })),
       })),
     pulls: r.pullRequests.nodes.map((pr) => ({
       id: pr.id, number: pr.number, url: pr.url, author: login(pr.author), state: pr.state, createdAt: pr.createdAt,
       headRefName: pr.headRefName, headRefOid: pr.headRefOid,
       closes: pr.closingIssuesReferences.nodes.filter((n) => here(n.repository)).map((n) => n.number),
       closesElsewhere: pr.closingIssuesReferences.nodes.filter((n) => !here(n.repository)).map((n) => `${n.repository.nameWithOwner}#${n.number}`),
-      commits: pr.commits.nodes.map((n) => n.commit),
+      commits: pr.commits.nodes.map(({ commit: c }) => ({ oid: c.oid, url: c.url, committedDate: c.committedDate, viaWeb: c.committedViaWeb })),
     })),
   };
 }

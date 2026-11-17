@@ -113,7 +113,8 @@
     "defaultBranchRef": {
       "name": "main",
       "target": {
-        "oid": "aaa111"
+        "oid": "aaa111",
+        "committedDate": "2026-11-17T08:00:00Z"
       }
     },
     "object": {
@@ -135,6 +136,21 @@
               "object": {
                 "text": "# README at main\n"
               }
+            },
+            "committedViaWeb": true,
+            "history": {
+              "nodes": [
+                {
+                  "oid": "aaa111",
+                  "committedDate": "2026-11-17T09:00:00Z",
+                  "committedViaWeb": true
+                },
+                {
+                  "oid": "aaa111",
+                  "committedDate": "2026-11-17T08:00:00Z",
+                  "committedViaWeb": true
+                }
+              ]
             }
           }
         },
@@ -152,6 +168,21 @@
               "object": {
                 "text": "# README at practice-1\n"
               }
+            },
+            "committedViaWeb": false,
+            "history": {
+              "nodes": [
+                {
+                  "oid": "bbb222",
+                  "committedDate": "2026-11-17T09:00:00Z",
+                  "committedViaWeb": false
+                },
+                {
+                  "oid": "aaa111",
+                  "committedDate": "2026-11-17T08:00:00Z",
+                  "committedViaWeb": true
+                }
+              ]
             }
           }
         },
@@ -163,7 +194,22 @@
             "author": {
               "user": null
             },
-            "file": null
+            "file": null,
+            "committedViaWeb": true,
+            "history": {
+              "nodes": [
+                {
+                  "oid": "ccc333",
+                  "committedDate": "2026-11-17T09:00:00Z",
+                  "committedViaWeb": true
+                },
+                {
+                  "oid": "aaa111",
+                  "committedDate": "2026-11-17T08:00:00Z",
+                  "committedViaWeb": true
+                }
+              ]
+            }
           }
         }
       ]
@@ -203,20 +249,25 @@
                 "commit": {
                   "oid": "bbb111",
                   "url": "https://github.com/fictif-volunteer/my-first-site/commit/bbb111",
-                  "committedDate": "2026-11-17T09:59:00Z"
+                  "committedDate": "2026-11-17T09:59:00Z",
+                  "committedViaWeb": true
                 }
               },
               {
                 "commit": {
                   "oid": "bbb222",
                   "url": "https://github.com/fictif-volunteer/my-first-site/commit/bbb222",
-                  "committedDate": "2026-11-17T10:05:00Z"
+                  "committedDate": "2026-11-17T10:05:00Z",
+                  "committedViaWeb": false
                 }
               }
             ]
           }
         }
       ]
+    },
+    "plan": {
+      "text": "# Plan\n"
     }
   }
 }

@@ -32,8 +32,12 @@ export interface PracticePull {
   closes: number[];
   /** Issues of other repositories it would close too ("Closes owner/repo#N"): the game never merges it then. */
   closesElsewhere: string[];
-  commits: { oid: string; url: string; committedDate: string }[];
+  /** viaWeb: committed through GitHub (web or API), not pushed from a machine. */
+  commits: { oid: string; url: string; committedDate: string; viaWeb: boolean }[];
 }
+
+/** One commit of a branch's recent history. */
+export interface BranchCommit { oid: string; committedDate: string; viaWeb: boolean }
 
 /** The player's practice repository as read on GitHub. */
 export interface PracticeSnapshot {
@@ -41,11 +45,19 @@ export interface PracticeSnapshot {
   board: { id: string; number: number; url: string; columns: string[] } | null;
   issues: PracticeIssue[];
   /** Null while the repository has no commit at all. */
-  defaultBranch: { name: string; oid: string } | null;
+  defaultBranch: { name: string; oid: string; committedDate: string } | null;
   /** README.md on the default branch. */
   readme: string | null;
   /** Branches other than the default, with their head commit's author. */
-  branches: { name: string; oid: string; author: string; url: string; readme: string | null }[];
+  branches: {
+    name: string; oid: string; author: string; url: string; readme: string | null;
+    /** The head was committed through GitHub (web or API), not pushed from a machine. */
+    viaWeb: boolean;
+    /** Newest first, up to 30. */
+    history: BranchCommit[];
+  }[];
+  /** PLAN.md on the default branch: the mayor's plan. */
+  plan: string | null;
   /** Newest first. */
   pulls: PracticePull[];
 }

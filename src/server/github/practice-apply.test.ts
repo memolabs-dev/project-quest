@@ -13,7 +13,7 @@ const viewer = { login: "fictif-volunteer", id: "U_fictif" };
 const site: PracticeSnapshot = {
   repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "u" },
   board: { id: "PVT_fictif", number: 1, url: "b", columns: ["Todo", "Done"] },
-  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [],
+  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], plan: null,
 };
 
 /** A fake GitHub answering each mutation with new ids, recording what it was sent. */
@@ -90,7 +90,7 @@ describe("editing a file", () => {
 
   it("a moved branch is reported, not overwritten", async () => {
     const { gql } = recording("createCommitOnBranch");
-    const moved: PracticeSnapshot = { ...empty, defaultBranch: { name: "main", oid: "a1" }, branches: [{ name: "practice-1", oid: "b1", author: "fictif-volunteer", url: "c", readme: null }] };
+    const moved: PracticeSnapshot = { ...empty, defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" }, branches: [{ name: "practice-1", oid: "b1", author: "fictif-volunteer", url: "c", readme: null, viaWeb: true, history: [] }] };
     const r = await applyPractice(gql, noRest, prepareEdit(moved, viewer, 1, "text", "fix"));
     expect(r).toEqual({ ok: false, reason: "github", message: "GitHub said no", applied: [] });
   });

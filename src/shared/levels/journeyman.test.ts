@@ -11,12 +11,12 @@ const issue = (o: Partial<PracticeIssue> = {}): PracticeIssue => ({
 const pull = (o: Partial<PracticePull> = {}): PracticePull => ({
   id: "PR_2", number: 2, url: "https://github.com/fictif-volunteer/my-first-site/pull/2", author: VIEWER, state: "OPEN",
   createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "b1", closes: [1], closesElsewhere: [],
-  commits: [{ oid: "b1", url: "c-b1", committedDate: "2026-11-17T09:59:00Z" }], ...o,
+  commits: [{ oid: "b1", url: "c-b1", committedDate: "2026-11-17T09:59:00Z", viaWeb: true }], ...o,
 });
 const snapshot = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R", nameWithOwner: "fictif-volunteer/my-first-site", url: "r" },
   board: { id: "PVT", number: 1, url: "b", columns: ["Todo", "In Progress", "Done"] },
-  issues: [issue()], defaultBranch: { name: "main", oid: "a1" }, readme: "# my-first-site\n", branches: [], pulls: [], ...o,
+  issues: [issue()], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" }, readme: "# my-first-site\n", branches: [], pulls: [], plan: null, ...o,
 });
 const seen = (practice: PracticeSnapshot | null, viewer = VIEWER): Observed => ({ viewer, events: [], practice });
 
@@ -29,15 +29,15 @@ describe("the Journeyman levels", () => {
 
 describe("a8-edit-file", () => {
   it("passes on a branch whose head the viewer wrote, proof the commit", () => {
-    const o = seen(snapshot({ branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c-b1", readme: null }] }));
+    const o = seen(snapshot({ branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c-b1", readme: null, viaWeb: true, history: [] }] }));
     expect(level("a8-edit-file").check(o)).toEqual({ done: true, proof: "c-b1" });
   });
   it("is not done with no branch, or a branch someone else wrote", () => {
     expect(level("a8-edit-file").check(seen(snapshot())).done).toBe(false);
-    expect(level("a8-edit-file").check(seen(snapshot({ branches: [{ name: "practice-1", oid: "b", author: "someone-else", url: "c", readme: null }] }))).done).toBe(false);
+    expect(level("a8-edit-file").check(seen(snapshot({ branches: [{ name: "practice-1", oid: "b", author: "someone-else", url: "c", readme: null, viaWeb: true, history: [] }] }))).done).toBe(false);
   });
   it("a8 needs a commit beyond the default branch, on a practice branch", () => {
-    const at = (name: string, oid: string) => seen(snapshot({ branches: [{ name, oid, author: VIEWER, url: "c", readme: null }] }));
+    const at = (name: string, oid: string) => seen(snapshot({ branches: [{ name, oid, author: VIEWER, url: "c", readme: null, viaWeb: true, history: [] }] }));
     expect(level("a8-edit-file").check(at("practice-1", "a1")).done).toBe(false);
     expect(level("a8-edit-file").check(at("my-old-branch", "b9")).done).toBe(false);
   });
@@ -59,7 +59,7 @@ describe("a9-open-pull", () => {
 describe("a10-answer-review", () => {
   it("a10 needs a commit after the pull request was opened", () => {
     const before = pull();
-    const after = pull({ commits: [...before.commits, { oid: "b2", url: "c-b2", committedDate: "2026-11-17T10:05:00Z" }] });
+    const after = pull({ commits: [...before.commits, { oid: "b2", url: "c-b2", committedDate: "2026-11-17T10:05:00Z", viaWeb: true }] });
     expect(level("a10-answer-review").check(seen(snapshot({ pulls: [before] }))).done).toBe(false);
     expect(level("a10-answer-review").check(seen(snapshot({ pulls: [after] })))).toEqual({ done: true, proof: "c-b2" });
   });

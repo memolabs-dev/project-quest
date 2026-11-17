@@ -7,7 +7,7 @@ const viewer = { login: "fictif-volunteer", id: "U_fictif" };
 const site = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" },
   board: { id: "PVT_fictif", number: 1, url: "https://github.com/users/fictif-volunteer/projects/1", columns: ["Todo", "In Progress", "Done"] },
-  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], ...o,
+  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], plan: null, ...o,
 });
 const issue = (o: Partial<PracticeIssue> = {}): PracticeIssue => ({
   id: "I_fictif_1", number: 1, url: "u1", author: "fictif-volunteer", assignees: [], comments: [], status: "Todo", closed: false, ...o,
@@ -95,7 +95,7 @@ describe("prepareEdit", () => {
     });
   });
   it("branches from the default branch head", () => {
-    const p = prepareEdit(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }), viewer, 1, "text", "msg");
+    const p = prepareEdit(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" } }), viewer, 1, "text", "msg");
     expect(p.foundation).toBe(false);
     expect(p.mutations.map((m) => m.name)).toEqual(["createRef", "createCommitOnBranch"]);
     expect(p.mutations[0].input).toMatchObject({ oid: "a1" });
@@ -103,14 +103,14 @@ describe("prepareEdit", () => {
   });
   it("edits on the branch head the server read", () => {
     const p = prepareEdit(site({
-      issues: [mine], defaultBranch: { name: "main", oid: "a1" },
-      branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c", readme: null }],
+      issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" },
+      branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c", readme: null, viaWeb: true, history: [] }],
     }), viewer, 1, "text", "Say why");
     expect(p.mutations.map((m) => m.name)).toEqual(["createCommitOnBranch"]);
     expect(p.mutations[0].input).toMatchObject({ expectedHeadOid: "b7" });
   });
   it("encodes any text exactly", () => {
-    const p = prepareEdit(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }), viewer, 1, "Façade 🧱 bleue", "msg");
+    const p = prepareEdit(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" } }), viewer, 1, "Façade 🧱 bleue", "msg");
     const additions = (p.mutations[1].input.fileChanges as { additions: { path: string; contents: string }[] }).additions;
     expect(additions[0].path).toBe("README.md");
     expect(decode(additions[0].contents)).toBe("Façade 🧱 bleue");
@@ -126,8 +126,8 @@ const pullOf = (o: Partial<PracticePull> = {}): PracticePull => ({
   headRefName: "practice-1", headRefOid: "b7", closes: [1], closesElsewhere: [], commits: [], ...o,
 });
 const branched = (o: Partial<PracticeSnapshot> = {}) => site({
-  issues: [mine], defaultBranch: { name: "main", oid: "a1" },
-  branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c", readme: null }], ...o,
+  issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" },
+  branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c", readme: null, viaWeb: true, history: [] }], ...o,
 });
 
 describe("preparePull", () => {
@@ -142,7 +142,7 @@ describe("preparePull", () => {
     expect(() => preparePull(branched({ pulls: [pullOf()] }), viewer, 1, "t", "w")).toThrow(GestureError);
   });
   it("needs the branch first", () => {
-    expect(() => preparePull(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }), viewer, 1, "t", "w")).toThrow(GestureError);
+    expect(() => preparePull(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" } }), viewer, 1, "t", "w")).toThrow(GestureError);
   });
 });
 

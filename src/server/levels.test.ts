@@ -23,7 +23,7 @@ const issue = (o: Partial<PracticeIssue> = {}): PracticeIssue => ({
 const site = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" },
   board: { id: "PVT_fictif", number: 1, url: "https://github.com/users/fictif-volunteer/projects/1", columns: ["Todo", "In Progress", "Done"] },
-  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], ...o,
+  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], plan: null, ...o,
 });
 
 const make = (practice: PracticeSnapshot | null, extra: Partial<Deps> & { progress?: ProgressStore } = {}) => {
@@ -191,8 +191,8 @@ describe("practice gestures", () => {
   it("refuses an edit, a pull request or a merge outside the practice repository", async () => {
     const mine = issue({ assignees: [VIEWER] });
     const ready = site({
-      issues: [mine], defaultBranch: { name: "main", oid: "a1" },
-      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c", readme: null }],
+      issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" },
+      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c", readme: null, viaWeb: true, history: [] }],
     });
     const { app, sent } = make(ready);
     const edit = (await (await app.request("/api/practice/edit/prepare", post({ issueNumber: 1, content: "x", message: "m" }))).json()) as Record<string, unknown>;
@@ -207,7 +207,7 @@ describe("practice gestures", () => {
 
   it("sends an edit the server rebuilt", async () => {
     const mine = issue({ assignees: [VIEWER] });
-    const { app, sent } = make(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }));
+    const { app, sent } = make(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" } }));
     const edit = await (await app.request("/api/practice/edit/prepare", post({ issueNumber: 1, content: "# my-first-site\n", message: "Paint" }))).json();
     expect((await app.request("/api/practice/edit/apply", post(edit))).status).toBe(200);
     expect(sent).toHaveLength(1);
@@ -217,7 +217,7 @@ describe("practice gestures", () => {
     const progress = memoryProgress();
     for (const e of ["walked", "card-opened", "card-read", "pallet-moved"] as const) await progress.addEvent(VIEWER, e);
     const mine = issue({ assignees: [VIEWER], status: "In Progress", comments: [{ author: VIEWER, url: "c1" }] });
-    const branched = site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" }, branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "cb1", readme: null }] });
+    const branched = site({ issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" }, branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "cb1", readme: null, viaWeb: true, history: [] }] });
     const pull = { id: "PR_2", number: 2, url: "p2", author: VIEWER, state: "OPEN" as const, createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "b1", commits: [], closesElsewhere: [] };
     let reads = 0;
     // GitHub computes "Closes #1" a moment after the pull request exists.
@@ -235,8 +235,8 @@ describe("practice gestures", () => {
   it("prefills the inspector's fix from the branch's README, not main's", async () => {
     const mine = issue({ assignees: [VIEWER] });
     const branched = site({
-      issues: [mine], defaultBranch: { name: "main", oid: "a1" }, readme: "# main\n",
-      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c", readme: "# my first edit\n" }],
+      issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" }, readme: "# main\n",
+      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c", readme: "# my first edit\n", viaWeb: true, history: [] }],
     });
     const v = await view(await make(branched).app.request("/api/levels", {}));
     expect(v.practice.readme).toBe("# my first edit\n");

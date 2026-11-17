@@ -38,13 +38,13 @@ describe("readPractice", () => {
 describe("branches, README and pull requests", () => {
   it("maps branches, the README and pull requests", async () => {
     const p = await readPractice(gqlReturning(fixture), "fictif-volunteer", "my-first-site");
-    expect(p?.defaultBranch).toEqual({ name: "main", oid: "aaa111" });
+    expect(p?.defaultBranch).toMatchObject({ name: "main", oid: "aaa111" });
     expect(p?.readme).toBe("# my-first-site\n");
-    expect(p?.branches).toEqual([
+    expect(p?.branches).toMatchObject([
       { name: "practice-1", oid: "bbb222", author: "fictif-volunteer", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb222", readme: "# README at practice-1\n" },
       { name: "orphan", oid: "ccc333", author: "ghost", url: "https://github.com/fictif-volunteer/my-first-site/commit/ccc333", readme: null },
     ]);
-    expect(p?.pulls).toEqual([{
+    expect(p?.pulls).toMatchObject([{
       id: "PR_fictif_2", number: 2, url: "https://github.com/fictif-volunteer/my-first-site/pull/2", author: "fictif-volunteer", state: "OPEN",
       createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "bbb222", closes: [1], closesElsewhere: ["fictif-org/real-repo#3"],
       commits: [
@@ -55,9 +55,23 @@ describe("branches, README and pull requests", () => {
   });
   it("reads an empty repository as no default branch, no README, no branches", async () => {
     const data = structuredClone(fixture) as Record<string, Record<string, unknown>>;
-    Object.assign(data.repository, { defaultBranchRef: null, object: null, refs: { nodes: [] }, pullRequests: { nodes: [] } });
+    Object.assign(data.repository, { defaultBranchRef: null, object: null, plan: null, refs: { nodes: [] }, pullRequests: { nodes: [] } });
     const p = await readPractice(gqlReturning(data), "fictif-volunteer", "my-first-site");
-    expect(p).toMatchObject({ defaultBranch: null, readme: null, branches: [], pulls: [] });
+    expect(p).toMatchObject({ defaultBranch: null, readme: null, branches: [], pulls: [], plan: null });
+  });
+});
+
+describe("how each commit was made", () => {
+  it("maps each branch's history and how its commits were made", async () => {
+    const p = await readPractice(gqlReturning(fixture), "fictif-volunteer", "my-first-site");
+    expect(p?.defaultBranch).toEqual({ name: "main", oid: "aaa111", committedDate: "2026-11-17T08:00:00Z" });
+    expect(p?.plan).toBe("# Plan\n");
+    const b = p?.branches.find((x) => x.name === "practice-1");
+    expect(b).toMatchObject({ viaWeb: false, history: [
+      { oid: "bbb222", committedDate: "2026-11-17T09:00:00Z", viaWeb: false },
+      { oid: "aaa111", committedDate: "2026-11-17T08:00:00Z", viaWeb: true },
+    ] });
+    expect(p?.pulls[0].commits.map((c) => c.viaWeb)).toEqual([true, false]);
   });
 });
 
