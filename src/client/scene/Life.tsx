@@ -1,11 +1,14 @@
 // What keeps the site alive without hiding anything: the crane turning, dust under the foreman's boots,
-// termites on open bugs, and the drone's fly-over when the site opens. Reduced motion keeps none of the motion.
+// termites on open bugs, the wind and the birds, and the drone's fly-over when the site opens. Reduced motion keeps
+// none of the motion.
 import { useFrame, useThree } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { Piece } from "./kit.tsx";
+import { FLOCK, flockAt } from "./birds.ts";
 import { dronePose, type CameraPose, type TermiteSpot } from "./show.ts";
+import { windUniforms } from "./wind.ts";
 
 export function TurningCrane({ position, reduceMotion }: { position: [number, number, number]; reduceMotion: boolean }) {
   const ref = useRef<THREE.Group>(null);
@@ -132,4 +135,33 @@ export function Arrival({ leftRef, lookRef, siteWidth, end }: {
     camera.lookAt(lookRef.current.set(pose.target[0], pose.target[1], pose.target[2]));
   });
   return null;
+}
+
+const BIRD_SEED = 3;
+
+/** The weather: the wind's clock for the swaying tapes, and a flock crossing now and then. Neither with reduced motion. */
+export function Weather({ reduceMotion }: { reduceMotion: boolean }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useFrame(({ clock }) => {
+    windUniforms.uWindTime.value = clock.elapsedTime;
+    windUniforms.uWindStrength.value = reduceMotion ? 0 : 1;
+    const m = ref.current;
+    if (!m) return;
+    const birds = reduceMotion ? null : flockAt(clock.elapsedTime, BIRD_SEED);
+    m.count = birds ? birds.length : 0;
+    birds?.forEach((b, i) => {
+      tmp.position.set(b.x, b.y, b.z);
+      tmp.rotation.set(0, 0, b.flap * 0.5);
+      tmp.scale.set(1, 1, 1);
+      tmp.updateMatrix();
+      m.setMatrixAt(i, tmp.matrix);
+    });
+    m.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, FLOCK]} frustumCulled={false} name="birds">
+      <boxGeometry args={[0.6, 0.04, 0.16]} />
+      <meshBasicMaterial color="#3A2A1F" />
+    </instancedMesh>
+  );
 }

@@ -21,7 +21,8 @@ import { Piece } from "./kit.tsx";
 import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "./layout.ts";
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
-import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
+import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane, Weather } from "./Life.tsx";
+import { withWind } from "./wind.ts";
 import { jacketColor, solidPallets, termiteSpots, workerSpots } from "./show.ts";
 import { livelyWorkers, sameMembers } from "./people.ts";
 import { playerPosition } from "../moments/player.ts";
@@ -86,7 +87,7 @@ function Yard({ name, index, x, z, count }: { name: string; index: number; x: nu
       {[[0, 0.5, w, 0], [0, -YARD_DEPTH + 0.5, w, 0], [-w / 2, cz, YARD_DEPTH, Math.PI / 2], [w / 2, cz, YARD_DEPTH, Math.PI / 2]].map(([tx, tz, len, rot], i) => (
         <mesh key={`t${i}`} position={[tx, 0.8, tz]} rotation-y={rot}>
           <boxGeometry args={[len, 0.07, 0.012]} />
-          <meshStandardMaterial color={i % 2 ? "#F7F2E8" : "#E8483B"} />
+          <meshStandardMaterial ref={(m) => { if (m) withWind(m); }} color={i % 2 ? "#F7F2E8" : "#E8483B"} />
         </mesh>
       ))}
       <Piece name="zone_sign" position={[0, 0, 0.9]} />
@@ -145,6 +146,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
       <color attach="background" args={["#F3D9B5"]} />
       <fog attach="fog" args={["#F3D9B5", 45, 110]} />
       <SiteLight />
+      <Weather reduceMotion={reduceMotion} />
       <Physics>
         <Ground width={width} />
         {layout.zones.map((z) => (
