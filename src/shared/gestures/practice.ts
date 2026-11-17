@@ -8,7 +8,9 @@ export type PracticeMutationName =
   | "createRepository" | "createProjectV2" | "createIssue" | "addProjectV2ItemById" | "addAssigneesToAssignable" | "addComment"
   /** REST: the only way to lay the first commit of an empty repository. */
   | "createOrUpdateFileContents"
-  | "createRef" | "createCommitOnBranch" | "createPullRequest" | "mergePullRequest";
+  | "createRef" | "createCommitOnBranch" | "createPullRequest" | "mergePullRequest"
+  /** The lead's team site. */
+  | "updateProjectV2Field" | "createProjectV2Field" | "addLabelsToLabelable" | "closeIssue" | "updateIssue" | "updateProjectV2ItemFieldValue";
 export interface PracticeMutation { name: PracticeMutationName; input: Record<string, unknown> }
 
 export interface PreparedFound {

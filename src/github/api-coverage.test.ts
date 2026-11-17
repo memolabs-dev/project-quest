@@ -41,6 +41,12 @@ describe("GitHub API coverage", () => {
     expect(merge.kind === "gesture" && merge.gesture).toMatch(/your own pull request on your practice site/);
   });
 
+  it("makes setting up a team board a gesture (lead's path)", () => {
+    for (const id of ["graphql.mutation.createProjectV2Field", "graphql.mutation.updateProjectV2Field"]) {
+      expect(OPERATIONS[id]?.kind, id).toBe("gesture");
+    }
+  });
+
   it("gives every decision a reason or a gesture", () => {
     const decisions: Decision[] = [...Object.values(OPERATIONS), ...Object.values(CATEGORY_DECISIONS)];
     for (const d of decisions) {

@@ -86,7 +86,8 @@ export const OPERATIONS: Record<string, Decision> = {
   ...all(m(["deleteProjectV2StatusUpdate"]), out("Deletes a published bulletin; the game corrects it instead")),
   ...all(m(["createRepository", "createProjectV2"]), gesture("Found your practice site: your own repository and its board, in your account (levels, Apprentice rank)")),
   ...all(m(["copyProjectV2", "deleteProjectV2", "updateProjectV2", "markProjectV2AsTemplate", "unmarkProjectV2AsTemplate"]), out(SITE_SETUP)),
-  ...all(m(["createProjectV2Field", "createProjectV2IssueField", "updateProjectV2Field", "deleteProjectV2Field"]), out(SITE_SETUP)),
+  ...all(m(["createProjectV2Field", "updateProjectV2Field"]), gesture("Set up your team board: its five zones, the Size field, later the sprint (lead's path, Site foreman)")),
+  ...all(m(["createProjectV2IssueField", "deleteProjectV2Field"]), out(SITE_SETUP)),
   ...all(m(["createProjectV2View", "updateProjectV2View", "deleteProjectV2View", "deleteProjectV2Workflow"]), out(SITE_SETUP)),
   ...all(m(["linkProjectV2ToRepository", "unlinkProjectV2FromRepository", "linkProjectV2ToTeam", "unlinkProjectV2FromTeam", "updateProjectV2Collaborators"]), out(SITE_SETUP)),
 

@@ -95,3 +95,20 @@ describe("editing a file", () => {
     expect(r).toEqual({ ok: false, reason: "github", message: "GitHub said no", applied: [] });
   });
 });
+
+describe("founding a team site", () => {
+  it("fills the new board's and its status field's ids", async () => {
+    const calls: { query: string; input: Record<string, unknown> }[] = [];
+    const gql = (async (query: string, variables: Record<string, unknown>) => {
+      calls.push({ query, input: variables.input as Record<string, unknown> });
+      if (query.includes("createRepository")) return { createRepository: { repository: { id: "R_team" } } };
+      if (query.includes("createProjectV2(")) return { createProjectV2: { projectV2: { id: "PVT_new", field: { id: "F_status_new" } } } };
+      return {};
+    }) as Gql;
+    const { prepareFoundTeam } = await import("../../shared/gestures/team.ts");
+    expect(await applyPractice(gql, noRest, prepareFoundTeam(viewer, null, "my-first-team", "PRIVATE"))).toEqual({ ok: true });
+    expect(calls[1].input).toMatchObject({ repositoryId: "R_team" });
+    expect(calls[2].input).toMatchObject({ fieldId: "F_status_new" });
+    expect(calls[3].input).toMatchObject({ projectId: "PVT_new" });
+  });
+});
