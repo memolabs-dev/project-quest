@@ -227,6 +227,8 @@ function PullDialog() {
   const { t } = useTranslation();
   const close = useQuest((s) => s.openPractice);
   const issue = useQuest((s) => s.levels?.practice.issue ?? null);
+  // The Team leader opens the pull request from the branch pushed from their machine.
+  const branch = useQuest((s) => (s.levels?.current === "a14-fix-from-machine" ? s.levels.practice.workBranch ?? undefined : undefined));
   const [title, setTitle] = useState("");
   const [why, setWhy] = useState("");
   const step = useTwoSteps<Awaited<ReturnType<typeof api.preparePull>>>();
@@ -240,7 +242,7 @@ function PullDialog() {
             : <p className="error" role="alert">{t("practice.blockedIssue")}</p>}
           {step.error && <p className="error" role="alert">{step.error}</p>}
           <div className="actions">
-            <button type="button" className="primary" disabled={issue === null || !title.trim()} onClick={() => void step.run(() => api.preparePull(issue!, title, why))}>{t("practice.prepare")}</button>
+            <button type="button" className="primary" disabled={issue === null || !title.trim()} onClick={() => void step.run(() => api.preparePull(issue!, title, why, branch))}>{t("practice.prepare")}</button>
             <button type="button" onClick={() => close(null)}>{t("confirm.cancel")}</button>
           </div>
         </>
@@ -270,7 +272,27 @@ function MergeDialog() {
   );
 }
 
-const DIALOGS = { found: FoundDialog, write: WriteDialog, take: TakeDialog, edit: EditDialog, pull: PullDialog, merge: MergeDialog };
+function MayorDialog() {
+  const { t } = useTranslation();
+  const close = useQuest((s) => s.openPractice);
+  const step = useTwoSteps<Awaited<ReturnType<typeof api.prepareMayor>>>();
+  return (
+    <Dialog title={t("practice.mayor.title")}>
+      {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
+        <>
+          <p>{t("practice.mayor.body")}</p>
+          {step.error && <p className="error" role="alert">{step.error}</p>}
+          <div className="actions">
+            <button type="button" className="primary" onClick={() => void step.run(() => api.prepareMayor())}>{t("practice.prepare")}</button>
+            <button type="button" onClick={() => close(null)}>{t("confirm.cancel")}</button>
+          </div>
+        </>
+      )}
+    </Dialog>
+  );
+}
+
+const DIALOGS = { mayor: MayorDialog, found: FoundDialog, write: WriteDialog, take: TakeDialog, edit: EditDialog, pull: PullDialog, merge: MergeDialog };
 
 export function PracticeDialogs() {
   const d = useQuest((s) => s.practiceDialog);

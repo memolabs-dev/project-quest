@@ -10,7 +10,7 @@ const view = (stamped: number, exists = false): LevelsView => ({
   current: ids[stamped] ?? null,
   rank: stamped === ids.length ? "apprentice" : null,
   unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3, trowel: stamped > 6, firstBuilding: stamped > 10, van: stamped > 10, realProjects: stamped > 14 },
-  practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null },
+  practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
 });
 
 describe("mentorAction", () => {
@@ -35,6 +35,25 @@ describe("mentorAction", () => {
     expect(mentorAction(view(8, true), "practice")).toBe("pull");
     expect(mentorAction(view(9, true), "practice")).toBe("edit");
     expect(mentorAction(view(10, true), "practice")).toBe("merge");
+  });
+  it("asks for an issue, then the commands", () => {
+    const at12 = view(11, true);
+    expect(mentorAction({ ...at12, practice: { ...at12.practice, issue: null } }, "practice")).toBe("write");
+    expect(mentorAction({ ...at12, practice: { ...at12.practice, issue: null, unassigned: 3 } }, "practice")).toBe("take");
+    expect(mentorAction(at12, "practice")).toBe("commands");
+  });
+  it("asks the mayor first, then the commands", () => {
+    const at13 = view(12, true);
+    expect(mentorAction(at13, "practice")).toBe("mayor");
+    expect(mentorAction({ ...at13, practice: { ...at13.practice, mainMoved: true } }, "practice")).toBe("commands");
+  });
+  it("opens the pull request, then the commands; merges, then the commands", () => {
+    const at14 = view(13, true);
+    expect(mentorAction(at14, "practice")).toBe("pull");
+    expect(mentorAction({ ...at14, practice: { ...at14.practice, pull: 4 } }, "practice")).toBe("commands");
+    const at15 = view(14, true);
+    expect(mentorAction({ ...at15, practice: { ...at15.practice, pull: 4 } }, "practice")).toBe("merge");
+    expect(mentorAction(at15, "practice")).toBe("commands");
   });
   it("has nothing to ask once every level is done", () => {
     expect(mentorAction(view(ids.length, true), "practice")).toBeNull();

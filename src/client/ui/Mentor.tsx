@@ -2,10 +2,39 @@
 // GitHub confirms a level. She can be folded away so the site stays in full view.
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { commandsFor } from "../commands.ts";
 import { mentorAction, newStamps } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
+
+/** The commands to type on the player's machine, with a Copy button. The game never runs them. */
+function Commands({ level }: { level: string }) {
+  const { t } = useTranslation();
+  const practice = useQuest((s) => s.levels?.practice);
+  const repo = useQuest((s) => (s.levels ? `${s.levels.login}/${s.levels.practice.name}` : ""));
+  const [copied, setCopied] = useState(false);
+  if (!practice) return null;
+  const branch = practice.workBranch ?? `work-${practice.issue ?? 1}`;
+  const lines = commandsFor(level, { nameWithOwner: repo, defaultBranch: practice.defaultBranch ?? "main" }, branch);
+  if (lines.length === 0) return null;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(lines.filter((l) => !l.startsWith("#")).join("\n"));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <div className="mentor-commands">
+      <p>{t("mentor.commands")}</p>
+      <pre tabIndex={0}>{lines.join("\n")}</pre>
+      <button type="button" onClick={() => void copy()}>{copied ? t("mentor.copied") : t("mentor.copy")}</button>
+    </div>
+  );
+}
 
 export function Mentor() {
   const { t } = useTranslation();
@@ -73,10 +102,11 @@ export function Mentor() {
           {notYet && <p className="mentor-notyet">{t("mentor.notYet")}</p>}
         </>
       )}
+      {action === "commands" && current && <Commands level={current} />}
       <div className="mentor-actions">
         {action === "to-tutorial" && <a className="primary" href="?demo=1">{t("mentor.toTutorial")}</a>}
         {action === "to-practice" && <a className="primary" href="?site=practice">{t("mentor.toPractice")}</a>}
-        {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "move" && (
+        {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "move" && action !== "commands" && (
           <button type="button" className="primary" onClick={() => openPractice(action)}>{t(`practice.${action}.open`)}</button>
         )}
         {current !== null && (

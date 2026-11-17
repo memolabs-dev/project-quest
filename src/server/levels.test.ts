@@ -55,7 +55,10 @@ describe("levels", () => {
     expect(v.stamps.map((s) => s.levelId)).toEqual(["a1-walk"]);
     expect(v.current).toBe("a2-read-issue");
     expect(v.unlocks).toEqual({ helmet: true, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false });
-    expect(v.practice).toEqual({ name: "my-first-site", exists: false, readme: null, issue: null, pull: null });
+    expect(v.practice).toEqual({
+      name: "my-first-site", exists: false, readme: null, issue: null, pull: null,
+      unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false,
+    });
   });
 
   it("refuses an unknown tutorial event", async () => {

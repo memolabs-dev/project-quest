@@ -89,7 +89,7 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
       login: "you", canWrite: false, current: "a8-edit-file", rank: "apprentice",
       stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false, van: false, realProjects: false },
-      practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null },
+      practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
     });
   });
   const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });

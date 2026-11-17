@@ -51,6 +51,13 @@ export interface LevelsView {
     issue: number | null;
     /** The viewer's open pull request that closes an issue. */
     pull: number | null;
+    /** The lowest open issue nobody has taken yet. */
+    unassigned: number | null;
+    defaultBranch: string | null;
+    /** The viewer's newest branch pushed from their machine (neither the default nor practice-N). */
+    workBranch: string | null;
+    /** Main moved after the work branch's first commit from the machine (the mayor's change landed). */
+    mainMoved: boolean;
   };
 }
 

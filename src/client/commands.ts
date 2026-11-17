@@ -1,0 +1,24 @@
+// The git commands the Team leader types on their own machine. The game shows them; it never runs them.
+
+export function commandsFor(level: string, repo: { nameWithOwner: string; defaultBranch: string }, branch: string): string[] {
+  const name = repo.nameWithOwner.split("/")[1];
+  switch (level) {
+    case "a12-push-branch":
+      return [
+        `git clone https://github.com/${repo.nameWithOwner}.git`,
+        `cd ${name}`,
+        `git switch -c ${branch}`,
+        "# change README.md in your editor, then:",
+        'git commit -am "Describe what you changed"',
+        `git push -u origin ${branch}`,
+      ];
+    case "a13-bring-main":
+      return [`git switch ${repo.defaultBranch}`, "git pull", `git switch ${branch}`, `git merge ${repo.defaultBranch}`, "git push"];
+    case "a14-fix-from-machine":
+      return ["# make the fix in README.md, then:", 'git commit -am "Fix what the inspector asked"', "git push"];
+    case "a15-clean-up":
+      return [`git switch ${repo.defaultBranch}`, "git pull", `git branch -d ${branch}`, `git push origin --delete ${branch}`];
+    default:
+      return [];
+  }
+}

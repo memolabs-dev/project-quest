@@ -122,6 +122,13 @@
   margin: 0 0 10px; padding: 10px; background: #fff; border: var(--line); border-radius: 8px;
   font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto;
 }
+.mentor-commands pre {
+  margin: 4px 0 8px; padding: 8px 10px; background: #1c1c1c; color: #f3e3b6; border-radius: 8px;
+  font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto;
+}
+.mentor-commands button {
+  min-height: 44px; padding: 0 14px; border: var(--line); border-radius: 10px; background: #fff; font-weight: 800; cursor: pointer;
+}
 .mentor-inspector { border-left: 4px solid var(--accent-ink); padding-left: 8px; }
 .practice-note { font-weight: 700; }
 .field { display: grid; gap: 4px; margin: 0 0 10px; font-weight: 800; }

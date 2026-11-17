@@ -36,7 +36,7 @@ interface QuestState {
   setPending(p: PreparedMove | null): void;
 }
 
-export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge";
+export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor";
 
 const sent = new Set<TutorialEvent>();
 const EMPTY_PLOT: Site = { zones: [], buildings: [], pallets: [], workers: [] };

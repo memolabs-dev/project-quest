@@ -4,7 +4,8 @@ import { LEVELS } from "../shared/levels/index.ts";
 
 /** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site. */
 export type SiteKind = "main" | "demo" | "practice";
-export type MentorAction = "to-tutorial" | "to-practice" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge";
+export type MentorAction =
+  | "to-tutorial" | "to-practice" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge" | "mayor" | "commands";
 
 export function siteKindFromUrl(search: string): SiteKind {
   const q = new URLSearchParams(search);
@@ -23,7 +24,16 @@ export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | n
   if (!level) return null;
   if (level.where === "tutorial") return kind === "demo" ? null : "to-tutorial";
   if (kind !== "practice") return "to-practice";
-  return view.practice.exists ? GESTURES[level.id] ?? null : "found";
+  if (!view.practice.exists) return "found";
+  const p = view.practice;
+  // The Team leader works on their machine: the game offers what it does itself first, then the commands.
+  switch (level.id) {
+    case "a12-push-branch": return p.issue === null ? (p.unassigned === null ? "write" : "take") : "commands";
+    case "a13-bring-main": return p.mainMoved ? "commands" : "mayor";
+    case "a14-fix-from-machine": return p.pull === null ? "pull" : "commands";
+    case "a15-clean-up": return p.pull === null ? "commands" : "merge";
+    default: return GESTURES[level.id] ?? null;
+  }
 }
 
 /** Levels stamped since the previous view, in the order they were passed. */
