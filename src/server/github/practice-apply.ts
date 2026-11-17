@@ -35,9 +35,17 @@ const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContent
 const githubMessage = (e: unknown) =>
   (e as { errors?: { message: string }[] }).errors?.[0]?.message ?? (e instanceof Error ? e.message : String(e));
 
-/** "$repositoryId", "$issueId", "$milestoneId"... placeholders, replaced by the ids GitHub returned earlier in the same gesture. */
+/** The ids a mutation learns from the one before it, written "$name" in what the confirmation shows. */
+const PLACEHOLDERS = new Set(["$repositoryId", "$projectId", "$statusFieldId", "$issueId", "$headOid", "$milestoneId"]);
+
+/** Replaces each placeholder by the id GitHub returned earlier; one GitHub did not return stops the gesture there. */
 const fill = (input: Record<string, unknown>, ids: Record<string, string>) =>
-  Object.fromEntries(Object.entries(input).map(([k, v]) => [k, typeof v === "string" && v.startsWith("$") && ids[v.slice(1)] ? ids[v.slice(1)] : v]));
+  Object.fromEntries(Object.entries(input).map(([k, v]) => {
+    if (typeof v !== "string" || !PLACEHOLDERS.has(v)) return [k, v];
+    const id = ids[v.slice(1)];
+    if (!id) throw Object.assign(new Error(`GitHub did not give back the id the next step needs (${v})`), { errors: [{ message: `GitHub did not give back the id the next step needs (${v})` }] });
+    return [k, id];
+  }));
 
 export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPractice | PreparedAsk | PreparedTeam): Promise<PracticeResult> {
   const ids: Record<string, string> = {};

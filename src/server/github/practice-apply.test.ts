@@ -133,6 +133,16 @@ describe("the lead's REST step", () => {
     expect(calls[0].query).toContain("updateIssue");
     expect(calls[0].input).toEqual({ id: "I_2", milestoneId: "MI_new" });
   });
+  it("stops with a clear message when GitHub gives back no id, never sending a placeholder", async () => {
+    const { gql, calls } = recording();
+    const rest = (async () => ({ number: 1 })) as Rest;
+    const team: PracticeSnapshot = { ...site, repo: { id: "R_team", nameWithOwner: "fictif-lead/my-first-team", url: "u" },
+      issues: [{ id: "I_2", number: 2, url: "u2", author: "a", assignees: [], comments: [], status: "Backlog", closed: false }] };
+    const r = await applyPractice(gql, rest, prepareMilestone(team, "FICTIF Visit", "2026-11-29", [2], "2026-11-17"));
+    expect(r).toMatchObject({ ok: false, reason: "github", applied: ["createMilestone"] });
+    expect((r as { message: string }).message).toMatch(/milestoneId/);
+    expect(calls).toEqual([]);
+  });
   it("updates the milestone over REST", async () => {
     const { gql, calls } = recording();
     const sent: { method: string; path: string; body: unknown }[] = [];

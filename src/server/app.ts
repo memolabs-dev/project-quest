@@ -153,10 +153,20 @@ const PRACTICE_MISSING = { error: "practice-missing" as const, message: "Your pr
 /** `demo` answers requests that carry ?demo=1, so a player without GitHub access can still visit the demo site. */
 /** settleMs: how long to wait between rereads while GitHub links a new pull request to its issue. */
 export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settleMs?: number } = {}) {
-  const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") ? demo : live);
+  // A page marked demo is the demo, whatever the value: "?demo=" too (the client reads it the same way).
+  const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") !== undefined ? demo : live);
   // Levels always belong to the real player, even while they play the tutorial on the demo site.
   const levels = async () => checkLevels(live, (await live.viewer()).login);
   return new Hono()
+    // Defence in depth: a write comes only from the game's own page, never from another site the player has open.
+    .use("/api/*", async (c, next) => {
+      const origin = c.req.header("origin");
+      if (c.req.method !== "GET" && origin) {
+        const host = c.req.header("host") ?? new URL(c.req.url).host;
+        if (origin === "null" || new URL(origin).host !== host) return c.json({ error: "gesture" as const, message: "Writes come only from the game's own page" }, 403);
+      }
+      await next();
+    })
     .onError((err, c) => {
       if (err instanceof GitHubAuthError) return c.json({ error: "github-auth", hint: "gh auth login" }, 503);
       if (err instanceof GitHubScopeError) return c.json({ error: "github-scope", hint: "gh auth refresh -s project" }, 503);
@@ -258,7 +268,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
     .post("/api/practice/:kind{found|issue|take|edit|pull|merge|mayor}/apply", zValidator("json", practiceClaim), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedPractice;
       // A page marked demo never sends, even on a server that could.
-      if (c.req.query("demo")) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
+      if (c.req.query("demo") !== undefined) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       if (claim.kind !== c.req.param("kind")) return c.json({ error: "gesture" as const, message: NOT_YOURS }, 409);
       const { login, name, practice } = await practiceContext(live);
       // The guard: whatever the client claims, a level writes only to the viewer's own practice repository.
@@ -299,7 +309,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       kind: z.literal("ask"), repo: z.string(), issueNumber: z.number(), comment: z.string(), mutations,
     })), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedAsk;
-      if (c.req.query("demo")) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
+      if (c.req.query("demo") !== undefined) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       const home = `${live.config.owner}/${live.config.repo}`;
       // The guard: an ask goes only to the project the game is configured on.
       if (claim.repo.toLowerCase() !== home.toLowerCase()) {

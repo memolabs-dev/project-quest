@@ -30,17 +30,30 @@ export type Rest = (method: "PUT" | "POST" | "PATCH", path: string, body: Record
 
 /** The REST door, for the writes GraphQL cannot do: the first commit of an empty repository, a milestone. */
 export async function githubRest(): Promise<Rest> {
-  const token = await githubToken();
+  return restWith(await githubToken(), fetch);
+}
+
+const refusal = (message: string) => Object.assign(new Error(message), { errors: [{ message }] });
+
+/** timeoutMs: a GitHub that never answers is reported, never waited for forever. */
+export function restWith(token: string, fetchImpl: typeof fetch, timeoutMs = 20_000): Rest {
   return async (method, path, body) => {
-    const res = await fetch(`https://api.github.com${path}`, {
-      method,
-      headers: { authorization: `token ${token}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28" },
-      body: JSON.stringify(body),
-    });
+    let res: Response;
+    try {
+      res = await fetchImpl(`https://api.github.com${path}`, {
+        method,
+        headers: { authorization: `token ${token}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+    } catch (e) {
+      if ((e as Error).name === "TimeoutError") throw refusal(`GitHub did not answer within ${timeoutMs / 1000} s`);
+      throw e;
+    }
     const json = (await res.json().catch(() => ({}))) as { message?: string };
     if (res.status === 401) throw new GitHubAuthError("GitHub refused the login: run `gh auth login`");
     // Shaped like a GraphQL error, so a refusal is reported to the player with what was already done.
-    if (!res.ok) throw Object.assign(new Error(json.message ?? `GitHub answered ${res.status}`), { errors: [{ message: json.message ?? `GitHub answered ${res.status}` }] });
+    if (!res.ok) throw refusal(json.message ?? `GitHub answered ${res.status}`);
     return json;
   };
 }

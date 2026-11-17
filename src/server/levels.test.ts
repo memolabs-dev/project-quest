@@ -318,6 +318,23 @@ describe("the sprint's capacity", () => {
   });
 });
 
+describe("the demo and origin guards", () => {
+  it("a page marked demo never sends, even with an empty value", async () => {
+    const { app, sent } = make(site());
+    const prepared = await (await app.request("/api/practice/issue/prepare", post({ title: "FICTIF A gate", body: "FICTIF" }))).json();
+    expect((await app.request("/api/practice/issue/apply?demo=", post(prepared))).status).toBe(409);
+    expect(sent).toEqual([]);
+  });
+  it("refuses a write sent from another site's page", async () => {
+    const { app, sent } = make(site());
+    const prepared = await (await app.request("/api/practice/issue/prepare", post({ title: "FICTIF A gate", body: "FICTIF" }))).json();
+    const from = (origin: string) => ({ method: "POST", body: JSON.stringify(prepared), headers: { "content-type": "application/json", origin, host: "localhost:5173" } });
+    expect((await app.request("http://localhost:5173/api/practice/issue/apply", from("https://evil.example"))).status).toBe(403);
+    expect(sent).toEqual([]);
+    expect((await app.request("http://localhost:5173/api/practice/issue/apply", from("http://localhost:5173"))).status).toBe(200);
+  });
+});
+
 describe("starting again", () => {
   it("resets the player's levels on the demo site only", async () => {
     const progress = memoryProgress();
