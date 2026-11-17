@@ -1,0 +1,50 @@
+# What makes a good game, a warm social one, and a beautiful stylized scene
+
+Research of 2026-11-17, for the next round of project-quest (graphics, feel, story, interaction with the project's people). Three parallel searches; every claim carries its source. "[summary]" marks a claim taken from a write-up rather than the primary text.
+
+## 1. A good game
+
+**Feelings first.** Choose the feelings the game aims at (MDA: discovery, expression, fellowship...), then the mechanics; players meet the game feelings first. Never make the player keep numbers that hide their progress. https://users.cs.northwestern.edu/~hunicke/MDA.pdf
+
+**Interesting decisions.** A good choice depends on the situation, costs something and is answered; "the worst thing you can do is just move on". Cut choices with an obvious answer. https://www.gamedeveloper.com/design/gdc-2012-sid-meier-on-how-to-see-games-as-sets-of-interesting-decisions
+
+**Fun is learning a pattern** without pressure; mastered, it bores: keep adding variations. [summary] https://www.raphkoster.com/gaming/gdco12/Koster_Raph_Theory_Fun_10.pdf
+
+**Motivation (Self-Determination Theory).** Competence, autonomy and relatedness each predict enjoyment and return. Rewards help when they inform, not when they control. https://selfdeterminationtheory.org/SDT/documents/2006_RyanRigbyPrzybylski_MandE.pdf. Expected tangible rewards lower intrinsic motivation (d = −0.40); positive feedback raises it (d = +0.33). https://home.ubalt.edu/tmitch/642/articles%20syllabus/Deci%20Koestner%20Ryan%20meta%20IM%20psy%20bull%2099.pdf. Points and badges must connect to the real activity. [summary] https://scottnicholson.com/pubs/meaningfulframework.pdf
+
+**Flow.** Worth doing for itself, challenge matching skill, the player in control; pace chosen through play, not menus. https://www.jenovachen.com/flowingames/Flow_in_games_final.pdf
+
+**Game feel and juice.** Instant, continuous response, emphasised by polish. [summary] https://en.wikipedia.org/wiki/Game_feel. The vocabulary: hit stop, flash, one-shot particles, sound, shake, trails, lasting debris, idle animations, easing, a camera that frames the action; medium juice beats none and maximum; juice that hides what matters harms learning. https://arxiv.org/html/2011.09201v1. Give back more than the action needs. https://github.com/grapefrukt/juicy-breakout. Leave traces of what happened (Nijman, "The art of screenshake"). [summary]
+
+**Teach by doing.** One idea per level: introduce, develop, twist, mastery; test with non-gamers; help after repeated failure. https://www.gamedeveloper.com/design/the-structure-of-fun-learning-from-i-super-mario-3d-land-i-s-director. One new concept at a time (Portal). [summary] https://theportalwiki.com/wiki/Portal_developer_commentary. A harmless first mistake (World 1-1). [summary] https://en.wikipedia.org/wiki/World_1-1
+
+**Small-game narrative.** Environmental storytelling: the space tells what happened; the player's own history stays in the world. [summary] https://www.worch.com/2010/03/11/gdc-2010/. Story through objects (Unpacking). [summary] https://www.gamedeveloper.com/marketing/unpacking-a-narrative-through-1-000-household-items. Barks: short reactive lines, the most specific that fits, else a general one. https://www.gdcvault.com/play/1015528/AI-driven-Dynamic-Dialog-through. Characters who talk about what you did (Animal Crossing). https://www.nintendo.com/en-gb/News/2016/November/Learn-more-about-the-development-of-the-Animal-Crossing-series-in-our-interview--1159916.html
+
+**Cozy tone.** Safety, abundance, softness; destroyed by extrinsic rewards, mandatory upkeep, notifications, sudden stimuli, time pressure, scarcity, comparison. Nurturing characters (grandmothers are named); "favors and gifts are cozy; obligation and neediness are not"; optional activities with no penalty; safe rituals. https://projecthorseshoe.com/reports/featured/ph17r3.htm. Cut what does not serve the core. https://www.gamedeveloper.com/design/unpacking-the-design-pillars-of-a-chill-puzzle-game
+
+**Why learning games bore.** "Chocolate-dipped broccoli": content sugar-coated instead of being the mechanic; with content in the core mechanic, children learned more and played 7 times longer. https://tca2.education.illinois.edu/docs/librariesprovider23/default-document-library/j-of-the-learning-sc-2011-habgood.pdf
+
+## 2. Warm social play on a real GitHub project
+
+**Soft social patterns.** Death Stranding: positive-only likes from those helped, with a cooldown. https://www.gamesradar.com/kojima-is-most-proud-of-death-strandings-positive-shared-world-multiplayer-approach/. Dark Souls: messages from fixed phrases. https://darksouls.fandom.com/wiki/Messages. Journey: no chat, a chirp; "emotions rather than blows". https://adventuregamers.com/article/designing_journey. Animal Crossing: the host chooses who visits. https://nookipedia.com/wiki/Multiplayer. Wordle: share without spoiling, three minutes a day. https://www.rnz.co.nz/national/programmes/the-weekend/audio/2018826546/josh-wardle-the-power-of-wordle. Common thread: positive-only signals, small vocabulary, consent on the receiving side, no ranking, capped volume.
+
+**Gamified work, what backfired.** GitHub Achievements (2022): up to about 23% hid them or went private. https://arxiv.org/abs/2303.14702. Streak counters push people to work more; removing them cut weekend work. https://arxiv.org/abs/2006.02371. Habitica: counter-productive effects for all 45 participants of one study. https://www.sciencedirect.com/science/article/abs/pii/S1071581918305135. Hacktoberfest 2020: rewards brought spam pull requests, opt-in within 3 days. https://www.theregister.com/2020/10/01/digitalocean_hacktoberfest_pull_request_spam/. Lesson: score the player only, reward warm feedback not volume, never reward a write by itself.
+
+**What GitHub allows (local schema and `src/github/api-coverage.ts`).**
+- Reactions (`addReaction`): THUMBS_UP, THUMBS_DOWN, LAUGH, HOORAY, CONFUSED, HEART, ROCKET, EYES; they send no notification. https://docs.github.com/en/rest/reactions/reactions, https://github.com/orgs/community/discussions/5911
+- Comments notify every subscriber; an @mention or a review request notifies and subscribes that person. https://docs.github.com/en/subscriptions-and-notifications/concepts/about-notifications
+- `CommentAuthorAssociation` has FIRST_TIMER and FIRST_TIME_CONTRIBUTOR: a newcomer can be recognised.
+- Repo events: at most 300 events over 30 days, 30 s to 6 h late; a 304 with ETag costs no rate limit. https://docs.github.com/en/rest/activity/events
+- Content-creating writes are capped at 80 per minute and 500 per hour. https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api. Automated bulk activity and automated starring or following are banned. https://docs.github.com/en/site-policy/acceptable-use-policies/github-acceptable-use-policies
+- Newcomers leave when nobody answers, or answers coldly. https://www.ime.usp.br/~gerosa/papers/Steinmacher2014_Chapter_BarriersFacedByNewcomersToOpen.pdf
+- **Conflict found**: the planned "send the inspector" gesture (`requestReviews`) asks someone who did not volunteer; it should only reach people who offered to review.
+
+**Kind features, ranked.** 1. Cheer (a reaction, one per item, positive emojis only). 2. Welcome a newcomer (a comment the player writes, once per person). 3. Thank on completion (a reaction by default, a comment optional, no @mention added). 4. The site radio: what happened since the last visit, from reads only, never counts per person. 5. Answer a worker waiting with a question. 6. Watch a pallet (only affects the player). 7. The inspector by invitation (an opt-in list of reviewers). 8. A credits plaque in the All Contributors style, opt-in per person. https://allcontributors.org/en/reference/emoji-key/
+
+## 3. A beautiful stylized scene (R3F 9.8, three 0.187, drei 10.7)
+
+**What the scene has.** N8AO medium, neutral tone mapping, vignette, MSAA, drei `Outlines`, fog, sky, one PCF shadow; no sound, no adaptive quality, no toon material. `site-kit.glb` has no textures (11 flat materials). `foreman.glb` holds clips never played: Cheer, Interact, PickUp, Use_Item, Idle, Sit_Floor_Idle, Hit_A. Estimated (not measured): the fence and road dashes cost about 130 draw calls; R3F advises a few hundred at most. https://r3f.docs.pmnd.rs/advanced/scaling-performance
+
+**Techniques.** `MeshToonMaterial` with a 3 to 4 texel gradient map (Nearest filter) for the comic-strip bands. https://threejs.org/docs/pages/MeshToonMaterial.html. In r187, `PCFShadowMap` samples a rotated Vogel disk and `shadow.radius` softens it for nearly nothing; `PCFSoftShadowMap` is gone. `TiltShift2` gives the model-on-a-table look. https://react-postprocessing.docs.pmnd.rs/effects/tilt-shift-2. One palette texture or vertex colours make each kit piece one primitive (Bruno Simon's folio-2025). https://github.com/brunosimon/folio-2025. `maath` easing (`damp3`, `dampLookAt`, `dampC`) is already installed through drei. Additive animation layers for gestures over the idle. https://threejs.org/examples/webgl_animation_skinning_additive_blending.html. Juice order: colour, squash, sound, particles, camera kick ("Juice it or lose it"). https://www.gdcvault.com/play/1016487/Juice-It-or-Lose. Sound: Howler, about 7 kB, unlocks on the first gesture. https://github.com/goldfire/howler.js. Kenney sounds are CC0. https://kenney.nl/support. `PerformanceMonitor` only reports; the app lowers DPR, AO, tilt-shift itself. https://r3f.docs.pmnd.rs/advanced/scaling-performance
+
+**Visual and feel improvements, ranked.** 1. Toon materials (cheap). 2. Instance the fence and road dashes. 3. A laid floor: squash, overshoot, settle, dust ring, small camera kick, the foreman cheers. 4. A pallet travels on an arc, lands with a squash and a puff. 5. Sounds: thud, chime, footsteps, with a mute toggle. 6. Workers fidget through the unused clips. 7. Workers turn their head to the foreman. 8. Softer shadows (`shadow-radius`). 9. Tilt-shift. 10. Quality that adapts on weak machines.
