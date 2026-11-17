@@ -10,6 +10,11 @@ export type Path = "volunteer" | "lead";
 export const TUTORIAL_EVENTS = ["walked", "card-opened", "card-read", "pallet-moved"] as const;
 export type TutorialEvent = (typeof TUTORIAL_EVENTS)[number];
 
+/** What the lead did that GitHub cannot show afterwards; recorded by the server only, once GitHub accepted the gesture. */
+export const LEAD_EVENTS = ["team-day", "visit-moved"] as const;
+export type LeadEvent = (typeof LEAD_EVENTS)[number];
+export type GameEvent = TutorialEvent | LeadEvent;
+
 export interface PracticeIssue {
   id: string;
   number: number;
@@ -123,7 +128,7 @@ export interface RealSnapshot {
 
 export interface Observed {
   viewer: string;
-  events: TutorialEvent[];
+  events: GameEvent[];
   practice: PracticeSnapshot | null;
   /** Read only once the Team leader rank is done. */
   real?: RealSnapshot | null;

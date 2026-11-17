@@ -61,6 +61,14 @@ const behaves = (name: string, make: () => ProgressStore, cleanup?: () => Promis
       await cleanup?.();
     });
 
+    it("keeps a lead's events like the tutorial's", async () => {
+      const p = make();
+      await p.addEvent("fictif-a", "team-day");
+      await p.addEvent("FICTIF-A", "team-day");
+      await p.addEvent("fictif-a", "visit-moved");
+      expect((await p.events("fictif-a")).sort()).toEqual(["team-day", "visit-moved"]);
+      await cleanup?.();
+    });
     it("remembers the declared capacity", async () => {
       const p = make();
       expect(await p.capacity("fictif-a")).toBeNull();

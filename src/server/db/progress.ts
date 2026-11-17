@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { assertTestDatabase } from "./test-guard.ts";
 import postgres from "postgres";
-import type { Path, Stamp, TutorialEvent } from "../../shared/levels/types.ts";
+import type { GameEvent, Path, Stamp } from "../../shared/levels/types.ts";
 import { players, progress, tutorialEvents } from "./schema.ts";
 
 export type { Stamp };
@@ -13,8 +13,8 @@ export interface ProgressStore {
   stamps(login: string): Promise<Stamp[]>;
   /** Keeps the first stamp of a level: stamping again changes nothing. */
   stamp(login: string, levelId: string, proof: string): Promise<void>;
-  events(login: string): Promise<TutorialEvent[]>;
-  addEvent(login: string, e: TutorialEvent): Promise<void>;
+  events(login: string): Promise<GameEvent[]>;
+  addEvent(login: string, e: GameEvent): Promise<void>;
   practiceRepo(login: string): Promise<string | null>;
   setPracticeRepo(login: string, name: string): Promise<void>;
   path(login: string): Promise<Path | null>;
@@ -30,7 +30,7 @@ const key = (login: string) => login.toLowerCase();
 
 export function memoryProgress(): ProgressStore {
   const stamps = new Map<string, Stamp[]>();
-  const events = new Map<string, Set<TutorialEvent>>();
+  const events = new Map<string, Set<GameEvent>>();
   const repos = new Map<string, string>();
   const paths = new Map<string, Path>();
   const capacities = new Map<string, number>();
@@ -88,7 +88,7 @@ export function pgProgress(url: string): ProgressStore & { clearForTests(): Prom
     },
     async events(login) {
       const rows = await db.select().from(tutorialEvents).where(eq(tutorialEvents.playerLogin, key(login)));
-      return rows.map((r) => r.event as TutorialEvent);
+      return rows.map((r) => r.event as GameEvent);
     },
     async addEvent(login, e) {
       await db.insert(tutorialEvents).values({ playerLogin: key(login), event: e }).onConflictDoNothing();

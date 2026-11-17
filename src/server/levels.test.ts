@@ -234,6 +234,13 @@ describe("paths", () => {
     expect(v.ranks.volunteer).toBeNull();
     expect(await progress.path(VIEWER)).toBe("lead");
   });
+  it("the browser cannot send a lead's event", async () => {
+    const { app, deps } = make(null);
+    for (const event of ["team-day", "visit-moved"]) {
+      expect((await app.request("/api/levels/event", post({ event }))).status, event).toBe(400);
+    }
+    expect(await deps.progress.events(VIEWER)).toEqual([]);
+  });
   it("refuses an unknown path", async () => {
     expect((await make(null).app.request("/api/levels/path", post({ path: "pirate" }))).status).toBe(400);
   });
