@@ -86,11 +86,11 @@
 .bug { margin: 6px 0; font-weight: 800; color: var(--warn); }
 .move-label { margin: 8px 0 6px; font-weight: 800; }
 .zones { display: flex; flex-wrap: wrap; gap: 8px; }
-.zones button, .card-foot button, .confirm button {
+.zones button, .card-foot button, .confirm button, .thank-offer button {
   min-height: 44px; padding: 0 14px; border: var(--line); border-left-width: 8px; border-radius: 10px; background: #fff;
   font-weight: 800; font-size: 15px; cursor: pointer; transition: transform 0.12s var(--ease);
 }
-.zones button:active, .card-foot button:active, .confirm button:active { transform: scale(0.97); }
+.zones button:active, .card-foot button:active, .confirm button:active, .thank-offer button:active { transform: scale(0.97); }
 .card-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
 .card-foot a { color: var(--accent-ink); font-weight: 800; min-height: 44px; display: inline-flex; align-items: center; }
 .error { color: var(--warn); font-weight: 700; }
@@ -261,7 +261,11 @@
   position: absolute; z-index: 21; left: 50%; bottom: 120px; transform: translateX(-50%); max-width: min(420px, calc(100vw - 32px));
   background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: 6px 6px 0 var(--ink); padding: 12px 16px;
 }
-.thank-offer .actions button { min-height: 44px; }
+.thank-offer .actions { display: flex; gap: 10px; margin-top: 10px; }
+.thank-offer .primary { background: var(--accent); }
+.thank-offer p { margin: 0; overflow-wrap: anywhere; }
+/* Two prompts side by side (a pallet and a worker within reach): a dot between them. */
+.prompt span + span::before { content: " · "; }
 .greet-emoji { display: block; text-align: center; font-size: 28px; line-height: 1; }
 .greet-emoji.rising { animation: greet-rise 1.2s ease-out forwards; }
 @keyframes greet-rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-48px); opacity: 0; } }
