@@ -4,6 +4,7 @@ import { Outlines, useGLTF } from "@react-three/drei";
 import type { ThreeElements } from "@react-three/fiber";
 import { useMemo } from "react";
 import * as THREE from "three";
+import { tinted } from "./tint.ts";
 
 const KIT_URL = "/models/site-kit.glb";
 export type KitPiece =
@@ -31,10 +32,7 @@ export function Piece({ name, recolor, crateColor, outline = 0.045, ...props }: 
         const m = o as THREE.Mesh;
         let material = m.material as THREE.MeshStandardMaterial;
         const color = colors[material.name];
-        if (color) {
-          material = material.clone();
-          material.color = new THREE.Color(color);
-        }
+        if (color) material = tinted(material, color);
         list.push({ geometry: m.geometry, material, matrix: m.matrixWorld.clone() });
       }
     });

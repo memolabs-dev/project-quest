@@ -14,7 +14,12 @@ export function buildingPlan(b: Building): { built: number; scaffold: number; ro
 }
 
 const SIZES: Record<string, number> = { XS: 0.7, S: 0.85, M: 1, L: 1.15, XL: 1.3 };
-export const crateScale = (size: string | null) => (size ? SIZES[size] ?? 1 : 1);
+const SPELLED: Record<string, string> = { SMALL: "S", MEDIUM: "M", LARGE: "L", "EXTRA SMALL": "XS", "EXTRA LARGE": "XL" };
+/** A board's sizes are written by people: "m", "Medium" and " M " are the same size. */
+export const crateScale = (size: string | null) => {
+  const s = size?.trim().toUpperCase() ?? "";
+  return SIZES[SPELLED[s] ?? s] ?? 1;
+};
 
 export interface WorkerSpot { login: string; avatarUrl: string; trade: string | null; x: number; z: number }
 
@@ -58,18 +63,11 @@ export function idleOffset(login: string): number {
   return (h >>> 0) / 4294967296;
 }
 
-/** A building's key for its growth: its epic number, or "unassigned" for the tasks under no epic. */
-export type BuildingKey = number | "unassigned";
-export const buildingKey = (epicNumber: number | null): BuildingKey => epicNumber ?? "unassigned";
-
-/** Buildings that gained floors since the previous site: each grows once, however many floors came. */
-export function newlyLaid(prev: Site | null, next: Site): BuildingKey[] {
-  if (!prev) return [];
-  const before = new Map(prev.buildings.map((b) => [buildingKey(b.epicNumber), b.floorsDone]));
-  return next.buildings
-    .filter((b) => b.floorsDone > (before.get(buildingKey(b.epicNumber)) ?? b.floorsDone))
-    .map((b) => buildingKey(b.epicNumber));
-}
+/**
+ * A building grows when it gained floors while it stood on the site. prevDone is null when it just came into view
+ * (the site opened, or it was gone and came back): then it shows as it is, without replaying a growth.
+ */
+export const growsNow = (prevDone: number | null, nextDone: number) => prevDone !== null && nextDone > prevDone;
 
 const WALLS = ["#F2E3C6", "#E9C9B1", "#D9E4D1", "#E7DDEE", "#F4D9A6", "#CFE0EA"];
 const TRIMS = ["#B5523B", "#3E6E8E", "#6B8F3A", "#8A5A9E", "#C2802E", "#2F6F6A"];

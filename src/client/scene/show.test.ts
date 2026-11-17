@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Building, Site } from "../../shared/site.ts";
 import {
-  badgeInitial, buildingPlan, crateScale, dronePose, facade, idleOffset, jacketColor, newlyLaid, termiteSpots, workerSpots,
+  badgeInitial, buildingPlan, crateScale, growsNow, dronePose, facade, idleOffset, jacketColor, termiteSpots, workerSpots,
 } from "./show.ts";
 
 const b = (floorsDone: number, floorsTotal: number, epicNumber: number | null = 1): Building => ({ epicNumber, title: "FICTIF", floorsDone, floorsTotal });
@@ -33,6 +33,13 @@ describe("crateScale", () => {
     expect(crateScale("L")).toBeGreaterThan(crateScale("M"));
     expect(crateScale(null)).toBe(1);
     expect(crateScale("weird")).toBe(1);
+  });
+  it("reads a size whatever its case or spelling", () => {
+    expect(crateScale("m")).toBe(crateScale("M"));
+    expect(crateScale("Medium")).toBe(crateScale("M"));
+    expect(crateScale(" xl ")).toBe(crateScale("XL"));
+    expect(crateScale("small")).toBe(crateScale("S"));
+    expect(crateScale("Large")).toBe(crateScale("L"));
   });
 });
 
@@ -134,21 +141,13 @@ describe("dronePose", () => {
   });
 });
 
-describe("newlyLaid", () => {
-  const site = (floors: [number, number][]): Site => ({
-    zones: [], pallets: [], workers: [],
-    buildings: floors.map(([epicNumber, floorsDone]) => ({ epicNumber, title: "", floorsDone, floorsTotal: 9 })),
-  });
-  it("names each building whose floors grew, once, even after several moves", () => {
-    expect(newlyLaid(site([[1, 2], [2, 0]]), site([[1, 4], [2, 1]]))).toEqual([1, 2]);
-  });
-  it("the unassigned building grows too", () => {
-    const unassigned = (floorsDone: number): Site => ({ zones: [], pallets: [], workers: [], buildings: [{ epicNumber: null, title: "", floorsDone, floorsTotal: 1 }] });
-    expect(newlyLaid(unassigned(0), unassigned(1))).toEqual(["unassigned"]);
-  });
-  it("names nothing on the first load, or when floors went down", () => {
-    expect(newlyLaid(null, site([[1, 2]]))).toEqual([]);
-    expect(newlyLaid(site([[1, 2]]), site([[1, 1]]))).toEqual([]);
+describe("growsNow", () => {
+  it("grows only when floors were laid while the building stood there", () => {
+    expect(growsNow(1, 2)).toBe(true);
+    expect(growsNow(2, 2)).toBe(false);
+    expect(growsNow(3, 2)).toBe(false);
+    // A building that comes into view (first render, or back after it was gone) does not replay its growth.
+    expect(growsNow(null, 2)).toBe(false);
   });
 });
 

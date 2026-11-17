@@ -19,7 +19,7 @@ import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
-import { buildingKey, jacketColor, newlyLaid, termiteSpots, workerSpots, type BuildingKey } from "./show.ts";
+import { jacketColor, termiteSpots, workerSpots } from "./show.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
 
@@ -119,14 +119,6 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   const arrival = useRef(reduceMotion ? 0 : ARRIVAL_SECONDS);
   const look = useRef(new THREE.Vector3().fromArray(FOLLOW_START.target));
 
-  // Count each building's growths, so its floor grows once per new laid floor batch.
-  const previous = useRef<SiteModel | null>(null);
-  const [growths, setGrowths] = useState<Partial<Record<BuildingKey, number>>>({});
-  useEffect(() => {
-    const grown = newlyLaid(previous.current, site);
-    previous.current = site;
-    if (grown.length) setGrowths((g) => ({ ...g, ...Object.fromEntries(grown.map((n) => [n, (g[n] ?? 0) + 1])) }));
-  }, [site]);
 
   return (
     <>
@@ -147,8 +139,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
           return <Pallet key={p.number} pallet={pallet} x={p.x} z={p.z} color={zoneColor(zoneIndex.get(pallet.zone) ?? 0)} near={near === p.number} />;
         })}
         {layout.buildings.map((b, i) => (
-          <Building key={b.key} model={site.buildings[i]} x={b.x} z={b.z} reduceMotion={reduceMotion}
-            grow={growths[buildingKey(site.buildings[i].epicNumber)] ?? 0} />
+          <Building key={b.key} model={site.buildings[i]} x={b.x} z={b.z} reduceMotion={reduceMotion} />
         ))}
         <TurningCrane position={[width / 2 - 2, 0, BUILDING_ROW_Z + 7]} reduceMotion={reduceMotion} />
         <Termites spots={termites} reduceMotion={reduceMotion} />
