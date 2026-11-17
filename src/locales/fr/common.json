@@ -77,7 +77,8 @@
   "skills": {
     "title": "Compétences",
     "rank": {
-      "apprentice": "Apprenti"
+      "apprentice": "Apprenti",
+      "journeyman": "Compagnon"
     },
     "proof": "Voir sur GitHub",
     "tutorial": "Fait sur le chantier d'apprentissage",
@@ -125,6 +126,30 @@
       "goal": "Sors ton issue de la première colonne de ton tableau.",
       "lesson": "Un travail commencé va dans la colonne suivante. Le tableau doit dire la vérité.",
       "done": "Ça avance. Ton tableau dit la vérité."
+    },
+    "a8-edit-file": {
+      "skill": "Modifier un fichier",
+      "goal": "Avec la truelle, change ton README : dis ce qu'est ton chantier. Le jeu le pose sur une branche à part.",
+      "lesson": "Une branche, c'est une copie que tu peux abîmer sans risque. La branche principale reste propre tant que ton travail n'est pas vérifié.",
+      "done": "Ton premier commit. Signé, daté, gardé pour toujours."
+    },
+    "a9-open-pull": {
+      "skill": "Ouvrir une pull request",
+      "goal": "Ouvre une pull request depuis ta branche. Le jeu ajoute « Closes #N » pour que ton issue se ferme avec.",
+      "lesson": "Une pull request, c'est toi qui frappes à la porte : « J'ai fait ça, tu peux regarder ? »",
+      "done": "Tu as frappé. Quelqu'un peut maintenant regarder ton travail avant qu'il n'entre."
+    },
+    "a10-answer-review": {
+      "skill": "Répondre à une relecture",
+      "goal": "Fais ce que demande l'inspectrice, puis renvoie ta modification sur la même branche.",
+      "lesson": "Une relecture, ce n'est pas un savon. C'est un deuxième regard. Tu réponds avec un nouveau commit, pas avec une nouvelle pull request.",
+      "done": "Corrigé et renvoyé. La pull request a pris ton nouveau commit toute seule."
+    },
+    "a11-merge": {
+      "skill": "Fusionner",
+      "goal": "Fusionne ta pull request. Ton issue se ferme et ton premier étage monte.",
+      "lesson": "Fusionner, c'est poser l'étage pour de vrai : ton travail rejoint la branche principale, et l'issue qu'il ferme est finie.",
+      "done": "Le voilà, ton premier étage. Te voilà compagne ou compagnon."
     }
   },
   "practice": {
@@ -161,7 +186,34 @@
       "issue": "Écrire l'issue « {{title}} » dans {{repo}} et la poser sur ton tableau.",
       "take": "T'assigner le n°{{number}} dans {{repo}}, puis commenter : « {{comment}} »",
       "public": "public",
-      "private": "privé"
+      "private": "privé",
+      "foundation": "D'abord, poser la première pierre : un README comme premier commit de {{repo}}.",
+      "edit": "Écrire {{path}} sur la branche {{branch}}, avec le message « {{message}} ».",
+      "pull": "Ouvrir une pull request depuis {{branch}}, « {{title}} », qui ferme l'issue n°{{number}}.",
+      "merge": "Fusionner la pull request n°{{number}} dans la branche principale de {{repo}}."
+    },
+    "edit": {
+      "open": "Prendre la truelle",
+      "title": "Modifier ton README",
+      "contentLabel": "Le texte du fichier",
+      "messageLabel": "Ce que tu as changé, en quelques mots",
+      "foundation": "Ton dépôt est encore vide : le jeu pose sa première pierre (un README) avant ta branche."
+    },
+    "pull": {
+      "open": "Ouvrir une pull request",
+      "title": "Ouvrir une pull request",
+      "titleLabel": "Titre",
+      "whyLabel": "Pourquoi ce changement ?",
+      "closes": "Le jeu ajoute « Closes #{{number}} » à la fin, pour que l'issue n°{{number}} se ferme à la fusion."
+    },
+    "merge": {
+      "open": "Fusionner",
+      "title": "Fusionner ta pull request",
+      "body": "La pull request n°{{number}} rejoint ta branche principale, et l'issue qu'elle ferme est fermée."
     }
+  },
+  "inspector": {
+    "name": "L'inspectrice",
+    "remark": "Bon début. Une chose : ajoute une ligne qui dit pourquoi tu as fait ce changement, puis renvoie-le. Une pull request prend les nouveaux commits, pas besoin d'en ouvrir une autre."
   }
 }

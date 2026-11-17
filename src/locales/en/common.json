@@ -77,7 +77,8 @@
   "skills": {
     "title": "Skills",
     "rank": {
-      "apprentice": "Apprentice"
+      "apprentice": "Apprentice",
+      "journeyman": "Journeyman"
     },
     "proof": "See it on GitHub",
     "tutorial": "Done on the tutorial site",
@@ -125,6 +126,30 @@
       "goal": "Push your issue out of the first column of your board.",
       "lesson": "Work you've started belongs in the next column. The board must say what's true.",
       "done": "Moving on. Your board tells the truth."
+    },
+    "a8-edit-file": {
+      "skill": "Edit a file",
+      "goal": "With the trowel, change your README: say what your site is. The game puts it on a branch of its own.",
+      "lesson": "A branch is a copy you can mess up safely. Main stays clean until your work is checked.",
+      "done": "Your first commit. Signed, dated, kept forever."
+    },
+    "a9-open-pull": {
+      "skill": "Open a pull request",
+      "goal": "Open a pull request from your branch. The game adds \"Closes #N\" so your issue closes with it.",
+      "lesson": "A pull request is you knocking on the door: \"I've done this, can you look?\"",
+      "done": "Door knocked. Now someone can look at your work before it goes in."
+    },
+    "a10-answer-review": {
+      "skill": "Answer a review",
+      "goal": "Do what the inspector asks, then send your change again on the same branch.",
+      "lesson": "A review is not a telling-off. It's a second pair of eyes. You answer with a new commit, not a new pull request.",
+      "done": "Fixed and sent. The pull request took your new commit by itself."
+    },
+    "a11-merge": {
+      "skill": "Merge",
+      "goal": "Merge your pull request. Your issue closes and your first floor goes up.",
+      "lesson": "Merging is laying the floor for real: your work joins main, and the issue it closes is done.",
+      "done": "There it is, your first floor. You're a journeyman now."
     }
   },
   "practice": {
@@ -161,7 +186,34 @@
       "issue": "Write the issue \"{{title}}\" in {{repo}} and put it on your board.",
       "take": "Assign yourself #{{number}} in {{repo}}, then comment: \"{{comment}}\"",
       "public": "public",
-      "private": "private"
+      "private": "private",
+      "foundation": "First, lay the foundation stone: a README as the first commit of {{repo}}.",
+      "edit": "Write {{path}} on the branch {{branch}}, with the message \"{{message}}\".",
+      "pull": "Open a pull request from {{branch}}, \"{{title}}\", which closes issue #{{number}}.",
+      "merge": "Merge pull request #{{number}} into the main branch of {{repo}}."
+    },
+    "edit": {
+      "open": "Use the trowel",
+      "title": "Edit your README",
+      "contentLabel": "The file's text",
+      "messageLabel": "What you changed, in a few words",
+      "foundation": "Your repository is still empty: the game lays its first stone (a README) before your branch."
+    },
+    "pull": {
+      "open": "Open a pull request",
+      "title": "Open a pull request",
+      "titleLabel": "Title",
+      "whyLabel": "Why this change?",
+      "closes": "The game adds \"Closes #{{number}}\" at the end, so issue #{{number}} closes when this is merged."
+    },
+    "merge": {
+      "open": "Merge",
+      "title": "Merge your pull request",
+      "body": "Pull request #{{number}} joins your main branch, and the issue it closes is closed."
     }
+  },
+  "inspector": {
+    "name": "The inspector",
+    "remark": "Good start. One thing: add a line saying why you made this change, then send it again. A pull request takes new commits, no need to open another one."
   }
 }

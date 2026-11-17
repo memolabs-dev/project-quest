@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { APPRENTICE } from "../shared/levels/apprentice.ts";
+import { LEVELS } from "../shared/levels/index.ts";
 
 const load = (lang: string) =>
   JSON.parse(readFileSync(new URL(`./${lang}/common.json`, import.meta.url), "utf8")) as Record<string, unknown>;
@@ -25,10 +25,15 @@ describe("locales", () => {
     for (const z of config.zones) expect(en[`zones.${z}`], z).toBeTruthy();
   });
 
-  it("has a skill, a goal and a lesson for every level", () => {
-    for (const l of APPRENTICE) {
-      for (const part of ["skill", "goal", "lesson"]) expect(en[`levels.${l.id}.${part}`], `${l.id}.${part}`).toBeTruthy();
+  it("has a skill, a goal, a lesson and a done line for every level, and a name for every rank", () => {
+    for (const l of LEVELS) {
+      for (const part of ["skill", "goal", "lesson", "done"]) expect(en[`levels.${l.id}.${part}`], `${l.id}.${part}`).toBeTruthy();
+      expect(en[`skills.rank.${l.rank}`], l.rank).toBeTruthy();
     }
+  });
+
+  it("explains every practice gesture in plain words", () => {
+    for (const k of ["found", "foundReuse", "issue", "take", "edit", "foundation", "pull", "merge"]) expect(en[`practice.summary.${k}`], k).toBeTruthy();
   });
 
   it("uses no em or en dash in the French copy", () => {
