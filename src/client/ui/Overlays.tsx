@@ -5,6 +5,7 @@ import type { LoggedActionView } from "../../shared/api.ts";
 import { ApiFailure, api } from "../api.ts";
 import { zoneLabel } from "../i18n.ts";
 import { cardGestures } from "../levels.ts";
+import { momentsAfterMove } from "../moments/diff.ts";
 import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
 import { Mentor } from "./Mentor.tsx";
@@ -99,6 +100,7 @@ function ConfirmMove() {
   const open = useQuest((s) => s.open);
   const sendEvent = useQuest((s) => s.sendEvent);
   const refreshLevels = useQuest((s) => s.refreshLevels);
+  const announce = useQuest((s) => s.announce);
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [notice, setNotice] = useState<string | null>(null);
   // A notice clears by itself after a few seconds, so it never covers the site for good.
@@ -123,11 +125,13 @@ function ConfirmMove() {
         sendEvent("pallet-moved");
         if (useQuest.getState().siteKind === "practice" || useQuest.getState().siteKind === "team") void refreshLevels(true);
       } else if (r.reason === "stale") {
+        announce(...momentsAfterMove(r, pending.issueNumber));
         setPending(null);
         await refresh();
         setNotice(r.current.change === "moved" ? t("confirm.stale", { zone: zoneLabel(r.current.status ?? "") })
           : t(r.current.change === "gone" ? "confirm.staleGone" : "confirm.staleChanged"));
       } else {
+        announce(...momentsAfterMove(r, pending.issueNumber));
         setNotice(t("confirm.github", { message: r.message }));
       }
     } catch (e) {

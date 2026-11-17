@@ -20,8 +20,11 @@ export class ApiFailure extends Error {
   }
 }
 
+/** The page address's query, empty outside a browser (unit tests run the store without one). */
+export const pageSearch = () => (globalThis as { location?: { search: string } }).location?.search ?? "";
+
 /** The demo site is asked for with ?demo=1 in the page address; every API call carries it on. */
-const withDemo = (path: string) => (new URLSearchParams(location.search).has("demo") ? `${path}${path.includes("?") ? "&" : "?"}demo=1` : path);
+const withDemo = (path: string) => (new URLSearchParams(pageSearch()).has("demo") ? `${path}${path.includes("?") ? "&" : "?"}demo=1` : path);
 
 async function call<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(withDemo(path), body === undefined ? undefined : {
@@ -33,7 +36,7 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
 }
 
 /** On the practice (?site=practice) or team (?site=team) site, the site and its moves are the player's own board. */
-const own = () => { const k = siteKindFromUrl(location.search); return k === "practice" || k === "team" ? k : null; };
+const own = () => { const k = siteKindFromUrl(pageSearch()); return k === "practice" || k === "team" ? k : null; };
 const moves = () => (own() ? `/api/${own()}/moves` : "/api/moves");
 
 export const api = {

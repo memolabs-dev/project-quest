@@ -95,6 +95,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
   const refresh = useQuest((s) => s.refresh);
   const setLevels = useQuest((s) => s.setLevels);
   const refreshLevels = useQuest((s) => s.refreshLevels);
+  const announce = useQuest((s) => s.announce);
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
   const setBusy = useContext(Sending);
@@ -107,11 +108,17 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
       const r = prepared.kind === "ask" ? await api.applyAsk(prepared)
         : "args" in prepared ? await api.applyTeam(prepared) : await api.applyPractice(prepared);
       if (r.ok) {
+        // The sprint truck's moment: loaded, or creaking when the load now passes the capacity.
+        if ("args" in prepared && prepared.kind === "load") {
+          const s = r.levels?.team.sprint;
+          announce({ kind: s && s.capacity !== null && s.points > s.capacity ? "overloaded" : "loaded", pallet: prepared.args.issueNumber });
+        }
         if (r.levels) setLevels(r.levels);
         else void refreshLevels(true);
         close(null);
         await refresh();
       } else {
+        announce({ kind: "refused", pallet: "args" in prepared ? prepared.args.issueNumber : undefined });
         setError([t("confirm.github", { message: r.message }), r.applied.length ? t("practice.applied", { list: r.applied.join(", ") }) : ""].join(" "));
       }
     } catch (e) {

@@ -97,11 +97,13 @@ export function Mentor() {
   // A level just stamped: cheer it for a few seconds, with its "done" line.
   const fresh = levels ? newStamps(before, levels) : [];
   const last = fresh[fresh.length - 1] ?? null;
+  const announce = useQuest((s) => s.announce);
   useEffect(() => {
     if (!last) return;
+    announce({ kind: "stamp" });
     const show = setTimeout(() => setCheer(last), 0);
     return () => clearTimeout(show);
-  }, [last]);
+  }, [last, announce]);
   // The cheer's own timer: a later update without a new stamp must not keep it on screen.
   useEffect(() => {
     if (!cheer) return;

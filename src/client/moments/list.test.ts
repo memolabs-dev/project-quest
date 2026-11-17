@@ -1,0 +1,29 @@
+import { describe, expect, it } from "vitest";
+import { MOMENTS, type MomentKind } from "./list.ts";
+
+const KINDS: MomentKind[] = ["pallet-moved", "floor-laid", "parcel", "cleared", "stamp", "refused", "card-open", "card-close", "loaded", "overloaded"];
+
+describe("the moments", () => {
+  it("every moment has its reduced version", () => {
+    expect(Object.keys(MOMENTS).sort()).toEqual([...KINDS].sort());
+    for (const k of KINDS) {
+      const m = MOMENTS[k];
+      expect(m.reduced, k).toBeDefined();
+      // Reduced keeps the sound: it removes motion, never the feedback.
+      expect(m.reduced.sound, k).toBe(m.sound);
+    }
+  });
+  it("a refused write never celebrates", () => {
+    const r = MOMENTS.refused;
+    expect(r.react).toBeNull();
+    expect(r.dust).toBeNull();
+    expect(r.kick).toBe(0);
+    expect(r.sound).toBe("bonk");
+  });
+  it("the floor laid is the one big moment", () => {
+    const big = KINDS.filter((k) => MOMENTS[k].react === "cheer");
+    expect(big).toEqual(["floor-laid"]);
+    expect(MOMENTS["floor-laid"]).toMatchObject({ sound: "chime", dust: "ring" });
+    expect(MOMENTS["floor-laid"].reduced.text).toBe("site.newFloor");
+  });
+});
