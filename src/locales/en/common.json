@@ -89,7 +89,8 @@
       "volunteer": "Lend a hand",
       "lead": "Run the site"
     },
-    "toTeam": "To your team site"
+    "toTeam": "To your team site",
+    "boardCatchingUp": "GitHub is still putting the parcels on your board: it can take a minute. Reload the site in a moment."
   },
   "skills": {
     "title": "Skills",

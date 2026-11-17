@@ -71,3 +71,7 @@ export type Speaker = "meme" | "mayor" | "inspector";
 const SPEAKERS: Record<string, Speaker> = { "l2-sort-parcels": "mayor", "l3-ready": "inspector", "l4-size": "inspector" };
 /** Who teaches a level: Mémé by default; the mayor and the inspector on the lead's path (lead's path spec, section 6). */
 export const speakerOf = (levelId: string): Speaker => SPEAKERS[levelId] ?? "meme";
+
+/** The parcels exist but GitHub has not listed them on the board yet (seen in the real run: about a minute). */
+export const boardCatchingUp = (view: LevelsView, kind: SiteKind, pallets: number) =>
+  kind === "team" && view.team.parcels && pallets === 0;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
-import { laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf } from "./levels.ts";
+import { boardCatchingUp, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
 const view = (stamped: number, exists = false): LevelsView => ({
@@ -97,6 +97,13 @@ describe("the lead's path", () => {
     expect(mentorAction(lead("l2-sort-parcels", { exists: true, parcels: false, labels: [] }), "team")).toBe("parcels");
     expect(mentorAction(lead("l2-sort-parcels", { exists: true, parcels: true, labels: ["bug"] }), "team")).toBeNull();
     expect(mentorAction(lead("l3-ready", { exists: true, parcels: true, labels: [] }), "team")).toBeNull();
+  });
+  it("says when GitHub is still putting the parcels on the board", () => {
+    const arrived = lead("l2-sort-parcels", { exists: true, parcels: true, labels: [] });
+    expect(boardCatchingUp(arrived, "team", 0)).toBe(true);
+    expect(boardCatchingUp(arrived, "team", 6)).toBe(false);
+    expect(boardCatchingUp(lead("l2-sort-parcels"), "team", 0)).toBe(false);
+    expect(boardCatchingUp(arrived, "main", 0)).toBe(false);
   });
   it("gives each lead level its speaker", () => {
     expect(speakerOf("l1-found-team")).toBe("meme");

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commandsFor, safeBranch } from "../commands.ts";
 import { api } from "../api.ts";
-import { mentorAction, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
+import { boardCatchingUp, mentorAction, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
@@ -130,6 +130,7 @@ export function Mentor() {
           <p>{t(`levels.${current}.lesson`)}</p>
           <p className="mentor-goal">{t(`levels.${current}.goal`)}</p>
           {kind === "main" && noGoodFirst(levels, pallets) && <p className="mentor-notyet">{t("mentor.noGoodFirst")}</p>}
+          {boardCatchingUp(levels, kind, pallets.length) && <p className="mentor-notyet">{t("mentor.boardCatchingUp")}</p>}
           {current === "a10-answer-review" && (
             <p className="mentor-inspector"><b>{t("inspector.name")}</b><br />{t("inspector.remark")}</p>
           )}

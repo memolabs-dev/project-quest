@@ -89,7 +89,8 @@
       "volunteer": "Donner un coup de main",
       "lead": "Mener le chantier"
     },
-    "toTeam": "Vers ton chantier d'équipe"
+    "toTeam": "Vers ton chantier d'équipe",
+    "boardCatchingUp": "GitHub pose encore les colis sur ton tableau : ça peut prendre une minute. Recharge le chantier dans un instant."
   },
   "skills": {
     "title": "Compétences",
