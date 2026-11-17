@@ -11,6 +11,7 @@ import {
   prepareEdit, prepareFound, prepareIssue, prepareMayor, prepareMerge, preparePull, prepareTake, type PreparedPractice,
 } from "../shared/gestures/practice.ts";
 import type { PracticeSnapshot } from "../shared/levels/types.ts";
+import { prepareAsk, type PreparedAsk } from "../shared/gestures/real.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
 import { SiteError, buildSite, type BoardSnapshot } from "../shared/site.ts";
 import type { Deps } from "./deps.ts";
@@ -258,6 +259,39 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
         view = await levels();
       }
       return c.json({ ok: true as const, levels: view });
+    })
+    // ---------- The real project: ask for a good first issue (one comment, nothing else) ----------
+    .post("/api/real/ask/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), comment: z.string() })), async (c) => {
+      const { login } = await live.viewer();
+      const { issueNumber, comment } = c.req.valid("json");
+      return c.json(prepareAsk(await live.readGoodFirst(), login, issueNumber, comment));
+    })
+    .post("/api/real/ask/apply", zValidator("json", z.looseObject({
+      kind: z.literal("ask"), repo: z.string(), issueNumber: z.number(), comment: z.string(), mutations,
+    })), async (c) => {
+      const claim = c.req.valid("json") as unknown as PreparedAsk;
+      if (c.req.query("demo")) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
+      const home = `${live.config.owner}/${live.config.repo}`;
+      // The guard: an ask goes only to the project the game is configured on.
+      if (claim.repo.toLowerCase() !== home.toLowerCase()) {
+        return c.json({ error: "gesture" as const, message: "An ask goes only to the project the game is set up for: nothing was sent" }, 409);
+      }
+      const { login } = await live.viewer();
+      const rebuilt = prepareAsk(await live.readGoodFirst(), login, claim.issueNumber, claim.comment);
+      if (!isDeepStrictEqual(rebuilt, claim)) {
+        return c.json({ error: "gesture" as const, message: "This ask does not match the project: nothing was sent" }, 409);
+      }
+      const entry = { playerLogin: login, gesture: "ask", target: `${home}#${rebuilt.issueNumber}`, payload: rebuilt.mutations };
+      let result: Awaited<ReturnType<Deps["applyAsk"]>>;
+      try {
+        result = await live.applyAsk(rebuilt);
+      } catch (e) {
+        await record(live, { ...entry, result: "failed", githubResponse: { message: e instanceof Error ? e.message : String(e) } });
+        throw e;
+      }
+      await record(live, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
+      if (!result.ok) return c.json(result);
+      return c.json({ ok: true as const, levels: await levels() });
     })
     .post("/api/practice/moves/prepare", zValidator("json", prepareBody), async (c) => {
       const board = await practiceBoard(live);

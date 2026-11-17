@@ -40,6 +40,7 @@ const make = (practice: PracticeSnapshot | null, extra: Partial<Deps> & { progre
     readPractice: async () => practice,
     applyPractice: async (p) => { sent.push(p); return { ok: true }; },
     readGoodFirst: async () => ({ repo: "fictif-org/fictif-site", issues: [] }),
+    applyAsk: async (p) => { sent.push(p as never); return { ok: true }; },
     ...extra,
   };
   return { app: createApp(deps), deps, sent };
@@ -92,6 +93,32 @@ describe("levels", () => {
     await progress.stamp("fictif-someone-else", "a1-walk", "tutorial");
     const { app } = make(null, { progress });
     expect((await view(await app.request("/api/levels", {}))).stamps).toEqual([]);
+  });
+});
+
+describe("asking for a good first issue", () => {
+  const good = { repo: "memolabs-dev/project-quest-sandbox", issues: [{ id: "I_21", number: 21, title: "FICTIF fountain", url: "u21", assignees: [], comments: [] }] };
+
+  it("sends an ask the server rebuilt and logs it", async () => {
+    const { app, sent, deps } = make(null, { readGoodFirst: async () => good });
+    const ask = await (await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "I'd like this one." }))).json();
+    expect((await app.request("/api/real/ask/apply", post(ask))).status).toBe(200);
+    expect(sent).toHaveLength(1);
+    expect((await deps.log.latest(1))[0]).toMatchObject({ gesture: "ask", target: "memolabs-dev/project-quest-sandbox#21", result: "applied" });
+  });
+
+  it("refuses an ask outside the configured project, or from a page marked demo", async () => {
+    const { app, sent } = make(null, { readGoodFirst: async () => good });
+    const ask = (await (await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "mine?" }))).json()) as Record<string, unknown>;
+    expect((await app.request("/api/real/ask/apply", post({ ...ask, repo: "dataforgoodfr/real-repo" }))).status).toBe(409);
+    expect((await app.request("/api/real/ask/apply?demo=1", post(ask))).status).toBe(409);
+    expect(sent).toEqual([]);
+  });
+
+  it("never assigns: the only thing an ask sends is a comment", async () => {
+    const { app } = make(null, { readGoodFirst: async () => good });
+    const ask = (await (await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "mine?" }))).json()) as { mutations: { name: string }[] };
+    expect(ask.mutations.map((m) => m.name)).toEqual(["addComment"]);
   });
 });
 

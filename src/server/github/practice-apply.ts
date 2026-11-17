@@ -1,6 +1,7 @@
 // Sends a prepared practice gesture, mutation by mutation, filling in the ids a mutation learns from the one
 // before it. Stops at the first refusal and says what was already done, so nothing half-made is hidden.
 import type { PracticeMutationName, PreparedPractice } from "../../shared/gestures/practice.ts";
+import type { PreparedAsk } from "../../shared/gestures/real.ts";
 import type { Gql, Rest } from "./client.ts";
 
 export type { Rest };
@@ -27,7 +28,7 @@ const githubMessage = (e: unknown) =>
 const fill = (input: Record<string, unknown>, ids: Record<string, string>) =>
   Object.fromEntries(Object.entries(input).map(([k, v]) => [k, typeof v === "string" && v.startsWith("$") && ids[v.slice(1)] ? ids[v.slice(1)] : v]));
 
-export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPractice): Promise<PracticeResult> {
+export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPractice | PreparedAsk): Promise<PracticeResult> {
   const ids: Record<string, string> = {};
   const applied: PracticeMutationName[] = [];
   for (const m of prepared.mutations) {

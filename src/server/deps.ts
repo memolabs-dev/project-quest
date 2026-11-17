@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { loadConfig, type QuestConfig } from "../shared/config.ts";
 import type { PreparedMove } from "../shared/gestures/move.ts";
 import type { PreparedPractice } from "../shared/gestures/practice.ts";
+import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
@@ -34,6 +35,8 @@ export interface Deps {
   applyPractice(p: PreparedPractice): Promise<PracticeResult>;
   /** The configured (real) project's open good first issues. */
   readGoodFirst(): Promise<RealSnapshot>;
+  /** Sends a prepared ask (one comment) on the real project. */
+  applyAsk(p: PreparedAsk): Promise<PracticeResult>;
 }
 
 const PRACTICE_NAME = process.env.QUEST_PRACTICE_REPO || "my-first-site";
@@ -64,6 +67,7 @@ export function liveDeps(config: QuestConfig): Deps {
     readPractice: async (owner, name) => readPractice(await client(), owner, name),
     applyPractice: async (p) => applyPractice(await client(), await restClient(), p),
     readGoodFirst: async () => readGoodFirst(await client(), config),
+    applyAsk: async (p) => applyPractice(await client(), await restClient(), p),
   };
 }
 
@@ -95,6 +99,7 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     // Without GitHub there is no practice site to read: the tutorial still plays.
     readPractice: async () => null,
     applyPractice: noGitHub,
+    applyAsk: noGitHub,
     // The demo site's own good first issues, from its invented board.
     readGoodFirst: async () => ({
       repo: `${config.owner}/${config.repo}`,
