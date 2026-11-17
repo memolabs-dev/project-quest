@@ -165,3 +165,16 @@ describe("the lead's REST step", () => {
     expect(calls[3].input).toEqual({ issueId: "I_2", subIssueId: "I_new" });
   });
 });
+
+describe("a repository the game cannot see", () => {
+  it("explains a name already taken: the token may not reach a private repository", async () => {
+    const { gql } = recording("createRepository");
+    const failing = (async (q: string, v: Record<string, unknown>) => {
+      if (q.includes("createRepository")) throw Object.assign(new Error("x"), { errors: [{ message: "Name already exists on this account" }] });
+      return gql(q, v);
+    }) as Gql;
+    const r = await applyPractice(failing, noRest, prepareFound(viewer, null, "my-first-site", "PRIVATE"));
+    expect(r).toMatchObject({ ok: false, reason: "github" });
+    expect((r as { message: string }).message).toMatch(/already exists.*repo.*scope/i);
+  });
+});

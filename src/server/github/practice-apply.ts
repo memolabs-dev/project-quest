@@ -81,7 +81,12 @@ export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPrac
       // Before any write, access errors (login, scope) are the server's to explain. After one, whatever went
       // wrong, the player is told what was already done on GitHub.
       if (applied.length === 0 && !(e as { errors?: unknown }).errors) throw e;
-      return { ok: false, reason: "github", message: githubMessage(e), applied };
+      let message = githubMessage(e);
+      // A private repository the token cannot read looks "not founded", then its name is taken: say why.
+      if (m.name === "createRepository" && /already exists/i.test(message)) {
+        message += ". It may already exist as a private repository the game cannot read: give the login the repo scope (gh auth refresh -s repo).";
+      }
+      return { ok: false, reason: "github", message, applied };
     }
     applied.push(m.name);
     const out = res?.[m.name] as { repository?: { id?: string }; issue?: { id?: string }; projectV2?: { id?: string; field?: { id?: string } | null } } | undefined;
