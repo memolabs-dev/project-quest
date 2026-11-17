@@ -7,7 +7,9 @@ import { GestureError } from "./move.ts";
 import type { PracticeMutation } from "./practice.ts";
 
 export type TeamKind = "team-found" | "parcels" | "label" | "duplicate" | "checklist" | "size";
-export interface PreparedTeam { kind: TeamKind; repo: string; summary: Record<string, string | number>; mutations: PracticeMutation[] }
+/** The inputs the player gave: what the server rebuilds the gesture from. */
+export type TeamArgs = { visibility?: "PUBLIC" | "PRIVATE"; issueNumber?: number; label?: string; original?: number; items?: string[]; size?: string };
+export interface PreparedTeam { kind: TeamKind; repo: string; args: TeamArgs; mutations: PracticeMutation[] }
 
 const ZONE_LOOK: Record<(typeof ZONES)[number], { color: string; description: string }> = {
   Backlog: { color: "GRAY", description: "The stock: everything that came in" },
@@ -51,7 +53,7 @@ export function prepareFoundTeam(
     } });
   }
   if (mutations.length === 0) throw new GestureError("Your team site is already founded");
-  return { kind: "team-found", repo: `${viewer.login}/${name}`, summary: { name, visibility }, mutations };
+  return { kind: "team-found", repo: `${viewer.login}/${name}`, args: { visibility }, mutations };
 }
 
 export function prepareParcels(team: PracticeSnapshot): PreparedTeam {
@@ -61,7 +63,7 @@ export function prepareParcels(team: PracticeSnapshot): PreparedTeam {
     { name: "createIssue", input: { repositoryId: team.repo.id, title: p.title, body: parcelBody(p) } },
     { name: "addProjectV2ItemById", input: { projectId: team.board!.id, contentId: "$issueId" } },
   ]);
-  return { kind: "parcels", repo: team.repo.nameWithOwner, summary: { count: PARCELS.length }, mutations };
+  return { kind: "parcels", repo: team.repo.nameWithOwner, args: {}, mutations };
 }
 
 export function prepareLabel(team: PracticeSnapshot, issueNumber: number, label: string): PreparedTeam {
@@ -69,7 +71,7 @@ export function prepareLabel(team: PracticeSnapshot, issueNumber: number, label:
   const l = (team.labels ?? []).find((x) => x.name === label);
   if (!l) throw new GestureError(`Your team site has no label "${label}"`);
   return {
-    kind: "label", repo: team.repo.nameWithOwner, summary: { number: issueNumber, label },
+    kind: "label", repo: team.repo.nameWithOwner, args: { issueNumber, label },
     mutations: [{ name: "addLabelsToLabelable", input: { labelableId: i.id, labelIds: [l.id] } }],
   };
 }
@@ -80,7 +82,7 @@ export function prepareCloseDuplicate(team: PracticeSnapshot, issueNumber: numbe
   const original = issueOf(team, originalNumber);
   if (i.closed) throw new GestureError(`Issue #${issueNumber} is already closed`);
   return {
-    kind: "duplicate", repo: team.repo.nameWithOwner, summary: { number: issueNumber, original: originalNumber },
+    kind: "duplicate", repo: team.repo.nameWithOwner, args: { issueNumber, original: originalNumber },
     mutations: [{ name: "closeIssue", input: { issueId: i.id, stateReason: "DUPLICATE", duplicateIssueId: original.id } }],
   };
 }
@@ -91,7 +93,7 @@ export function prepareChecklist(team: PracticeSnapshot, issueNumber: number, it
   if (lines.length === 0) throw new GestureError("A Definition of Ready needs at least one line");
   const body = `${(i.body ?? "").trimEnd()}\n\n## Definition of Ready\n${lines.map((x) => `- [ ] ${x}`).join("\n")}`;
   return {
-    kind: "checklist", repo: team.repo.nameWithOwner, summary: { number: issueNumber, lines: lines.length },
+    kind: "checklist", repo: team.repo.nameWithOwner, args: { issueNumber, items },
     mutations: [{ name: "updateIssue", input: { id: i.id, body } }],
   };
 }
@@ -103,9 +105,25 @@ export function prepareSize(team: PracticeSnapshot, issueNumber: number, size: s
   if (!team.board || !field || !option) throw new GestureError(`Your board has no size "${size}"`);
   if (!i.itemId) throw new GestureError(`Issue #${issueNumber} is not on your board`);
   return {
-    kind: "size", repo: team.repo.nameWithOwner, summary: { number: issueNumber, size },
+    kind: "size", repo: team.repo.nameWithOwner, args: { issueNumber, size },
     mutations: [{ name: "updateProjectV2ItemFieldValue", input: {
       projectId: team.board.id, itemId: i.itemId, fieldId: field.id, value: { singleSelectOptionId: option.id },
     } }],
   };
+}
+
+/** The server's own copy of a lead's gesture, from the player's inputs and a fresh read of the team site. */
+export function rebuildTeam(
+  kind: TeamKind, args: TeamArgs, viewer: { login: string; id: string }, name: string, team: PracticeSnapshot | null,
+): PreparedTeam {
+  if (kind === "team-found") return prepareFoundTeam(viewer, team, name, args.visibility ?? "PRIVATE");
+  if (!team) throw new GestureError("Found your team site first");
+  const n = args.issueNumber ?? NaN;
+  switch (kind) {
+    case "parcels": return prepareParcels(team);
+    case "label": return prepareLabel(team, n, args.label ?? "");
+    case "duplicate": return prepareCloseDuplicate(team, n, args.original ?? NaN);
+    case "checklist": return prepareChecklist(team, n, args.items ?? []);
+    case "size": return prepareSize(team, n, args.size ?? "");
+  }
 }

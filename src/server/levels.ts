@@ -13,12 +13,15 @@ export async function observe(deps: Deps, login: string): Promise<Observed> {
   const stamps = await deps.progress.stamps(login);
   const since = stamps.find((s) => s.levelId === "a15-clean-up")?.stampedAt ?? null;
   const ready = since !== null && !stamps.some((s) => s.levelId === "a16-ask-good-first");
-  const [events, practice, real] = await Promise.all([
+  // The team site is read only for a player on the lead's path.
+  const lead = (await deps.progress.path(login)) === "lead";
+  const [events, practice, real, team] = await Promise.all([
     deps.progress.events(login),
     practiceNameOf(deps, login).then((name) => deps.readPractice(login, name)),
     ready ? deps.readGoodFirst() : Promise.resolve(null),
+    lead ? deps.readPractice(login, deps.teamName) : Promise.resolve(null),
   ]);
-  return { viewer: login, events, practice, real, realSince: since };
+  return { viewer: login, events, practice, real, realSince: since, team };
 }
 
 const PATHS: Path[] = ["volunteer", "lead"];

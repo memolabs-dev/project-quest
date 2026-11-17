@@ -4,6 +4,7 @@ import { loadConfig, type QuestConfig } from "../shared/config.ts";
 import type { PreparedMove } from "../shared/gestures/move.ts";
 import type { PreparedPractice } from "../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../shared/gestures/real.ts";
+import type { PreparedTeam } from "../shared/gestures/team.ts";
 import type { PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
@@ -35,11 +36,15 @@ export interface Deps {
   applyPractice(p: PreparedPractice): Promise<PracticeResult>;
   /** The configured (real) project's open good first issues. */
   readGoodFirst(number?: number): Promise<RealSnapshot>;
+  /** The lead's team site's name (QUEST_TEAM_REPO, else my-first-team). */
+  teamName: string;
+  applyTeam(p: PreparedTeam): Promise<PracticeResult>;
   /** Sends a prepared ask (one comment) on the real project. */
   applyAsk(p: PreparedAsk): Promise<PracticeResult>;
 }
 
 const PRACTICE_NAME = process.env.QUEST_PRACTICE_REPO || "my-first-site";
+const TEAM_NAME = process.env.QUEST_TEAM_REPO || "my-first-team";
 
 const root = new URL("../../", import.meta.url);
 const json = (path: string) => JSON.parse(readFileSync(new URL(path, root), "utf8")) as unknown;
@@ -68,6 +73,8 @@ export function liveDeps(config: QuestConfig): Deps {
     applyPractice: async (p) => applyPractice(await client(), await restClient(), p),
     readGoodFirst: async (n) => readGoodFirst(await client(), config, n),
     applyAsk: async (p) => applyPractice(await client(), await restClient(), p),
+    teamName: TEAM_NAME,
+    applyTeam: async (p) => applyPractice(await client(), await restClient(), p),
   };
 }
 
@@ -100,6 +107,8 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     readPractice: async () => null,
     applyPractice: noGitHub,
     applyAsk: noGitHub,
+    teamName: TEAM_NAME,
+    applyTeam: noGitHub,
     // The demo site's own good first issues, from its invented board.
     readGoodFirst: async (n) => ({
       repo: `${config.owner}/${config.repo}`,

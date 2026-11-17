@@ -41,6 +41,8 @@ const make = (practice: PracticeSnapshot | null, extra: Partial<Deps> & { progre
     applyPractice: async (p) => { sent.push(p); return { ok: true }; },
     readGoodFirst: async () => ({ repo: "fictif-org/fictif-site", issues: [] }),
     applyAsk: async (p) => { sent.push(p as never); return { ok: true }; },
+    teamName: "my-first-team",
+    applyTeam: async (p) => { sent.push(p as never); return { ok: true }; },
     ...extra,
   };
   return { app: createApp(deps), deps, sent };
@@ -150,6 +152,36 @@ describe("asking for a good first issue", () => {
     const { app } = make(null, { readGoodFirst: async () => good });
     const ask = (await (await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "mine?" }))).json()) as { mutations: { name: string }[] };
     expect(ask.mutations.map((m) => m.name)).toEqual(["addComment"]);
+  });
+});
+
+describe("the team site", () => {
+  const team = site({ repo: { id: "R_team", nameWithOwner: "fictif-volunteer/my-first-team", url: "r" } });
+  const reading = (snapshot: PracticeSnapshot | null) => async (_owner: string, name: string) => (name === "my-first-team" ? snapshot : null);
+
+  it("sends a lead gesture the server rebuilt and logs it", async () => {
+    const { app, sent, deps } = make(null, { readPractice: reading(null) });
+    const found = await (await app.request("/api/team/team-found/prepare", post({ visibility: "PRIVATE" }))).json();
+    expect((await app.request("/api/team/team-found/apply", post(found))).status).toBe(200);
+    expect(sent).toHaveLength(1);
+    expect((await deps.log.latest(1))[0]).toMatchObject({ gesture: "team-found", target: "fictif-volunteer/my-first-team", result: "applied" });
+  });
+
+  it("refuses a lead gesture outside the team site", async () => {
+    const { app, sent } = make(null, { readPractice: reading(team) });
+    const parcels = (await (await app.request("/api/team/parcels/prepare", post({}))).json()) as Record<string, unknown>;
+    for (const repo of ["fictif-volunteer/my-first-site", "FICTIF-OTHER/my-first-team"]) {
+      expect((await app.request("/api/team/parcels/apply", post({ ...parcels, repo }))).status).toBe(409);
+    }
+    expect(sent).toEqual([]);
+  });
+
+  it("refuses a lead gesture that does not match a fresh read, or from a page marked demo", async () => {
+    const { app, sent } = make(null, { readPractice: reading(team) });
+    const parcels = (await (await app.request("/api/team/parcels/prepare", post({}))).json()) as { mutations: unknown[] };
+    expect((await app.request("/api/team/parcels/apply", post({ ...parcels, mutations: parcels.mutations.slice(0, 2) }))).status).toBe(409);
+    expect((await app.request("/api/team/parcels/apply?demo=1", post(parcels))).status).toBe(409);
+    expect(sent).toEqual([]);
   });
 });
 

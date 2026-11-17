@@ -12,6 +12,7 @@ import {
 } from "../shared/gestures/practice.ts";
 import type { PracticeSnapshot } from "../shared/levels/types.ts";
 import { prepareAsk, type PreparedAsk } from "../shared/gestures/real.ts";
+import { rebuildTeam, type PreparedTeam, type TeamArgs, type TeamKind } from "../shared/gestures/team.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
 import { SiteError, buildSite, type BoardSnapshot } from "../shared/site.ts";
 import type { Deps } from "./deps.ts";
@@ -63,6 +64,11 @@ function rebuild(claim: PreparedPractice, viewer: { login: string; id: string },
   }
 }
 
+const teamArgs = z.object({
+  visibility: z.enum(["PUBLIC", "PRIVATE"]).optional(), issueNumber: z.number().int().optional(), label: z.string().optional(),
+  original: z.number().int().optional(), items: z.array(z.string()).optional(), size: z.string().optional(),
+}) satisfies z.ZodType<TeamArgs>;
+
 const NOT_YOURS = "Levels write only to your own practice site: nothing was sent";
 
 /** Rebuilds a claimed move from the board and sends it if nothing changed meanwhile. */
@@ -112,9 +118,16 @@ async function practiceContext(deps: Deps) {
   return { login, name, practice };
 }
 
-/** The practice board drawn as a site, or null before it is founded. */
-async function practiceBoard(deps: Deps) {
-  const { login, name, practice } = await practiceContext(deps);
+/** The lead's team site: the same reading as the practice site, under its own name. */
+async function teamContext(deps: Deps) {
+  const { login } = await deps.viewer();
+  const name = deps.teamName;
+  return { login, name, practice: await deps.readPractice(login, name) };
+}
+
+/** The practice (or team) board drawn as a site, or null before it is founded. */
+async function practiceBoard(deps: Deps, site: "practice" | "team" = "practice") {
+  const { login, name, practice } = await (site === "team" ? teamContext(deps) : practiceContext(deps));
   if (!practice?.board) return null;
   const config = practiceConfig(login, name, practice.board.number, practice.board.columns);
   const boardId = practice.board.id;
@@ -148,8 +161,9 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       return c.json({ error: "server", message: "Something went wrong on the server" }, 500);
     })
     .get("/api/site", async (c) => {
-      if (c.req.query("site") === "practice") {
-        const board = await practiceBoard(live);
+      const own = c.req.query("site");
+      if (own === "practice" || own === "team") {
+        const board = await practiceBoard(live, own);
         if (!board) return c.json(PRACTICE_MISSING, 404);
         const viewer = await live.viewer();
         return c.json({ site: buildSite(await board.read(), board.config), viewer, mode: live.mode, demoReason: null });
@@ -296,6 +310,51 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       await record(live, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
       if (!result.ok) return c.json(result);
       return c.json({ ok: true as const, levels: await levels() });
+    })
+    // ---------- The lead's team site (its own guard: only <viewer>/<teamName>) ----------
+    .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size}/prepare", zValidator("json", teamArgs), async (c) => {
+      const { login, name, practice } = await teamContext(live);
+      const viewer = { login, id: c.req.param("kind") === "team-found" ? await live.viewerId() : "" };
+      return c.json(rebuildTeam(c.req.param("kind") as TeamKind, c.req.valid("json"), viewer, name, practice));
+    })
+    .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size}/apply", zValidator("json", z.looseObject({
+      kind: z.string(), repo: z.string(), args: teamArgs, mutations,
+    })), async (c) => {
+      const claim = c.req.valid("json") as unknown as PreparedTeam;
+      if (c.req.query("demo") !== undefined) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
+      const { login, name, practice } = await teamContext(live);
+      const home = `${login}/${name}`;
+      if (claim.kind !== c.req.param("kind") || claim.repo.toLowerCase() !== home.toLowerCase()) {
+        return c.json({ error: "gesture" as const, message: "The lead's gestures write only to your own team site: nothing was sent" }, 409);
+      }
+      const viewer = { login, id: claim.kind === "team-found" ? await live.viewerId() : "" };
+      const rebuilt = rebuildTeam(claim.kind, claim.args, viewer, name, practice);
+      if (!isDeepStrictEqual(rebuilt, claim)) {
+        return c.json({ error: "gesture" as const, message: "This gesture does not match your team site: nothing was sent" }, 409);
+      }
+      const entry = { playerLogin: login, gesture: rebuilt.kind, target: home, payload: rebuilt.mutations };
+      let result: Awaited<ReturnType<Deps["applyTeam"]>>;
+      try {
+        result = await live.applyTeam(rebuilt);
+      } catch (e) {
+        await record(live, { ...entry, result: "failed", githubResponse: { message: e instanceof Error ? e.message : String(e) } });
+        throw e;
+      }
+      await record(live, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
+      if (!result.ok) return c.json(result);
+      return c.json({ ok: true as const, levels: await levels() });
+    })
+    .post("/api/team/moves/prepare", zValidator("json", prepareBody), async (c) => {
+      const board = await practiceBoard(live, "team");
+      if (!board) return c.json(PRACTICE_MISSING, 404);
+      const { itemId, toZone } = c.req.valid("json");
+      return c.json(prepareMove(await board.read(), itemId, toZone, board.config.zones));
+    })
+    .post("/api/team/moves/apply", zValidator("json", preparedBody), async (c) => {
+      const board = await practiceBoard(live, "team");
+      if (!board) return c.json(PRACTICE_MISSING, 404);
+      const config = board.config;
+      return applyClaimedMove(c, live, c.req.valid("json") as PreparedMove, config, board.read, (m) => live.applyMoveFor(config, m));
     })
     .post("/api/practice/moves/prepare", zValidator("json", prepareBody), async (c) => {
       const board = await practiceBoard(live);
