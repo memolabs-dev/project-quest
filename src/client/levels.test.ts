@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
-import { APPRENTICE } from "../shared/levels/apprentice.ts";
+import { LEVELS } from "../shared/levels/index.ts";
 import { laterView, mentorAction, newStamps, siteKindFromUrl } from "./levels.ts";
 
-const ids = APPRENTICE.map((l) => l.id);
+const ids = LEVELS.map((l) => l.id);
 const view = (stamped: number, exists = false): LevelsView => ({
   login: "fictif-volunteer", canWrite: true,
   stamps: ids.slice(0, stamped).map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
   current: ids[stamped] ?? null,
   rank: stamped === ids.length ? "apprentice" : null,
   unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3, trowel: stamped > 6, firstBuilding: stamped > 10 },
-  practice: { name: "my-first-site", exists },
+  practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null },
 });
 
 describe("mentorAction", () => {
@@ -30,8 +30,14 @@ describe("mentorAction", () => {
     expect(mentorAction(view(5, true), "practice")).toBe("take");
     expect(mentorAction(view(6, true), "practice")).toBe("move");
   });
-  it("has nothing to ask once the rank is done", () => {
-    expect(mentorAction(view(7, true), "practice")).toBeNull();
+  it("asks to edit, then to open a pull request, then to answer, then to merge", () => {
+    expect(mentorAction(view(7, true), "practice")).toBe("edit");
+    expect(mentorAction(view(8, true), "practice")).toBe("pull");
+    expect(mentorAction(view(9, true), "practice")).toBe("edit");
+    expect(mentorAction(view(10, true), "practice")).toBe("merge");
+  });
+  it("has nothing to ask once every level is done", () => {
+    expect(mentorAction(view(ids.length, true), "practice")).toBeNull();
   });
 });
 

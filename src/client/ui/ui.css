@@ -118,6 +118,11 @@
 /* The practice gestures reuse the confirmation's panel */
 .practice p, .practice .move { margin: 0 0 10px; }
 .practice .payload { margin-bottom: 10px; }
+.file-text {
+  margin: 0 0 10px; padding: 10px; background: #fff; border: var(--line); border-radius: 8px;
+  font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto;
+}
+.mentor-inspector { border-left: 4px solid var(--accent-ink); padding-left: 8px; }
 .practice-note { font-weight: 700; }
 .field { display: grid; gap: 4px; margin: 0 0 10px; font-weight: 800; }
 .field input, .field textarea, .field select {

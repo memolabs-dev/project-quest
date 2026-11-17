@@ -42,7 +42,16 @@ export interface LevelsView {
   current: string | null;
   rank: Rank | null;
   unlocks: ReturnType<typeof unlocks>;
-  practice: { name: string; exists: boolean };
+  practice: {
+    name: string;
+    exists: boolean;
+    /** README.md on the default branch, for the trowel. */
+    readme: string | null;
+    /** The viewer's open issue on their practice site (the lowest), for the Journeyman's gestures. */
+    issue: number | null;
+    /** The viewer's open pull request that closes an issue. */
+    pull: number | null;
+  };
 }
 
 export type PracticeApplyResponse =

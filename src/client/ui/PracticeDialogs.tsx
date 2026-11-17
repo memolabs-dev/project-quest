@@ -75,6 +75,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice; note?
     <>
       <p className="move">{summary}</p>
       {note && <p className="practice-note">{note}</p>}
+      {prepared.kind === "edit" && <pre className="file-text" aria-label={prepared.path}>{prepared.content}</pre>}
       <p className="payload-label">{t("confirm.payload")}</p>
       <pre className="payload">{JSON.stringify(prepared.mutations, null, 2)}</pre>
       {!canWrite && <p className="practice-note">{t("mentor.connectGithub")}</p>}
@@ -193,10 +194,83 @@ function TakeDialog() {
   );
 }
 
+/** The trowel: the README's whole new text and a message; the confirmation shows both before anything is sent. */
+function EditDialog() {
+  const { t } = useTranslation();
+  const close = useQuest((s) => s.openPractice);
+  const practice = useQuest((s) => s.levels?.practice);
+  const [content, setContent] = useState(practice?.readme ?? `# ${practice?.name ?? ""}\n`);
+  const [message, setMessage] = useState("");
+  const step = useTwoSteps<Awaited<ReturnType<typeof api.prepareEdit>>>();
+  const issue = practice?.issue ?? null;
+  return (
+    <Dialog title={t("practice.edit.title")}>
+      {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
+        <>
+          {practice && practice.readme === null && <p className="practice-note">{t("practice.edit.foundation")}</p>}
+          <label className="field">{t("practice.edit.contentLabel")}<textarea rows={6} value={content} onChange={(e) => setContent(e.target.value)} /></label>
+          <label className="field">{t("practice.edit.messageLabel")}<input value={message} onChange={(e) => setMessage(e.target.value)} /></label>
+          {step.error && <p className="error" role="alert">{step.error}</p>}
+          <div className="actions">
+            <button type="button" className="primary" disabled={issue === null || !message.trim()} onClick={() => void step.run(() => api.prepareEdit(issue!, content, message))}>{t("practice.prepare")}</button>
+            <button type="button" onClick={() => close(null)}>{t("confirm.cancel")}</button>
+          </div>
+        </>
+      )}
+    </Dialog>
+  );
+}
+
+function PullDialog() {
+  const { t } = useTranslation();
+  const close = useQuest((s) => s.openPractice);
+  const issue = useQuest((s) => s.levels?.practice.issue ?? null);
+  const [title, setTitle] = useState("");
+  const [why, setWhy] = useState("");
+  const step = useTwoSteps<Awaited<ReturnType<typeof api.preparePull>>>();
+  return (
+    <Dialog title={t("practice.pull.title")}>
+      {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
+        <>
+          <label className="field">{t("practice.pull.titleLabel")}<input value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+          <label className="field">{t("practice.pull.whyLabel")}<textarea rows={3} value={why} onChange={(e) => setWhy(e.target.value)} /></label>
+          {issue !== null && <p className="practice-note">{t("practice.pull.closes", { number: issue })}</p>}
+          {step.error && <p className="error" role="alert">{step.error}</p>}
+          <div className="actions">
+            <button type="button" className="primary" disabled={issue === null || !title.trim()} onClick={() => void step.run(() => api.preparePull(issue!, title, why))}>{t("practice.prepare")}</button>
+            <button type="button" onClick={() => close(null)}>{t("confirm.cancel")}</button>
+          </div>
+        </>
+      )}
+    </Dialog>
+  );
+}
+
+function MergeDialog() {
+  const { t } = useTranslation();
+  const close = useQuest((s) => s.openPractice);
+  const pull = useQuest((s) => s.levels?.practice.pull ?? null);
+  const step = useTwoSteps<Awaited<ReturnType<typeof api.prepareMerge>>>();
+  return (
+    <Dialog title={t("practice.merge.title")}>
+      {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
+        <>
+          {pull !== null && <p>{t("practice.merge.body", { number: pull })}</p>}
+          {step.error && <p className="error" role="alert">{step.error}</p>}
+          <div className="actions">
+            <button type="button" className="primary" disabled={pull === null} onClick={() => void step.run(() => api.prepareMerge(pull!))}>{t("practice.prepare")}</button>
+            <button type="button" onClick={() => close(null)}>{t("confirm.cancel")}</button>
+          </div>
+        </>
+      )}
+    </Dialog>
+  );
+}
+
+const DIALOGS = { found: FoundDialog, write: WriteDialog, take: TakeDialog, edit: EditDialog, pull: PullDialog, merge: MergeDialog };
+
 export function PracticeDialogs() {
   const d = useQuest((s) => s.practiceDialog);
-  if (d === "found") return <FoundDialog />;
-  if (d === "write") return <WriteDialog />;
-  if (d === "take") return <TakeDialog />;
-  return null;
+  const Open = d ? DIALOGS[d] : null;
+  return Open ? <Open /> : null;
 }

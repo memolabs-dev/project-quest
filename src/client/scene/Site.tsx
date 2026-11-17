@@ -18,7 +18,7 @@ import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
-import { jacketColor, newlyLaid, termiteSpots, workerSpots } from "./show.ts";
+import { buildingKey, jacketColor, newlyLaid, termiteSpots, workerSpots, type BuildingKey } from "./show.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
 
@@ -117,7 +117,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
 
   // Count each building's growths, so its floor grows once per new laid floor batch.
   const previous = useRef<SiteModel | null>(null);
-  const [growths, setGrowths] = useState<Record<number, number>>({});
+  const [growths, setGrowths] = useState<Partial<Record<BuildingKey, number>>>({});
   useEffect(() => {
     const grown = newlyLaid(previous.current, site);
     previous.current = site;
@@ -141,7 +141,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         })}
         {layout.buildings.map((b, i) => (
           <Building key={b.key} model={site.buildings[i]} x={b.x} z={b.z} reduceMotion={reduceMotion}
-            grow={site.buildings[i].epicNumber === null ? 0 : growths[site.buildings[i].epicNumber as number] ?? 0} />
+            grow={growths[buildingKey(site.buildings[i].epicNumber)] ?? 0} />
         ))}
         <TurningCrane position={[width / 2 - 2, 0, BUILDING_ROW_Z + 7]} reduceMotion={reduceMotion} />
         <Termites spots={termites} reduceMotion={reduceMotion} />

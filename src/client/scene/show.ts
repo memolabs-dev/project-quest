@@ -58,13 +58,17 @@ export function idleOffset(login: string): number {
   return (h >>> 0) / 4294967296;
 }
 
+/** A building's key for its growth: its epic number, or "unassigned" for the tasks under no epic. */
+export type BuildingKey = number | "unassigned";
+export const buildingKey = (epicNumber: number | null): BuildingKey => epicNumber ?? "unassigned";
+
 /** Buildings that gained floors since the previous site: each grows once, however many floors came. */
-export function newlyLaid(prev: Site | null, next: Site): number[] {
+export function newlyLaid(prev: Site | null, next: Site): BuildingKey[] {
   if (!prev) return [];
-  const before = new Map(prev.buildings.map((b) => [b.epicNumber, b.floorsDone]));
+  const before = new Map(prev.buildings.map((b) => [buildingKey(b.epicNumber), b.floorsDone]));
   return next.buildings
-    .filter((b) => b.epicNumber !== null && b.floorsDone > (before.get(b.epicNumber) ?? b.floorsDone))
-    .map((b) => b.epicNumber as number);
+    .filter((b) => b.floorsDone > (before.get(buildingKey(b.epicNumber)) ?? b.floorsDone))
+    .map((b) => buildingKey(b.epicNumber));
 }
 
 const WALLS = ["#F2E3C6", "#E9C9B1", "#D9E4D1", "#E7DDEE", "#F4D9A6", "#CFE0EA"];

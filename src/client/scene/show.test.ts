@@ -142,6 +142,10 @@ describe("newlyLaid", () => {
   it("names each building whose floors grew, once, even after several moves", () => {
     expect(newlyLaid(site([[1, 2], [2, 0]]), site([[1, 4], [2, 1]]))).toEqual([1, 2]);
   });
+  it("the unassigned building grows too", () => {
+    const unassigned = (floorsDone: number): Site => ({ zones: [], pallets: [], workers: [], buildings: [{ epicNumber: null, title: "", floorsDone, floorsTotal: 1 }] });
+    expect(newlyLaid(unassigned(0), unassigned(1))).toEqual(["unassigned"]);
+  });
   it("names nothing on the first load, or when floors went down", () => {
     expect(newlyLaid(null, site([[1, 2]]))).toEqual([]);
     expect(newlyLaid(site([[1, 2]]), site([[1, 1]]))).toEqual([]);

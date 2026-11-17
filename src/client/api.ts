@@ -2,7 +2,9 @@
 import type {
   ApiError, ApplyResponse, LevelsView, LoggedActionView, PracticeApplyResponse, PreparedMove, PreparedPractice, SiteResponse,
 } from "../shared/api.ts";
-import type { PreparedFound, PreparedIssue, PreparedTake } from "../shared/gestures/practice.ts";
+import type {
+  PreparedEdit, PreparedFound, PreparedIssue, PreparedMerge, PreparedPull, PreparedTake,
+} from "../shared/gestures/practice.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import { siteKindFromUrl } from "./levels.ts";
 
@@ -43,5 +45,9 @@ export const api = {
   prepareFound: (visibility: "PUBLIC" | "PRIVATE") => call<PreparedFound>("/api/practice/found/prepare", { visibility }),
   prepareIssue: (title: string, body: string) => call<PreparedIssue>("/api/practice/issue/prepare", { title, body }),
   prepareTake: (issueNumber: number, comment: string) => call<PreparedTake>("/api/practice/take/prepare", { issueNumber, comment }),
+  prepareEdit: (issueNumber: number, content: string, message: string) =>
+    call<PreparedEdit>("/api/practice/edit/prepare", { issueNumber, content, message }),
+  preparePull: (issueNumber: number, title: string, why: string) => call<PreparedPull>("/api/practice/pull/prepare", { issueNumber, title, why }),
+  prepareMerge: (pullNumber: number) => call<PreparedMerge>("/api/practice/merge/prepare", { pullNumber }),
   applyPractice: (p: PreparedPractice) => call<PracticeApplyResponse>(`/api/practice/${p.kind}/apply`, p),
 };

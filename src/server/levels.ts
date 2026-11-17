@@ -40,6 +40,17 @@ async function view(deps: Deps, login: string, practice: PracticeSnapshot | null
     current: currentLevel(LEVELS, done)?.id ?? null,
     rank: rankReached(LEVELS, done),
     unlocks: unlocks(done),
-    practice: { name: await practiceNameOf(deps, login), exists: practice !== null },
+    practice: { name: await practiceNameOf(deps, login), exists: practice !== null, ...forGestures(practice, login) },
   };
+}
+
+const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+
+/** What the Journeyman's dialogs need from the practice site. */
+function forGestures(practice: PracticeSnapshot | null, login: string) {
+  const issue = practice?.issues
+    .filter((i) => !i.closed && i.assignees.some((a) => same(a, login)))
+    .sort((a, b) => a.number - b.number)[0];
+  const pull = practice?.pulls.find((p) => p.state === "OPEN" && same(p.author, login) && p.closes.length > 0);
+  return { readme: practice?.readme ?? null, issue: issue?.number ?? null, pull: pull?.number ?? null };
 }

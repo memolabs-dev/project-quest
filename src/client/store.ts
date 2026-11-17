@@ -28,13 +28,15 @@ interface QuestState {
   /** Tutorial events count only on the tutorial site, and only once each. */
   sendEvent(e: TutorialEvent): void;
   /** The practice gesture dialog open, if any. */
-  practiceDialog: "found" | "write" | "take" | null;
-  openPractice(d: "found" | "write" | "take" | null): void;
+  practiceDialog: PracticeDialog | null;
+  openPractice(d: PracticeDialog | null): void;
   setSite(site: Site): void;
   setNear(n: number | null): void;
   open(n: number | null): void;
   setPending(p: PreparedMove | null): void;
 }
+
+export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge";
 
 const sent = new Set<TutorialEvent>();
 const EMPTY_PLOT: Site = { zones: [], buildings: [], pallets: [], workers: [] };

@@ -4,7 +4,7 @@ import { LEVELS } from "../shared/levels/index.ts";
 
 /** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site. */
 export type SiteKind = "main" | "demo" | "practice";
-export type MentorAction = "to-tutorial" | "to-practice" | "found" | "write" | "take" | "move";
+export type MentorAction = "to-tutorial" | "to-practice" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge";
 
 export function siteKindFromUrl(search: string): SiteKind {
   const q = new URLSearchParams(search);
@@ -13,7 +13,10 @@ export function siteKindFromUrl(search: string): SiteKind {
   return q.get("site") === "practice" ? "practice" : "main";
 }
 
-const GESTURES: Record<string, MentorAction> = { "a4-found-site": "found", "a5-write-issue": "write", "a6-take-issue": "take", "a7-move-issue": "move" };
+const GESTURES: Record<string, MentorAction> = {
+  "a4-found-site": "found", "a5-write-issue": "write", "a6-take-issue": "take", "a7-move-issue": "move",
+  "a8-edit-file": "edit", "a9-open-pull": "pull", "a10-answer-review": "edit", "a11-merge": "merge",
+};
 
 export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | null {
   const level = LEVELS.find((l) => l.id === view.current);

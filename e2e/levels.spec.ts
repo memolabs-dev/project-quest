@@ -75,3 +75,29 @@ for (const width of [1280, 375]) {
     await page.screenshot({ path: `e2e/screenshots/levels-skillbook-${width}.png` });
   });
 }
+
+test("a journeyman's edit dialog asks for the text and the message, and sends nothing", async ({ page }) => {
+  await startAgain(page);
+  await graduate(page);
+  await page.goto("/?site=practice");
+  await expect(page.getByTestId("site-canvas")).toBeVisible();
+  await page.evaluate(async () => {
+    const { useQuest } = await import("/src/client/store.ts");
+    const s = useQuest.getState();
+    const ids = ["a1-walk", "a2-read-issue", "a3-read-board", "a4-found-site", "a5-write-issue", "a6-take-issue", "a7-move-issue"];
+    s.setLevels({
+      login: "you", canWrite: false, current: "a8-edit-file", rank: "apprentice",
+      stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
+      unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false },
+      practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null },
+    });
+  });
+  const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
+  await mentor.getByRole("button", { name: /Use the trowel/ }).click();
+  const dialog = page.getByRole("dialog", { name: /Edit your README/ });
+  await expect(dialog.getByLabel(/The file's text/)).toHaveValue("# my-first-site\n");
+  await expect(dialog.getByLabel(/What you changed/)).toBeVisible();
+  await expect(dialog).toContainText(/still empty: the game lays its first stone/);
+  await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
+  await page.screenshot({ path: "e2e/screenshots/levels-edit.png" });
+});
