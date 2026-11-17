@@ -74,6 +74,15 @@ describe("workerSpots", () => {
   const p = (number: number, zone: string, closed = false) =>
     ({ number, itemId: `i${number}`, title: "FICTIF", url: "", zone, closed, discarded: false, building: null, isBug: false, goodFirst: false, trade: null, size: null });
 
+  it("a worker is busy while their pallet is in a middle zone", () => {
+    const three = [{ name: "Backlog", index: 0 }, { name: "In progress", index: 1 }, { name: "Done", index: 2 }];
+    const busy = (zone: string) => workerSpots(
+      { zones: three, buildings: [], pallets: [p(5, zone)], workers: [{ login: "a", avatarUrl: "", carrying: [5] }] },
+      [{ number: 5, x: 0, z: 0 }],
+    )[0].busy;
+    expect(busy("In progress")).toBe(true);
+    expect(busy("Backlog")).toBe(false);
+  });
   it("stands a worker by their current work, not a finished issue", () => {
     const s: Site = { zones, buildings: [], pallets: [p(1, "Done", true), p(5, "Backlog")], workers: [{ login: "a", avatarUrl: "", carrying: [1, 5] }] };
     const spots = workerSpots(s, [{ number: 1, x: 20, z: 0 }, { number: 5, x: 0, z: 0 }]);

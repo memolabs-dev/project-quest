@@ -6,7 +6,7 @@ import { useReducedMotion } from "./motion.ts";
 import { Canvas } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import type { Site as SiteModel } from "../../shared/site.ts";
@@ -22,6 +22,8 @@ import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
 import { jacketColor, solidPallets, termiteSpots, workerSpots } from "./show.ts";
+import { livelyWorkers } from "./people.ts";
+import { playerPosition } from "../moments/player.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
 
@@ -117,6 +119,14 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   const zoneIndex = new Map(site.zones.map((z) => [z.name, z.index]));
   const width = site.zones.length * ZONE_SPACING + 10;
   const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
+  // The twelve workers nearest the foreman live fully; refreshed every second, not every frame.
+  const [lively, setLively] = useState(() => livelyWorkers(spots, playerPosition));
+  useEffect(() => {
+    const update = () => setLively(livelyWorkers(spots, playerPosition));
+    update();
+    const every = setInterval(update, 1000);
+    return () => clearInterval(every);
+  }, [spots]);
   const termites = useMemo(() => termiteSpots(site, layout.pallets), [site, layout]);
   // The Site foreman's reward: on the team site, each yard's sign counts its open pallets.
   const counting = useQuest((s) => s.siteKind === "team" && s.levels?.ranks.lead != null);
@@ -168,7 +178,9 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
           <Piece key={i} name="fence" position={[-(width + 8) / 2 + 1 + i * 2, 0, 6]} outline={0.02} />
         ))}
         {/* Keyed by colour too: a new jacket means a new skeleton, which the animations must bind to. */}
-        {spots.map((s) => <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} />)}
+        {spots.map((s) => (
+          <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} lively={lively.has(s.login)} reduceMotion={reduceMotion} />
+        ))}
         <GateSign x={-width / 2 + 1.5} />
         <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
         <Player pallets={solid} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />

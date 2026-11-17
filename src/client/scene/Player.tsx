@@ -9,6 +9,7 @@ import { Foreman } from "./Foreman.tsx";
 import { badgeInitial } from "./show.ts";
 import { CAMERA_OFFSET as CAMERA_OFFSET_XYZ, LOOK_AHEAD as LOOK_AHEAD_XYZ, SPAWN } from "./layout.ts";
 import { cameraKick } from "../moments/camera.ts";
+import { lastInput, playerPosition } from "../moments/player.ts";
 import { kickAt } from "../moments/play.ts";
 import { useGameSound } from "./useGameSound.ts";
 
@@ -53,6 +54,9 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
     }
     w.x = h.currPos.x;
     w.z = h.currPos.z;
+    playerPosition.x = h.currPos.x;
+    playerPosition.z = h.currPos.z;
+    if (h.isMoving) lastInput.at = performance.now();
     h.setMovement(cardOpen ? {} : getKeys());
     if (h.isMoving && h.moveSpeed > 0.4) sendEvent("walked"); // the store sends it once
     const pos = h.currPos;

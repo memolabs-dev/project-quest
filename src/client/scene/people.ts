@@ -1,7 +1,7 @@
 // How the site's people behave (living site spec, section 4). Pure: the components apply it each frame.
 // No gesture judges a real person's pace: they work, wait, pick up, check, look and wave; never sleep, never get hit.
-import type { Site } from "../../shared/site.ts";
 import { idleOffset } from "./show.ts";
+export { workerBusy } from "./show.ts";
 
 export const GESTURES = ["Idle", "PickUp", "Interact"] as const;
 export type Gesture = (typeof GESTURES)[number];
@@ -24,13 +24,6 @@ export function gestureAt(login: string, n: number): { clip: Gesture; seconds: n
     i = next === i ? (next + 1) % GESTURES.length : next;
   }
   return { clip: GESTURES[i], seconds: 4 + seeded(login, n + 1000) * 5 };
-}
-
-/** A worker is at work while an open pallet they carry stands in a middle zone (not the stock, not done). */
-export function workerBusy(site: Site, carrying: number[]): boolean {
-  const first = site.zones[0]?.name;
-  const last = site.zones[site.zones.length - 1]?.name;
-  return site.pallets.some((p) => carrying.includes(p.number) && !p.closed && p.zone !== first && p.zone !== last);
 }
 
 /** How far a worker's head turns toward the player: within 4 m, clamped to 60°, none with reduced motion. */

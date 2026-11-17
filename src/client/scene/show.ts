@@ -21,7 +21,11 @@ export const crateScale = (size: string | null) => {
   return SIZES[SPELLED[s] ?? s] ?? 1;
 };
 
-export interface WorkerSpot { login: string; avatarUrl: string; trade: string | null; x: number; z: number }
+export interface WorkerSpot {
+  login: string; avatarUrl: string; trade: string | null; x: number; z: number;
+  /** At work: an open pallet they carry stands in a middle zone (people.ts). */
+  busy: boolean;
+}
 
 /**
  * One spot per worker, beside the lowest-numbered pallet they are still working on (GitHub keeps assignees on
@@ -41,7 +45,10 @@ export function workerSpots(site: Site, pallets: { number: number; x: number; z:
     const p = at.get(first)!;
     const k = standing.get(first) ?? 0;
     standing.set(first, k + 1);
-    spots.push({ login: w.login, avatarUrl: w.avatarUrl, trade: byNumber.get(first)?.trade ?? null, x: p.x + 0.7 - k * 0.6, z: p.z - 0.8 });
+    spots.push({
+      login: w.login, avatarUrl: w.avatarUrl, trade: byNumber.get(first)?.trade ?? null, x: p.x + 0.7 - k * 0.6, z: p.z - 0.8,
+      busy: workerBusy(site, w.carrying),
+    });
   }
   return spots;
 }
@@ -107,4 +114,11 @@ export function dronePose(t: number, siteWidth: number, end: CameraPose): Camera
 export function solidPallets<P extends { number: number }>(site: { pallets: { number: number; discarded: boolean }[] }, pallets: P[]): P[] {
   const gone = new Set(site.pallets.filter((p) => p.discarded).map((p) => p.number));
   return pallets.filter((p) => !gone.has(p.number));
+}
+
+/** A worker is at work while an open pallet they carry stands in a middle zone (not the stock, not done). */
+export function workerBusy(site: Site, carrying: number[]): boolean {
+  const first = site.zones[0]?.name;
+  const last = site.zones[site.zones.length - 1]?.name;
+  return site.pallets.some((p) => carrying.includes(p.number) && !p.closed && p.zone !== first && p.zone !== last);
 }
