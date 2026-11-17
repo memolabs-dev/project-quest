@@ -99,7 +99,8 @@
       "refused": "A capacity is a whole number from 1 to 100.",
       "load": "{{sprint}}: {{points}} of {{capacity}} points loaded.",
       "over": "Over capacity: take something off.",
-      "unsized": "Without a size: {{numbers}}."
+      "unsized": "Without a size: {{numbers}}.",
+      "change": "Change the capacity"
     }
   },
   "skills": {

@@ -193,7 +193,10 @@ const isDate = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Dat
 export function prepareMilestone(team: PracticeSnapshot, title: string, dueOn: string, issues: number[], today: string): PreparedTeam {
   const name = title.trim();
   if (!name) throw new GestureError("The visit needs a title");
-  if ((team.milestones ?? []).some((m) => !m.closed && m.title === name)) throw new GestureError(`A milestone "${name}" is already open`);
+  // GitHub keeps milestone titles unique in a repository, closed ones included.
+  if ((team.milestones ?? []).some((m) => m.title.toLowerCase() === name.toLowerCase())) {
+    throw new GestureError(`A milestone "${name}" already exists, open or closed: choose another title`);
+  }
   if (!isDate(dueOn)) throw new GestureError("The due date must be a day, written YYYY-MM-DD");
   if (dueOn < today) throw new GestureError("The due date is already past");
   if (issues.length === 0) throw new GestureError("Choose at least one job the mayor will see");

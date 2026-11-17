@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 import {
-  boardCatchingUp, canFollow, cardGestures, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
+  boardCatchingUp, canFollow, capacityEditable, cardGestures, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
 } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
@@ -124,6 +124,12 @@ describe("the lead's path", () => {
     const loading = lead("l5-sprint", { exists: true, sprint: sprint({ current: "Sprint 1", capacity: 8, loaded: [2] }) });
     expect(cardGestures(loading, 2)).toEqual(["unload"]);
     expect(cardGestures(loading, 3)).toEqual(["load"]);
+  });
+  it("the capacity can be changed while the sprint is planned, never sent to GitHub", () => {
+    const sprint = { ...NO_TEAM.sprint, field: true, current: "Sprint 1", capacity: 1 };
+    expect(capacityEditable(lead("l5-sprint", { exists: true, sprint }))).toBe(true);
+    expect(capacityEditable(lead("l5-sprint", { exists: true, sprint: { ...sprint, current: null } }))).toBe(false);
+    expect(capacityEditable(lead("l6-milestone", { exists: true, sprint }))).toBe(false);
   });
   it("the mayor sets the visit", () => {
     expect(mentorAction(lead("l6-milestone", { exists: true }), "team")).toBe("milestone");

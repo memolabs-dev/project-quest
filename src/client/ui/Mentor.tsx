@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { commandsFor, safeBranch } from "../commands.ts";
 import { api } from "../api.ts";
 import { SIZE_POINTS } from "../../shared/levels/lead.ts";
-import { boardCatchingUp, mentorAction, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
+import { boardCatchingUp, capacityEditable, mentorAction, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
@@ -51,10 +51,10 @@ function Commands({ level }: { level: string }) {
 }
 
 /** The sprint's capacity: the game's rule, said as such, with the points each size counts. */
-function Capacity() {
+function Capacity({ initial }: { initial: number | null }) {
   const { t } = useTranslation();
   const setLevels = useQuest((s) => s.setLevels);
-  const [points, setPoints] = useState(8);
+  const [points, setPoints] = useState(initial ?? 8);
   const [error, setError] = useState(false);
   const save = async () => {
     try {
@@ -89,6 +89,7 @@ export function Mentor() {
   const [checking, setChecking] = useState(false);
   const [cheer, setCheer] = useState<string | null>(null);
   const [notYet, setNotYet] = useState(false);
+  const [changing, setChanging] = useState(false);
 
   // A level just stamped: cheer it for a few seconds, with its "done" line.
   const fresh = levels ? newStamps(before, levels) : [];
@@ -181,7 +182,10 @@ export function Mentor() {
             {t(`team.${action}.open`)}
           </button>
         )}
-        {action === "capacity" && <Capacity />}
+        {action === "capacity" && <Capacity initial={null} />}
+        {action !== "capacity" && capacityEditable(levels) && (changing
+          ? <Capacity initial={levels.team.sprint.capacity} />
+          : <button type="button" onClick={() => setChanging(true)}>{t("mentor.sprint.change")}</button>)}
         {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "to-main" && action !== "to-team"
           && action !== "found-team" && action !== "parcels" && action !== "sprint-field" && action !== "milestone" && action !== "capacity"
           && action !== "move" && action !== "commands" && (

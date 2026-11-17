@@ -159,6 +159,10 @@ describe("the Site manager's gestures", () => {
     expect(() => prepareMilestone(t, "FICTIF Other", "2026-11-29", [], TODAY)).toThrow(GestureError);
     expect(prepareMilestone(t, "FICTIF Other", TODAY, [2], TODAY).mutations).toHaveLength(2);
   });
+  it("refuses a title a closed milestone already holds: GitHub keeps titles unique", () => {
+    const t = team({ issues: [issue(2)], milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: true }] });
+    expect(() => prepareMilestone(t, "FICTIF Visit", "2026-11-29", [2], TODAY)).toThrow(/already/);
+  });
   it("splits into FICTIF parts, each a sub-issue on the board", () => {
     const p = prepareSplit(team({ issues: [issue(3)] }), 3, ["New paving", " ", "FICTIF New lights"]);
     expect(p.mutations).toEqual([

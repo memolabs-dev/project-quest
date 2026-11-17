@@ -109,3 +109,6 @@ export function teamRewards(view: LevelsView, kind: SiteKind) {
     ribbon: kind === "team" && next ? { title: next.title, dueOn: next.dueOn!.slice(0, 10) } : null,
   };
 }
+
+/** While the sprint is planned, the lead can change the capacity they declared: a mistaken 1 must never lock the level. */
+export const capacityEditable = (view: LevelsView) => view.current === "l5-sprint" && view.team.sprint.current !== null;

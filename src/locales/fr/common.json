@@ -99,7 +99,8 @@
       "refused": "Une capacité est un nombre entier de 1 à 100.",
       "load": "{{sprint}} : {{points}} points chargés sur {{capacity}}.",
       "over": "Capacité dépassée : retire quelque chose.",
-      "unsized": "Sans taille : {{numbers}}."
+      "unsized": "Sans taille : {{numbers}}.",
+      "change": "Changer la capacité"
     }
   },
   "skills": {
