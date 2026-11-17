@@ -117,7 +117,7 @@ function ConfirmMove() {
         open(null);
         setNotice(t("confirm.done", { to: zoneLabel(pending.to) }));
         sendEvent("pallet-moved");
-        if (useQuest.getState().siteKind === "practice") void refreshLevels(true);
+        if (useQuest.getState().siteKind === "practice" || useQuest.getState().siteKind === "team") void refreshLevels(true);
       } else if (r.reason === "stale") {
         setPending(null);
         await refresh();

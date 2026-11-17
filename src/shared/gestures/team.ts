@@ -41,9 +41,16 @@ export function prepareFoundTeam(
     mutations.push({ name: "createProjectV2", input: { ownerId: viewer.id, title: name, repositoryId: existing?.repo.id ?? "$repositoryId" } });
   }
   if (JSON.stringify(board?.statusOptions ?? []) !== JSON.stringify(ZONES)) {
+    // Rewriting the options clears every item whose option is not kept (by id): never drop a column in use.
+    const dropped = (board?.statusOptions ?? []).filter((o) => !(ZONES as readonly string[]).includes(o));
+    const inUse = dropped.filter((o) => (existing?.issues ?? []).some((i) => i.status === o));
+    if (inUse.length > 0) {
+      throw new GestureError(`Some issues are still in ${inUse.join(", ")}: move them to one of the five zones first, or they would lose their column`);
+    }
+    const ids = new Map((board?.statusOptionIds ?? []).map((o) => [o.name, o.id]));
     mutations.push({ name: "updateProjectV2Field", input: {
-      fieldId: board?.statusFieldId ?? "$statusFieldId",
-      singleSelectOptions: ZONES.map((z) => ({ name: z, ...ZONE_LOOK[z] })),
+      fieldId: board?.statusFieldId || "$statusFieldId",
+      singleSelectOptions: ZONES.map((z) => ({ ...(ids.has(z) ? { id: ids.get(z) } : {}), name: z, ...ZONE_LOOK[z] })),
     } });
   }
   if (!board?.fields?.some((f) => f.name === "Size")) {
@@ -56,13 +63,20 @@ export function prepareFoundTeam(
   return { kind: "team-found", repo: `${viewer.login}/${name}`, args: { visibility }, mutations };
 }
 
+/** A batch that stopped half-way is completed: only the missing parcels are written, only the loose ones put on the board. */
 export function prepareParcels(team: PracticeSnapshot): PreparedTeam {
-  if (!team.board) throw new GestureError("Found your team site first: it has no board yet");
-  if (team.issues.some((i) => parcelOf(i.body))) throw new GestureError("The mayor's parcels have already arrived");
-  const mutations = PARCELS.flatMap((p): PracticeMutation[] => [
+  const board = team.board;
+  if (!board) throw new GestureError("Found your team site first: it has no board yet");
+  const arrived = new Map(team.issues.flatMap((i) => { const p = parcelOf(i.body); return p ? [[p.key, i] as const] : []; }));
+  const loose = [...arrived.values()].filter((i) => !i.itemId).map((i): PracticeMutation => (
+    { name: "addProjectV2ItemById", input: { projectId: board.id, contentId: i.id } }
+  ));
+  const missing = PARCELS.filter((p) => !arrived.has(p.key)).flatMap((p): PracticeMutation[] => [
     { name: "createIssue", input: { repositoryId: team.repo.id, title: p.title, body: parcelBody(p) } },
-    { name: "addProjectV2ItemById", input: { projectId: team.board!.id, contentId: "$issueId" } },
+    { name: "addProjectV2ItemById", input: { projectId: board.id, contentId: "$issueId" } },
   ]);
+  const mutations = [...loose, ...missing];
+  if (mutations.length === 0) throw new GestureError("The mayor's parcels have already arrived");
   return { kind: "parcels", repo: team.repo.nameWithOwner, args: {}, mutations };
 }
 

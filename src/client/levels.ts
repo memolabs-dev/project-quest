@@ -75,3 +75,6 @@ export const speakerOf = (levelId: string): Speaker => SPEAKERS[levelId] ?? "mem
 /** The parcels exist but GitHub has not listed them on the board yet (seen in the real run: about a minute). */
 export const boardCatchingUp = (view: LevelsView, kind: SiteKind, pallets: number) =>
   kind === "team" && view.team.parcels && pallets === 0;
+
+/** The skill book offers to follow a path the player is not on. */
+export const canFollow = (view: LevelsView, path: "volunteer" | "lead") => (view.path ?? "volunteer") !== path;

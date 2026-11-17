@@ -109,7 +109,8 @@
     "paths": {
       "volunteer": "Lend a hand",
       "lead": "Run the site"
-    }
+    },
+    "follow": "Follow this path"
   },
   "levels": {
     "a1-walk": {

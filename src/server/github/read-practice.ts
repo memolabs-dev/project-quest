@@ -120,6 +120,7 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
     id: p.id, number: p.number, url: p.url, columns,
     statusFieldId: p.field?.id ?? "",
     statusOptions: columns,
+    statusOptionIds: p.field?.options ?? [],
     fields: (p.fields?.nodes ?? []).filter((f) => f.id && f.name).map((f) => ({
       id: f.id!, name: f.name!, dataType: f.dataType ?? "", ...(f.options ? { options: f.options } : {}),
     })),

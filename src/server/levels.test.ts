@@ -168,6 +168,12 @@ describe("the team site", () => {
     expect((await deps.log.latest(1))[0]).toMatchObject({ gesture: "team-found", target: "fictif-volunteer/my-first-team", result: "applied" });
   });
 
+  it("refuses a team site that is the volunteer's practice site", async () => {
+    const { app, sent } = make(null, { readPractice: reading(null), teamName: "my-first-site" });
+    expect((await app.request("/api/team/team-found/prepare", post({ visibility: "PRIVATE" }))).status).toBe(400);
+    expect(sent).toEqual([]);
+  });
+
   it("refuses a lead gesture outside the team site", async () => {
     const { app, sent } = make(null, { readPractice: reading(team) });
     const parcels = (await (await app.request("/api/team/parcels/prepare", post({}))).json()) as Record<string, unknown>;

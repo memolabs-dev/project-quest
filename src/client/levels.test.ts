@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
-import { boardCatchingUp, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf } from "./levels.ts";
+import { boardCatchingUp, canFollow, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
 const view = (stamped: number, exists = false): LevelsView => ({
@@ -83,6 +83,11 @@ describe("mentorAction", () => {
 });
 
 describe("the lead's path", () => {
+  it("lets a player follow the other path from the skill book", () => {
+    expect(canFollow({ ...view(3), path: null }, "lead")).toBe(true);
+    expect(canFollow({ ...view(3), path: "lead" }, "lead")).toBe(false);
+    expect(canFollow({ ...view(3), path: "lead" }, "volunteer")).toBe(true);
+  });
   it("asks the path first", () => {
     expect(needsPath({ ...view(0), path: null })).toBe(true);
     expect(needsPath({ ...view(0), path: "volunteer" })).toBe(false);

@@ -61,6 +61,10 @@ describe("l2-sort-parcels", () => {
     const wrong = sorted().map((i) => (i.stateReason === "DUPLICATE" ? { ...i, stateReason: "NOT_PLANNED", duplicateOf: null } : i));
     expect(level("l2-sort-parcels").check(seen(team({ issues: wrong }))).done).toBe(false);
   });
+  it("needs the duplicate to point at its true original", () => {
+    const wrongTarget = sorted().map((i) => (i.stateReason === "DUPLICATE" ? { ...i, duplicateOf: 1 } : i));
+    expect(level("l2-sort-parcels").check(seen(team({ issues: wrongTarget }))).done).toBe(false);
+  });
   it("needs every open parcel labelled, and all six parcels there", () => {
     const one = sorted().map((i, n) => (n === 0 ? { ...i, labels: [] } : i));
     expect(level("l2-sort-parcels").check(seen(team({ issues: one }))).done).toBe(false);

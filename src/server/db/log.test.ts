@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { assertTestDatabase } from "./test-guard.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./log.ts";
 
 const entry = (n: number) => ({
@@ -21,8 +22,10 @@ const behaves = (name: string, make: () => ActionLog, cleanup?: () => Promise<vo
 describe("action log", () => {
   behaves("memory", memoryActionLog);
 
-  const url = process.env.DATABASE_URL;
+  // Only the test database, never DATABASE_URL: the game's own data must stay out of reach of these tests.
+  const url = process.env.TEST_DATABASE_URL;
   if (url) {
+    assertTestDatabase(url);
     const log = pgActionLog(url);
     behaves("postgres", () => log, async () => {
       await log.clearForTests();

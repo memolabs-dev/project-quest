@@ -122,6 +122,9 @@ async function practiceContext(deps: Deps) {
 async function teamContext(deps: Deps) {
   const { login } = await deps.viewer();
   const name = deps.teamName;
+  if (name.toLowerCase() === (await practiceNameOf(deps, login)).toLowerCase()) {
+    throw new GestureError("The team site cannot be your practice site: give it another name (QUEST_TEAM_REPO)");
+  }
   return { login, name, practice: await deps.readPractice(login, name) };
 }
 

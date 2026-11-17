@@ -26,7 +26,8 @@ export const SITE_FOREMAN: Level[] = [
     const found = parcels(o.team);
     if (new Set(found.map((f) => f.parcel.key)).size < PARCELS.length) return NOT_YET;
     const dup = found.find((f) => f.parcel.duplicateOf);
-    const dupDone = dup && dup.issue.closed && dup.issue.stateReason === "DUPLICATE";
+    const original = found.find((f) => f.parcel.key === dup?.parcel.duplicateOf)?.issue.number;
+    const dupDone = dup && dup.issue.closed && dup.issue.stateReason === "DUPLICATE" && dup.issue.duplicateOf === original;
     const labelled = found.every((f) => f.issue.closed || (f.issue.labels ?? []).length > 0);
     return dupDone && labelled ? { done: true, proof: dup.issue.url } : NOT_YET;
   }),

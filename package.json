@@ -14,7 +14,7 @@
     "api:coverage": "tsx scripts/api-coverage-report.ts",
     "db:up": "docker compose up -d db",
     "db:migrate": "drizzle-kit migrate",
-    "test:db": "DATABASE_URL=${TEST_DATABASE_URL:-postgres://quest:quest@localhost:5442/quest_test} vitest run src/server/db",
+    "test:db": "TEST_DATABASE_URL=${TEST_DATABASE_URL:-postgres://quest:quest@localhost:5442/quest_test} vitest run src/server/db",
     "dev:demo": "QUEST_MODE=demo vite",
     "dev:live": "QUEST_MODE=live vite",
     "check": "tsc -b && oxlint && vitest run",

@@ -61,6 +61,8 @@ export interface PracticeSnapshot {
     statusFieldId?: string;
     /** The Status options, in order (the same as columns). */
     statusOptions?: string[];
+    /** The same options with their ids: kept when the options are rewritten, so items keep their column. */
+    statusOptionIds?: { id: string; name: string }[];
     fields?: BoardField[];
   } | null;
   /** The repository's labels, with their ids (for labelling). */

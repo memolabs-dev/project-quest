@@ -35,6 +35,20 @@ describe("prepareFoundTeam", () => {
     expect(p.mutations[0].input).toMatchObject({ fieldId: "F_status" });
     expect(p.mutations[1].input).toMatchObject({ projectId: "PVT_team" });
   });
+  it("keeps the options that already exist, so their items keep their column", () => {
+    const old = team({ board: { ...team().board!, statusOptions: ["Backlog", "Done"], statusOptionIds: [{ id: "opt_b", name: "Backlog" }, { id: "opt_d", name: "Done" }] } });
+    const options = prepareFoundTeam(viewer, old, "my-first-team", "PRIVATE").mutations[0].input.singleSelectOptions as { id?: string; name: string }[];
+    expect(options.find((o) => o.name === "Backlog")?.id).toBe("opt_b");
+    expect(options.find((o) => o.name === "Done")?.id).toBe("opt_d");
+    expect(options.find((o) => o.name === "Ready")?.id).toBeUndefined();
+  });
+  it("refuses to drop a column that still holds items", () => {
+    const old = team({
+      board: { ...team().board!, statusOptions: ["Todo", "Done"], statusOptionIds: [{ id: "opt_t", name: "Todo" }, { id: "opt_d", name: "Done" }] },
+      issues: [issue(1, { status: "Todo" })],
+    });
+    expect(() => prepareFoundTeam(viewer, old, "my-first-team", "PRIVATE")).toThrow(/Todo/);
+  });
   it("founds nothing when the site is complete", () => {
     expect(() => prepareFoundTeam(viewer, team(), "my-first-team", "PRIVATE")).toThrow(GestureError);
   });
@@ -48,8 +62,18 @@ describe("prepareParcels", () => {
     expect(p.mutations[0].input).toMatchObject({ repositoryId: "R_team", body: parcelBody(PARCELS[0]) });
     expect(p.mutations[1]).toEqual({ name: "addProjectV2ItemById", input: { projectId: "PVT_team", contentId: "$issueId" } });
   });
-  it("refuses the parcels twice", () => {
-    expect(() => prepareParcels(team({ issues: [issue(1, { body: parcelBody(PARCELS[0]) })] }))).toThrow(GestureError);
+  it("sends only what is missing after a batch stopped half-way", () => {
+    const half = team({ issues: [
+      issue(1, { body: parcelBody(PARCELS[0]) }),
+      issue(2, { body: parcelBody(PARCELS[1]), itemId: null }),
+    ] });
+    const p = prepareParcels(half);
+    expect(p.mutations.filter((m) => m.name === "createIssue").map((m) => m.input.title)).toEqual(PARCELS.slice(2).map((x) => x.title));
+    expect(p.mutations[0]).toEqual({ name: "addProjectV2ItemById", input: { projectId: "PVT_team", contentId: "I_2" } });
+  });
+  it("refuses the parcels once all six are there, on the board", () => {
+    const all = team({ issues: PARCELS.map((x, n) => issue(n + 1, { body: parcelBody(x) })) });
+    expect(() => prepareParcels(all)).toThrow(GestureError);
   });
 });
 
