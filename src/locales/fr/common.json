@@ -73,15 +73,20 @@
     "connectGithub": "Pour le faire pour de vrai, le bureau de chantier a besoin de ta clé GitHub : lance gh auth login, puis recharge.",
     "rankDone": {
       "apprentice": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant.",
-      "journeyman": "Te voilà compagne ou compagnon. Ta première contribution est entrée, de la branche à la fusion. La suite : les vrais projets."
+      "journeyman": "Te voilà compagne ou compagnon. Ta première contribution est entrée, de la branche à la fusion. La suite : les vrais projets.",
+      "team-leader": "Te voilà cheffe ou chef d'équipe. Tu connais git de bout en bout. Les vrais projets t'attendent."
     },
-    "fold": "Replier Mémé"
+    "fold": "Replier Mémé",
+    "copy": "Copier",
+    "copied": "Copié",
+    "commands": "Tape ceci dans un terminal :"
   },
   "skills": {
     "title": "Compétences",
     "rank": {
       "apprentice": "Apprenti",
-      "journeyman": "Compagnon"
+      "journeyman": "Compagnon",
+      "team-leader": "Chef d'équipe"
     },
     "proof": "Voir sur GitHub",
     "tutorial": "Fait sur le chantier d'apprentissage",
@@ -153,6 +158,30 @@
       "goal": "Fusionne ta pull request. Ton issue se ferme et ton premier étage monte.",
       "lesson": "Fusionner, c'est poser l'étage pour de vrai : ton travail rejoint la branche principale, et l'issue qu'il ferme est finie.",
       "done": "Le voilà, ton premier étage. Te voilà compagne ou compagnon."
+    },
+    "a12-push-branch": {
+      "skill": "Pousser une branche",
+      "goal": "Sur ta machine : clone ton chantier, crée une branche, change le README, fais un commit, pousse. Les commandes sont juste en dessous.",
+      "lesson": "Place aux vrais outils. Tout ce que tu as fait avec la truelle, git le fait sur ta machine. GitHub ne le voit qu'au moment où tu pousses.",
+      "done": "Ta branche arrive tout droit de ta machine. C'est comme ça que travaillent les pros."
+    },
+    "a13-bring-main": {
+      "skill": "Ramener les nouveautés de main",
+      "goal": "La maire a changé le plan sur main. Ramène main dans ta branche sur ta machine, puis pousse.",
+      "lesson": "Les autres travaillent pendant que tu travailles. Avant de rendre ton travail, prends le leur, pour que rien ne se cogne plus tard.",
+      "done": "À jour avec main. Pas de surprise à la fusion."
+    },
+    "a14-fix-from-machine": {
+      "skill": "Corriger une pull request depuis ta machine",
+      "goal": "Ouvre la pull request depuis ta branche, puis pousse une correction depuis ta machine : un nouveau commit sur la même branche.",
+      "lesson": "Comme avec la truelle : la pull request suit ta branche. Pousse encore, elle se met à jour toute seule.",
+      "done": "Corrigé depuis ta machine. La pull request l'a pris."
+    },
+    "a15-clean-up": {
+      "skill": "Faire le ménage",
+      "goal": "Fusionne ta pull request, puis supprime ta branche, sur GitHub et sur ta machine.",
+      "lesson": "Une branche fusionnée, c'est un travail fini. Balaie le chantier : supprime-la, pour que la personne suivante ne voie que le travail en cours.",
+      "done": "Chantier balayé. Te voilà cheffe ou chef d'équipe."
     }
   },
   "practice": {
@@ -193,7 +222,8 @@
       "foundation": "D'abord, poser la première pierre : un README comme premier commit de {{repo}}.",
       "edit": "Écrire {{path}} sur la branche {{branch}}, avec le message « {{message}} ».",
       "pull": "Ouvrir une pull request depuis {{branch}}, « {{title}} », qui ferme l'issue n°{{number}}.",
-      "merge": "Fusionner la pull request n°{{number}} dans la branche principale de {{repo}}."
+      "merge": "Fusionner la pull request n°{{number}} dans la branche principale de {{repo}}.",
+      "mayor": "Ajouter la ligne de la maire à PLAN.md sur {{branch}} de {{repo}}."
     },
     "edit": {
       "open": "Prendre la truelle",
@@ -215,7 +245,12 @@
       "body": "La pull request n°{{number}} rejoint ta branche principale, et l'issue qu'elle ferme est fermée."
     },
     "blockedIssue": "Aucune issue ouverte à toi sur ton chantier : prends-en une d'abord, ton travail se fait sur une issue qui est à toi.",
-    "blockedPull": "Aucune pull request ouverte à toi ne ferme une issue : ouvre-en une d'abord."
+    "blockedPull": "Aucune pull request ouverte à toi ne ferme une issue : ouvre-en une d'abord.",
+    "mayor": {
+      "open": "Laisser la maire changer le plan",
+      "title": "La maire change le plan",
+      "body": "La maire ajoute une ligne à PLAN.md sur main. Ta branche devra ensuite se mettre à jour."
+    }
   },
   "inspector": {
     "name": "L'inspectrice",

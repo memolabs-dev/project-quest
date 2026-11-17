@@ -73,15 +73,20 @@
     "connectGithub": "To do it for real, the site office needs your GitHub key: run gh auth login, then reload.",
     "rankDone": {
       "apprentice": "That's the Apprentice rank. You know your way around now.",
-      "journeyman": "That's the Journeyman rank. Your first contribution is in, from branch to merge. Real projects are next."
+      "journeyman": "That's the Journeyman rank. Your first contribution is in, from branch to merge. Real projects are next.",
+      "team-leader": "That's the Team leader rank. You know git from end to end. Real projects are waiting for you."
     },
-    "fold": "Fold Mémé away"
+    "fold": "Fold Mémé away",
+    "copy": "Copy",
+    "copied": "Copied",
+    "commands": "Type these in a terminal:"
   },
   "skills": {
     "title": "Skills",
     "rank": {
       "apprentice": "Apprentice",
-      "journeyman": "Journeyman"
+      "journeyman": "Journeyman",
+      "team-leader": "Team leader"
     },
     "proof": "See it on GitHub",
     "tutorial": "Done on the tutorial site",
@@ -153,6 +158,30 @@
       "goal": "Merge your pull request. Your issue closes and your first floor goes up.",
       "lesson": "Merging is laying the floor for real: your work joins main, and the issue it closes is done.",
       "done": "There it is, your first floor. You're a journeyman now."
+    },
+    "a12-push-branch": {
+      "skill": "Push a branch",
+      "goal": "On your machine: clone your site, make a branch, change the README, commit, push. The commands are below.",
+      "lesson": "Now the real tools. Everything you did with the trowel, git does on your machine. GitHub only sees it when you push.",
+      "done": "Your branch came all the way from your machine. That's how the pros work."
+    },
+    "a13-bring-main": {
+      "skill": "Bring main's latest in",
+      "goal": "The mayor changed the plan on main. Bring main into your branch on your machine, then push.",
+      "lesson": "Others keep working while you do. Before you hand in, take their latest work into yours, so nothing clashes later.",
+      "done": "Up to date with main. No surprise at the merge."
+    },
+    "a14-fix-from-machine": {
+      "skill": "Fix a pull request from your machine",
+      "goal": "Open the pull request from your branch, then push a fix from your machine: a new commit on the same branch.",
+      "lesson": "Same as with the trowel: the pull request follows your branch. Push again and it updates by itself.",
+      "done": "Fixed from your machine. The pull request took it in."
+    },
+    "a15-clean-up": {
+      "skill": "Clean up",
+      "goal": "Merge your pull request, then delete your branch, on GitHub and on your machine.",
+      "lesson": "A merged branch is a finished job. Sweep the site: delete it, so the next person sees only work in progress.",
+      "done": "Site swept. You're a team leader now."
     }
   },
   "practice": {
@@ -193,7 +222,8 @@
       "foundation": "First, lay the foundation stone: a README as the first commit of {{repo}}.",
       "edit": "Write {{path}} on the branch {{branch}}, with the message \"{{message}}\".",
       "pull": "Open a pull request from {{branch}}, \"{{title}}\", which closes issue #{{number}}.",
-      "merge": "Merge pull request #{{number}} into the main branch of {{repo}}."
+      "merge": "Merge pull request #{{number}} into the main branch of {{repo}}.",
+      "mayor": "Add the mayor's line to PLAN.md on {{branch}} of {{repo}}."
     },
     "edit": {
       "open": "Use the trowel",
@@ -215,7 +245,12 @@
       "body": "Pull request #{{number}} joins your main branch, and the issue it closes is closed."
     },
     "blockedIssue": "No open issue of yours on your site: take one first, your work happens on an issue that is yours.",
-    "blockedPull": "No open pull request of yours closes an issue: open one first."
+    "blockedPull": "No open pull request of yours closes an issue: open one first.",
+    "mayor": {
+      "open": "Let the mayor change the plan",
+      "title": "The mayor changes the plan",
+      "body": "The mayor adds a line to PLAN.md on main. Your branch then has to catch up."
+    }
   },
   "inspector": {
     "name": "The inspector",

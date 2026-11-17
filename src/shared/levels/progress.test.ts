@@ -25,10 +25,18 @@ describe("progress", () => {
     expect(unlocks(new Set(ids))).toMatchObject({ trowel: true, firstBuilding: false });
     expect(unlocks(new Set([...ids, "a8-edit-file", "a9-open-pull", "a10-answer-review", "a11-merge"]))).toMatchObject({ trowel: true, firstBuilding: true });
   });
+  it("the van comes with the Journeyman rank, the real projects with the clean-up", () => {
+    const journeyman = [...ids, "a8-edit-file", "a9-open-pull", "a10-answer-review", "a11-merge"];
+    expect(unlocks(new Set(ids))).toMatchObject({ van: false, realProjects: false });
+    expect(unlocks(new Set(journeyman))).toMatchObject({ van: true, realProjects: false });
+    expect(unlocks(new Set(LEVELS.map((l) => l.id)))).toMatchObject({ van: true, realProjects: true });
+  });
   it("reaches the Journeyman rank after the Apprentice one", () => {
     const all = LEVELS.map((l) => l.id);
+    const journeyman = LEVELS.filter((l) => l.rank !== "team-leader").map((l) => l.id);
     expect(rankReached(LEVELS, new Set(ids))).toBe("apprentice");
-    expect(rankReached(LEVELS, new Set(all))).toBe("journeyman");
+    expect(rankReached(LEVELS, new Set(journeyman))).toBe("journeyman");
+    expect(rankReached(LEVELS, new Set(all))).toBe("team-leader");
     expect(currentLevel(LEVELS, new Set(ids))?.id).toBe("a8-edit-file");
   });
 });

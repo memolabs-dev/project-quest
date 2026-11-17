@@ -1,5 +1,6 @@
 // Where a player stands: the next level, the rank reached, what is unlocked. Pure, from the set of stamped levels.
 import { APPRENTICE } from "./apprentice.ts";
+import { JOURNEYMAN } from "./journeyman.ts";
 import type { Level, Rank } from "./types.ts";
 
 export function currentLevel(levels: Level[], stamped: ReadonlySet<string>): Level | null {
@@ -26,5 +27,8 @@ export function unlocks(stamped: ReadonlySet<string>) {
     /** File editing in the game, the Journeyman's tool: earned with the Apprentice rank. */
     trowel: APPRENTICE.every((l) => stamped.has(l.id)),
     firstBuilding: stamped.has("a11-merge"),
+    /** git on the player's machine, the Team leader's tool: earned with the Journeyman rank. */
+    van: [...APPRENTICE, ...JOURNEYMAN].every((l) => stamped.has(l.id)),
+    realProjects: stamped.has("a15-clean-up"),
   };
 }

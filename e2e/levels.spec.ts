@@ -71,7 +71,7 @@ for (const width of [1280, 375]) {
     await page.getByRole("button", { name: "Skills" }).click();
     const book = page.getByRole("region", { name: "Skills" });
     await expect(book.locator("li.earned")).toHaveCount(3);
-    await expect(book.locator("li.outline")).toHaveCount(8);
+    await expect(book.locator("li.outline")).toHaveCount(12);
     await page.screenshot({ path: `e2e/screenshots/levels-skillbook-${width}.png` });
   });
 }
@@ -88,7 +88,7 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
     s.setLevels({
       login: "you", canWrite: false, current: "a8-edit-file", rank: "apprentice",
       stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
-      unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false },
+      unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false, van: false, realProjects: false },
       practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null },
     });
   });
