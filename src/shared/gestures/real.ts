@@ -14,6 +14,9 @@ export function prepareAsk(real: RealSnapshot, viewer: string, issueNumber: numb
   if (issue.assignees.some((a) => !same(a, viewer))) {
     throw new GestureError(`Issue #${issueNumber} is already someone's: nobody is taken from`);
   }
+  if (issue.comments.some((c) => same(c.author, viewer))) {
+    throw new GestureError(`You already asked for issue #${issueNumber}: a maintainer will answer`);
+  }
   const body = comment.trim();
   if (!body) throw new GestureError("Say it in a comment: it cannot be empty");
   return {

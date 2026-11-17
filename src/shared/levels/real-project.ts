@@ -10,7 +10,8 @@ export const REAL_PROJECT: Level[] = [{
   where: "real",
   check: (o) => {
     for (const issue of o.real?.issues ?? []) {
-      const asked = issue.comments.find((c) => same(c.author, o.viewer));
+      // Only a comment written once the level began: an old remark is not an ask.
+      const asked = issue.comments.find((c) => same(c.author, o.viewer) && !!o.realSince && c.createdAt > o.realSince);
       if (asked) return { done: true, proof: asked.url };
     }
     return NOT_YET;

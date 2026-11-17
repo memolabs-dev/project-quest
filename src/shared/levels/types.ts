@@ -67,7 +67,7 @@ export interface PracticeSnapshot {
 /** The real project's open issues marked for newcomers, with their comments. */
 export interface RealSnapshot {
   repo: string;
-  issues: { id: string; number: number; title: string; url: string; assignees: string[]; comments: { author: string; url: string }[] }[];
+  issues: { id: string; number: number; title: string; url: string; assignees: string[]; comments: { author: string; url: string; createdAt: string }[] }[];
 }
 
 export interface Observed {
@@ -76,6 +76,8 @@ export interface Observed {
   practice: PracticeSnapshot | null;
   /** Read only once the Team leader rank is done. */
   real?: RealSnapshot | null;
+  /** When the last level began (the Team leader rank's last stamp): older comments never count. */
+  realSince?: string | null;
 }
 
 /** A level passed, with its proof. */

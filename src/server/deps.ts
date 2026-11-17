@@ -34,7 +34,7 @@ export interface Deps {
   readPractice(owner: string, name: string): Promise<PracticeSnapshot | null>;
   applyPractice(p: PreparedPractice): Promise<PracticeResult>;
   /** The configured (real) project's open good first issues. */
-  readGoodFirst(): Promise<RealSnapshot>;
+  readGoodFirst(number?: number): Promise<RealSnapshot>;
   /** Sends a prepared ask (one comment) on the real project. */
   applyAsk(p: PreparedAsk): Promise<PracticeResult>;
 }
@@ -66,7 +66,7 @@ export function liveDeps(config: QuestConfig): Deps {
     practiceName: PRACTICE_NAME,
     readPractice: async (owner, name) => readPractice(await client(), owner, name),
     applyPractice: async (p) => applyPractice(await client(), await restClient(), p),
-    readGoodFirst: async () => readGoodFirst(await client(), config),
+    readGoodFirst: async (n) => readGoodFirst(await client(), config, n),
     applyAsk: async (p) => applyPractice(await client(), await restClient(), p),
   };
 }
@@ -101,10 +101,10 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     applyPractice: noGitHub,
     applyAsk: noGitHub,
     // The demo site's own good first issues, from its invented board.
-    readGoodFirst: async () => ({
+    readGoodFirst: async (n) => ({
       repo: `${config.owner}/${config.repo}`,
       issues: board.items
-        .filter((i) => i.state === "OPEN" && i.labels.some((l) => config.labels.goodFirst.includes(l)))
+        .filter((i) => i.state === "OPEN" && i.labels.some((l) => config.labels.goodFirst.includes(l)) && (n === undefined || i.number === n))
         .map((i) => ({ id: i.issueId, number: i.number, title: i.title, url: i.url, assignees: i.assignees.map((a) => a.login), comments: [] })),
     }),
   };

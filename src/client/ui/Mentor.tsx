@@ -7,6 +7,7 @@ import { mentorAction, newStamps, noGoodFirst } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
+const NO_PALLETS: { goodFirst: boolean; closed: boolean }[] = [];
 
 /** The commands to type on the player's machine, one Copy button each. The game never runs them. */
 function Commands({ level }: { level: string }) {
@@ -52,6 +53,7 @@ export function Mentor() {
   const levels = useQuest((s) => s.levels);
   const before = useQuest((s) => s.levelsBefore);
   const kind = useQuest((s) => s.siteKind);
+  const pallets = useQuest((s) => s.site?.pallets ?? NO_PALLETS);
   const refreshLevels = useQuest((s) => s.refreshLevels);
   const openPractice = useQuest((s) => s.openPractice);
   const [folded, setFolded] = useState(false);
@@ -107,7 +109,7 @@ export function Mentor() {
           {levels.stamps.length === 0 && <p>{t("mentor.hello")}</p>}
           <p>{t(`levels.${current}.lesson`)}</p>
           <p className="mentor-goal">{t(`levels.${current}.goal`)}</p>
-          {noGoodFirst(levels) && <p className="mentor-notyet">{t("mentor.noGoodFirst")}</p>}
+          {kind === "main" && noGoodFirst(levels, pallets) && <p className="mentor-notyet">{t("mentor.noGoodFirst")}</p>}
           {current === "a10-answer-review" && (
             <p className="mentor-inspector"><b>{t("inspector.name")}</b><br />{t("inspector.remark")}</p>
           )}

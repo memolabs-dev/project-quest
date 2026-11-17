@@ -51,5 +51,6 @@ export function laterView(shown: LevelsView | null, next: LevelsView): LevelsVie
   return shown && next.stamps.length < shown.stamps.length ? shown : next;
 }
 
-/** At the last level, the real project has nothing marked for newcomers: the mentor says so instead of a dead end. */
-export const noGoodFirst = (view: LevelsView) => view.current === "a16-ask-good-first" && view.real?.issues === 0;
+/** At the last level, the real site shows no open pallet marked for newcomers: the mentor says so instead of a dead end. */
+export const noGoodFirst = (view: LevelsView, pallets: { goodFirst: boolean; closed: boolean }[]) =>
+  view.current === "a16-ask-good-first" && !pallets.some((p) => p.goodFirst && !p.closed);

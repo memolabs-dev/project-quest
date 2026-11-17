@@ -20,8 +20,8 @@ describe("readGoodFirst", () => {
         id: "I_gf_21", number: 21, title: "FICTIF The mayor's small idea: a fountain", url: "https://github.com/fictif-org/fictif-site/issues/21",
         assignees: [],
         comments: [
-          { author: "fictif-volunteer", url: "https://github.com/fictif-org/fictif-site/issues/21#issuecomment-1" },
-          { author: "ghost", url: "https://github.com/fictif-org/fictif-site/issues/21#issuecomment-2" },
+          { author: "fictif-volunteer", url: "https://github.com/fictif-org/fictif-site/issues/21#issuecomment-1", createdAt: "2026-11-17T12:00:00Z" },
+          { author: "ghost", url: "https://github.com/fictif-org/fictif-site/issues/21#issuecomment-2", createdAt: "2026-11-17T12:05:00Z" },
         ],
       }],
     });

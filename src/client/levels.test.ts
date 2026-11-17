@@ -66,10 +66,12 @@ describe("mentorAction", () => {
     expect(mentorAction(at16, "practice")).toBe("to-main");
     expect(mentorAction(at16, "main")).toBeNull();
   });
-  it("says when the real project has no good first issue", () => {
-    expect(noGoodFirst({ ...view(15, true), real: { issues: 0 } })).toBe(true);
-    expect(noGoodFirst({ ...view(15, true), real: { issues: 2 } })).toBe(false);
-    expect(noGoodFirst(view(14, true))).toBe(false);
+  it("says when the real site shows no good first issue to ask for", () => {
+    const pallet = (o: { goodFirst: boolean; closed?: boolean }) => ({ goodFirst: o.goodFirst, closed: o.closed ?? false });
+    expect(noGoodFirst(view(15, true), [pallet({ goodFirst: false })])).toBe(true);
+    expect(noGoodFirst(view(15, true), [pallet({ goodFirst: true, closed: true })])).toBe(true);
+    expect(noGoodFirst(view(15, true), [pallet({ goodFirst: true })])).toBe(false);
+    expect(noGoodFirst(view(14, true), [])).toBe(false);
   });
   it("has nothing to ask once every level is done", () => {
     expect(mentorAction(view(ids.length, true), "practice")).toBeNull();

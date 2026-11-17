@@ -9,14 +9,16 @@ import type { Deps } from "./deps.ts";
 export const practiceNameOf = async (deps: Deps, login: string) => (await deps.progress.practiceRepo(login)) ?? deps.practiceName;
 
 export async function observe(deps: Deps, login: string): Promise<Observed> {
-  // The real project is read only once the Team leader rank is done: earlier levels cost no extra query.
-  const ready = (await deps.progress.stamps(login)).some((s) => s.levelId === "a15-clean-up");
+  // The real project is read only while the last level is being played: no extra query before, nor after.
+  const stamps = await deps.progress.stamps(login);
+  const since = stamps.find((s) => s.levelId === "a15-clean-up")?.stampedAt ?? null;
+  const ready = since !== null && !stamps.some((s) => s.levelId === "a16-ask-good-first");
   const [events, practice, real] = await Promise.all([
     deps.progress.events(login),
     practiceNameOf(deps, login).then((name) => deps.readPractice(login, name)),
     ready ? deps.readGoodFirst() : Promise.resolve(null),
   ]);
-  return { viewer: login, events, practice, real };
+  return { viewer: login, events, practice, real, realSince: since };
 }
 
 /** Runs the checks in order, stamps every newly passing level, stops at the first that does not pass. */

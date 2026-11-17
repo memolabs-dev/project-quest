@@ -65,7 +65,7 @@ function PalletCard({ number }: { number: number }) {
       )}
       {error && <p className="error" role="alert">{error}</p>}
       {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
-      {asking && pallet.goodFirst && !pallet.closed && (
+      {asking && pallet.goodFirst && !pallet.closed && workers.length === 0 && (
         <button type="button" className="got-it" onClick={() => ask(pallet.number)}>{t("practice.ask.open")}</button>
       )}
       <div className="card-foot">

@@ -115,6 +115,37 @@ describe("asking for a good first issue", () => {
     expect(sent).toEqual([]);
   });
 
+  it("refuses a crafted ask: another node, an extra mutation, an edited comment", async () => {
+    const { app, sent } = make(null, { readGoodFirst: async () => good });
+    const ask = (await (await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "mine?" }))).json()) as {
+      mutations: { name: string; input: Record<string, unknown> }[]; comment: string;
+    };
+    const m = ask.mutations[0];
+    for (const claim of [
+      { ...ask, mutations: [{ ...m, input: { ...m.input, subjectId: "I_someone_else" } }] },
+      { ...ask, mutations: [m, { name: "addAssigneesToAssignable", input: { assignableId: "I_21", assigneeIds: ["U"] } }] },
+      { ...ask, comment: "something else" },
+    ]) {
+      expect((await app.request("/api/real/ask/apply", post(claim))).status).toBe(409);
+    }
+    expect(sent).toEqual([]);
+  });
+
+  it("refuses an ask on an issue closed or unlabelled between prepare and apply", async () => {
+    let reads = 0;
+    const { app, sent } = make(null, { readGoodFirst: async () => (++reads === 1 ? good : { ...good, issues: [] }) });
+    const ask = await (await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "mine?" }))).json();
+    expect((await app.request("/api/real/ask/apply", post(ask))).status).toBe(400);
+    expect(sent).toEqual([]);
+  });
+
+  it("asks the project for the one issue, so its age never hides it", async () => {
+    const asked: (number | undefined)[] = [];
+    const { app } = make(null, { readGoodFirst: async (n?: number) => { asked.push(n); return good; } });
+    await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "mine?" }));
+    expect(asked).toContain(21);
+  });
+
   it("never assigns: the only thing an ask sends is a comment", async () => {
     const { app } = make(null, { readGoodFirst: async () => good });
     const ask = (await (await app.request("/api/real/ask/prepare", post({ issueNumber: 21, comment: "mine?" }))).json()) as { mutations: { name: string }[] };

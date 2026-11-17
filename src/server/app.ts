@@ -264,7 +264,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
     .post("/api/real/ask/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), comment: z.string() })), async (c) => {
       const { login } = await live.viewer();
       const { issueNumber, comment } = c.req.valid("json");
-      return c.json(prepareAsk(await live.readGoodFirst(), login, issueNumber, comment));
+      return c.json(prepareAsk(await live.readGoodFirst(issueNumber), login, issueNumber, comment));
     })
     .post("/api/real/ask/apply", zValidator("json", z.looseObject({
       kind: z.literal("ask"), repo: z.string(), issueNumber: z.number(), comment: z.string(), mutations,
@@ -277,7 +277,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
         return c.json({ error: "gesture" as const, message: "An ask goes only to the project the game is set up for: nothing was sent" }, 409);
       }
       const { login } = await live.viewer();
-      const rebuilt = prepareAsk(await live.readGoodFirst(), login, claim.issueNumber, claim.comment);
+      const rebuilt = prepareAsk(await live.readGoodFirst(claim.issueNumber), login, claim.issueNumber, claim.comment);
       if (!isDeepStrictEqual(rebuilt, claim)) {
         return c.json({ error: "gesture" as const, message: "This ask does not match the project: nothing was sent" }, 409);
       }
