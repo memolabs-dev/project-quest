@@ -129,7 +129,8 @@ class PracticeBoardMismatch extends Error {}
 const PRACTICE_MISSING = { error: "practice-missing" as const, message: "Your practice site is not founded yet" };
 
 /** `demo` answers requests that carry ?demo=1, so a player without GitHub access can still visit the demo site. */
-export function createApp(live: Deps, demo?: Deps) {
+/** settleMs: how long to wait between rereads while GitHub links a new pull request to its issue. */
+export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settleMs?: number } = {}) {
   const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") ? demo : live);
   // Levels always belong to the real player, even while they play the tutorial on the demo site.
   const levels = async () => checkLevels(live, (await live.viewer()).login);
@@ -241,7 +242,13 @@ export function createApp(live: Deps, demo?: Deps) {
       await record(live, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
       if (!result.ok) return c.json(result);
       if (rebuilt.kind === "found") await live.progress.setPracticeRepo(login, name);
-      return c.json({ ok: true as const, levels: await levels() });
+      let view = await levels();
+      // GitHub links a new pull request to the issue it closes a moment after creating it: read again, a few times.
+      for (let i = 0; i < 3 && rebuilt.kind === "pull" && view.current === "a9-open-pull"; i++) {
+        await new Promise((r) => setTimeout(r, settleMs));
+        view = await levels();
+      }
+      return c.json({ ok: true as const, levels: view });
     })
     .post("/api/practice/moves/prepare", zValidator("json", prepareBody), async (c) => {
       const board = await practiceBoard(live);

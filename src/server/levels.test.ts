@@ -213,6 +213,25 @@ describe("practice gestures", () => {
     expect(sent).toHaveLength(1);
   });
 
+  it("waits for GitHub to link a new pull request to its issue before answering", async () => {
+    const progress = memoryProgress();
+    for (const e of ["walked", "card-opened", "card-read", "pallet-moved"] as const) await progress.addEvent(VIEWER, e);
+    const mine = issue({ assignees: [VIEWER], status: "In Progress", comments: [{ author: VIEWER, url: "c1" }] });
+    const branched = site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" }, branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "cb1" }] });
+    const pull = { id: "PR_2", number: 2, url: "p2", author: VIEWER, state: "OPEN" as const, createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "b1", commits: [] };
+    let reads = 0;
+    // GitHub computes "Closes #1" a moment after the pull request exists.
+    const readPractice = async () => {
+      reads += 1;
+      if (reads <= 2) return branched;
+      return { ...branched, pulls: [{ ...pull, closes: reads >= 4 ? [1] : [] }] };
+    };
+    const app = createApp({ ...make(branched, { progress }).deps, readPractice }, undefined, { settleMs: 1 });
+    const prepared = await (await app.request("/api/practice/pull/prepare", post({ issueNumber: 1, title: "t", why: "w" }))).json();
+    const r = (await (await app.request("/api/practice/pull/apply", post(prepared))).json()) as { levels: LevelsView };
+    expect(r.levels.stamps.map((s) => s.levelId)).toContain("a9-open-pull");
+  });
+
   it("remembers the founded site's name", async () => {
     const { app, deps } = make(null);
     const prepared = await (await app.request("/api/practice/found/prepare", post({ visibility: "PRIVATE" }))).json();
