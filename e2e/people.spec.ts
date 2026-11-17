@@ -42,3 +42,19 @@ test("a worker follows their pallet to its new yard", async ({ page }) => {
   await page.getByRole("dialog", { name: /sent to GitHub/ }).getByRole("button", { name: /Send to GitHub/ }).click();
   await expect.poll(async () => Math.abs((await workerX(page, "maria-fictif"))! - before!), { timeout: 5000 }).toBeGreaterThan(2);
 });
+
+/** The clip the foreman is playing now. */
+const foremanClip = (page: Page) => page.evaluate(async () => {
+  const urls = performance.getEntriesByType("resource").map((e) => e.name);
+  const fiber = await import(urls.find((u) => /\/deps\/@react-three_fiber\.js/.test(u))!);
+  const state = [...fiber._roots.values()][0].store.getState();
+  return (state.scene.getObjectByName("foreman")?.userData.clip as string | undefined) ?? null;
+});
+
+test("the foreman sits after a while and stands at a key", async ({ page }) => {
+  await ready(page);
+  await expect.poll(() => foremanClip(page), { timeout: 20_000, intervals: [1000] }).toBe("Sit_Floor_Idle");
+  await page.keyboard.down("KeyW");
+  await expect.poll(() => foremanClip(page), { timeout: 3000 }).not.toBe("Sit_Floor_Idle");
+  await page.keyboard.up("KeyW");
+});

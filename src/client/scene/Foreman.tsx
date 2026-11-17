@@ -3,15 +3,17 @@
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
-import { useMemo, useRef, type RefObject } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { useQuest } from "../store.ts";
+import { lastInput } from "../moments/player.ts";
+import { restState } from "./people.ts";
 
 const URL = "/models/foreman.glb";
 const HEIGHT = 1.85;
 const FADE = 0.2;
 
-type Clip = "Unarmed_Idle" | "Walking_A" | "Running_A" | "Jump_Full_Short" | "Cheer" | "Interact";
+type Clip = "Unarmed_Idle" | "Walking_A" | "Running_A" | "Jump_Full_Short" | "Cheer" | "Interact" | "Sit_Floor_Idle";
 const REACTIONS = { cheer: "Cheer", lean: "Interact" } as const;
 
 export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>; feetY: number }) {
@@ -23,6 +25,13 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
   // A reaction plays once, then locomotion takes over again; walking away cuts it short.
   const reacting = useRef<{ clip: Clip; left: number } | null>(null);
   const seen = useRef(reaction?.at ?? 0);
+  // Any key, click or touch counts as an input: the foreman wakes at once, and the input is not consumed.
+  useEffect(() => {
+    const wake = () => { lastInput.at = performance.now(); };
+    addEventListener("keydown", wake);
+    addEventListener("pointerdown", wake);
+    return () => { removeEventListener("keydown", wake); removeEventListener("pointerdown", wake); };
+  }, []);
 
   // Scale the model to a human height and stand it on the capsule's feet.
   const scale = useMemo(() => {
@@ -41,6 +50,8 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
     next.reset().fadeIn(FADE).play();
     if (current.current && current.current !== clip) actions[current.current]?.fadeOut(FADE);
     current.current = clip;
+    // Read by the browser tests: what the foreman is doing now.
+    if (group.current) group.current.userData.clip = clip;
   };
 
   useFrame((_, delta) => {
@@ -62,6 +73,8 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
       if (r.left > 0) { play(r.clip); return; }
     }
     reacting.current = null;
+    // Nothing pressed for 12 seconds: he sits down; the first key, click or touch makes him stand.
+    if (!h.isMoving && restState(lastInput.at, performance.now()) === "rest") { play("Sit_Floor_Idle"); return; }
     if (!h.isOnGround && h.verticalSpeed > 0.5) play("Jump_Full_Short");
     else if (h.isMoving && h.runActive) play("Running_A");
     else if (h.isMoving && h.moveSpeed > 0.4) play("Walking_A");
@@ -69,7 +82,7 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
   });
 
   return (
-    <group ref={group} position={[0, feetY, 0]} scale={scale} dispose={null}>
+    <group ref={group} position={[0, feetY, 0]} scale={scale} dispose={null} name="foreman">
       <primitive object={scene} />
     </group>
   );
