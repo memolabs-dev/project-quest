@@ -138,7 +138,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         ))}
         {layout.pallets.map((p) => {
           const pallet = site.pallets.find((x) => x.number === p.number)!;
-          return <Pallet key={p.number} pallet={pallet} x={p.x} z={p.z} color={zoneColor(zoneIndex.get(pallet.zone) ?? 0)} near={near === p.number} />;
+          return <Pallet key={p.number} pallet={pallet} x={p.x} z={p.z} color={zoneColor(zoneIndex.get(pallet.zone) ?? 0)} near={near === p.number} reduceMotion={reduceMotion} />;
         })}
         {layout.buildings.map((b, i) => (
           <Building key={b.key} model={site.buildings[i]} x={b.x} z={b.z} reduceMotion={reduceMotion} />

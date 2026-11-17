@@ -9,8 +9,9 @@ import * as THREE from "three";
 import type { Building as BuildingModel } from "../../shared/site.ts";
 import { Piece } from "./kit.tsx";
 import { buildingPlan, facade, growsNow } from "./show.ts";
+import { overshoot } from "../moments/curves.ts";
 
-const GROW_SECONDS = 0.56;
+const GROW_SECONDS = 0.7;
 const SPARK_SECONDS = 1.8;
 
 const LAID_NOTICE_MS = 4000;
@@ -53,8 +54,8 @@ export function Building({ model, x, z, reduceMotion }: {
     if (!top.current || growing.current <= 0) return;
     growing.current = Math.max(0, growing.current - delta);
     const k = 1 - growing.current / GROW_SECONDS;
-    const eased = 1 - Math.pow(1 - k, 3);
-    top.current.scale.set(1, Math.max(0.05, eased), 1);
+    // Squashed flat, grows past its height, settles: the one big moment (living site spec, 3.2).
+    top.current.scale.set(1, Math.max(0.05, overshoot(k)), 1);
   });
 
   const height = Math.max(1, plan.built + plan.scaffold) + (plan.roof ? 1.1 : 0);

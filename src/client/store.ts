@@ -51,6 +51,8 @@ interface QuestState {
   announce(...m: Moment[]): void;
   /** Hands the waiting moments to the director and forgets them. */
   takeMoments(): Moment[];
+  /** Each pallet's latest moment, for its own animation; `at` grows each time, so a repeat replays. */
+  motions: Record<number, { kind: Moment["kind"]; at: number }>;
   /** The foreman's latest reaction to a moment; `at` changes each time, so the same reaction can repeat. */
   reaction: { kind: "cheer" | "lean"; at: number } | null;
   react(kind: "cheer" | "lean"): void;
@@ -75,7 +77,16 @@ export const useQuest = create<QuestState>((set, get) => ({
   moments: [],
   reaction: null,
   react: (kind) => set((s) => ({ reaction: { kind, at: (s.reaction?.at ?? 0) + 1 } })),
-  announce: (...m) => { if (m.length) set((s) => ({ moments: [...s.moments, ...m] })); },
+  motions: {},
+  announce(...m) {
+    if (!m.length) return;
+    set((s) => {
+      const motions = { ...s.motions };
+      let at = Object.values(s.motions).reduce((n, x) => Math.max(n, x.at), 0);
+      for (const x of m) if (x.pallet !== undefined) motions[x.pallet] = { kind: x.kind, at: ++at };
+      return { moments: [...s.moments, ...m], motions };
+    });
+  },
   takeMoments() {
     const m = get().moments;
     if (m.length) set({ moments: [] });
