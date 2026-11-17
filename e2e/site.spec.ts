@@ -15,8 +15,9 @@ const openPallet = async (page: Page, title: RegExp) =>
 
 test("opens a pallet card and moves it after confirmation", async ({ page }) => {
   await ready(page);
-  await openPallet(page, /Hang the clock/);
-  const card = page.getByRole("dialog", { name: /Hang the clock/ });
+  // A pallet no other spec moves: the demo server is shared by parallel workers.
+  await openPallet(page, /Timetable board/);
+  const card = page.getByRole("dialog", { name: /Timetable board/ });
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: /Being laid|En pose/ }).click();
   const confirm = page.getByRole("dialog", { name: /sent to GitHub|partir chez GitHub/ });
