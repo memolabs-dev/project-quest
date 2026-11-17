@@ -2,7 +2,7 @@
 // the levels' checks decide, and each passing level is stamped with its proof. Never another player's progress.
 import type { LevelsView } from "../shared/api.ts";
 import { levelsOf } from "../shared/levels/index.ts";
-import { inProgress, radioRecap, sprintFieldOf, sprintLoad, wipLimit } from "../shared/levels/lead.ts";
+import { inProgress, sprintFieldOf, sprintLoad, wipLimit } from "../shared/levels/lead.ts";
 import { PARCELS, parcelOf } from "../shared/levels/parcels.ts";
 import { currentLevel, rankReached, unlocks } from "../shared/levels/progress.ts";
 import type { Observed, Path, PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
@@ -89,10 +89,9 @@ async function view(
         unsized: load.unsized,
       },
       milestones: (team?.milestones ?? []).filter((m) => !m.closed)
-        .map((m) => ({ number: m.number, title: m.title, dueOn: m.dueOn, openIssues: m.openIssues })),
+        .map((m) => ({ number: m.number, title: m.title, dueOn: m.dueOn, openIssues: m.openIssues, closedIssues: m.closedIssues })),
       wip: { limit: wipLimit(team), count: inProgress(team) },
       bulletin: bulletin ? { status: bulletin.status, body: bulletin.body } : null,
-      radio: radioRecap(team, todayOf(deps), capacity),
       teamDay: (await deps.progress.events(login)).includes("team-day"),
       visitJobs: (team?.issues ?? [])
         .filter((i) => !i.closed && i.milestone != null && (team?.milestones ?? []).some((m) => m.number === i.milestone && !m.closed))

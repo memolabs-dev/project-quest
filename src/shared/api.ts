@@ -71,13 +71,11 @@ export interface LevelsView {
     /** This week's sprint: its title, its open pallets' points against the declared capacity, those without a size. */
     sprint: { field: boolean; current: string | null; points: number; capacity: number | null; loaded: number[]; unsized: number[] };
     /** The open milestones: the mayor's visits. */
-    milestones: { number: number; title: string; dueOn: string | null; openIssues: number }[];
+    milestones: { number: number; title: string; dueOn: string | null; openIssues: number; closedIssues: number }[];
     /** "Being laid" against the limit written on GitHub. */
     wip: { limit: number | null; count: number };
     /** The newest evening bulletin on the board. */
     bulletin: { status: string | null; body: string } | null;
-    /** The site radio's draft of tonight's bulletin. */
-    radio: string;
     /** The fictitious team's day has been played (a game event: GitHub cannot show it afterwards). */
     teamDay: boolean;
     /** The open jobs under an open visit: those "Lay it: done" is offered on. */

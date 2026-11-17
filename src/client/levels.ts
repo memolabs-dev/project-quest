@@ -1,6 +1,8 @@
 // What the mentor offers next, decided from the levels and the site being played. Pure.
 import type { LevelsView } from "../shared/api.ts";
-import type { TeamKind } from "../shared/gestures/team.ts";
+import type { PreparedPractice } from "../shared/gestures/practice.ts";
+import type { PreparedAsk } from "../shared/gestures/real.ts";
+import type { PreparedTeam, TeamKind } from "../shared/gestures/team.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 
 /** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site; team: the lead's. */
@@ -127,3 +129,28 @@ export const limitEditable = (view: LevelsView) => view.current === "l10-wip" &&
 
 /** At the mayor's visit with no open milestone (closed on GitHub, jobs still open): the mayor says what to do. */
 export const noOpenVisit = (view: LevelsView) => view.current === "l11-visit" && view.team.milestones.length === 0;
+
+/** The site radio's draft of the evening bulletin, from the board as the game sees it, in the player's language. */
+export function radioDraft(view: LevelsView, today: string, say: (key: string, o?: Record<string, unknown>) => string): string {
+  const t = view.team;
+  const lines = [say("radio.title", { date: today })];
+  if (t.sprint.current) lines.push(say("radio.sprint", { sprint: t.sprint.current, points: t.sprint.points, capacity: t.sprint.capacity ?? "?" }));
+  if (t.wip.limit !== null) lines.push(say("radio.wip", { count: t.wip.count, limit: t.wip.limit }));
+  const visit = t.milestones.filter((m) => m.dueOn).sort((a, b) => a.dueOn!.localeCompare(b.dueOn!))[0];
+  if (visit) {
+    lines.push(say("radio.visit", { title: visit.title, date: visit.dueOn!.slice(0, 10), done: visit.closedIssues, total: visit.openIssues + visit.closedIssues }));
+  }
+  return lines.join("\n");
+}
+
+/** Each request of a gesture as it goes to GitHub: a GraphQL mutation, or a REST path where GraphQL has none. */
+export function requestsOf(p: PreparedPractice | PreparedAsk | PreparedTeam): string[] {
+  const repo = p.kind === "found" ? `${p.owner}/${p.name}` : p.repo;
+  return p.mutations.map((m) => {
+    const input = m.input as { path?: string; number?: number };
+    if (m.name === "createOrUpdateFileContents") return `PUT /repos/${repo}/contents/${input.path}`;
+    if (m.name === "createMilestone") return `POST /repos/${repo}/milestones`;
+    if (m.name === "updateMilestone") return `PATCH /repos/${repo}/milestones/${input.number}`;
+    return `POST /graphql  mutation ${m.name}`;
+  });
+}

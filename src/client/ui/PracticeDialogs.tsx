@@ -8,6 +8,7 @@ import type { PreparedAsk } from "../../shared/gestures/real.ts";
 import { BULLETIN_STATUSES, type PreparedTeam, type TeamArgs, type TeamKind } from "../../shared/gestures/team.ts";
 import { PARCELS, SIZES } from "../../shared/levels/parcels.ts";
 import { ApiFailure, api } from "../api.ts";
+import { radioDraft, requestsOf } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 function Dialog({ title, children }: { title: string; children: ReactNode }) {
@@ -96,6 +97,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
       {note && <p className="practice-note">{note}</p>}
       {prepared.kind === "edit" && <pre className="file-text" tabIndex={0} aria-label={prepared.path}>{prepared.content}</pre>}
       <p className="payload-label">{t("confirm.payload")}</p>
+      <ol className="requests">{requestsOf(prepared).map((r, i) => <li key={i}><code>{r}</code></li>)}</ol>
       <pre className="payload">{JSON.stringify(prepared.mutations, null, 2)}</pre>
       {!canWrite && <p className="practice-note">{t("mentor.connectGithub")}</p>}
       {error && <p className="error" role="alert">{error}</p>}
@@ -368,7 +370,8 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
   const [dueOn, setDueOn] = useState(inTwoWeeks);
   const [chosen, setChosen] = useState<number[]>([]);
   const [milestone, setMilestone] = useState<number | null>(milestones[0]?.number ?? null);
-  const radio = useQuest((s) => s.levels?.team.radio ?? "");
+  const levelsNow = useQuest((s) => s.levels);
+  const radio = levelsNow ? radioDraft(levelsNow, new Date().toISOString().slice(0, 10), (k, o) => t(k, o ?? {})) : "";
   const [status, setStatus] = useState<string>("ON_TRACK");
   const [body, setBody] = useState(radio);
   const [limit, setLimit] = useState(3);

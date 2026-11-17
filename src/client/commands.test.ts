@@ -26,6 +26,17 @@ describe("commandsFor", () => {
     expect(edit).toBeGreaterThan(c.indexOf("git switch -c work-3"));
     expect(edit).toBeLessThan(c.findIndex((l) => l.startsWith("git commit")));
   });
+  it("says its steps and commit messages in the player's language", () => {
+    const say = (key: string) => `FR:${key}`;
+    const c = commandsFor("a12-push-branch", repo, "work-3", say);
+    expect(c).toContain("# FR:commands.editReadme");
+    expect(c).toContain('git commit -am "FR:commands.describeChange"');
+    expect(commandsFor("a14-fix-from-machine", repo, "work-3", say)).toContain('git commit -am "FR:commands.fixInspector"');
+  });
+  it("never puts a quote from a translation inside the shell command", () => {
+    const c = commandsFor("a12-push-branch", repo, "work-3", () => 'say "hi" $(x)');
+    expect(c).toContain("git commit -am \"say hi x\"");
+  });
   it("never writes a branch name that could run a command", () => {
     expect(commandsFor("a13-bring-main", repo, "x; rm -rf ~")).toEqual([]);
     expect(safeBranch("work-3")).toBe(true);

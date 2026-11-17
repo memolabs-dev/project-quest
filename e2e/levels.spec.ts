@@ -91,7 +91,7 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
       stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false, van: false, realProjects: false },
       practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
-      real: null, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, radio: "", teamDay: false, visitJobs: [], duplicateWrong: false },
+      real: null, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false },
     });
   });
   const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
@@ -114,7 +114,7 @@ test("at the last level, a good first issue's card offers to ask for it, and the
       stamps: Array.from({ length: 15 }, (_, i) => ({ levelId: `x${i}`, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: true, van: true, realProjects: true },
       practice: { name: "my-first-site", exists: true, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
-      real: { issues: 1 }, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, radio: "", teamDay: false, visitJobs: [], duplicateWrong: false },
+      real: { issues: 1 }, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false },
     });
   });
   await openPallet(page, /Lay the square's paving/);
@@ -155,7 +155,7 @@ test("a site manager declares the sprint's capacity as the game's rule, and sets
       unlocks: { helmet: false, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false },
       practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
       real: null,
-      team: { exists: true, parcels: true, labels: [], milestones: [], sprint: { field: true, current: "Sprint 1", points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, radio: "", teamDay: false, visitJobs: [], duplicateWrong: false, ...(team as object) },
+      team: { exists: true, parcels: true, labels: [], milestones: [], sprint: { field: true, current: "Sprint 1", points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false, ...(team as object) },
     });
   }, [current, team] as const);
   await lead("l5-sprint", {});
@@ -189,7 +189,7 @@ test("a project director writes the evening bulletin from the radio's draft, and
       real: null,
       team: {
         exists: true, parcels: true, labels: [], milestones: [], sprint: { field: true, current: "Sprint 1", points: 2, capacity: 3, loaded: [2], unsized: [] },
-        wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false, radio: "FICTIF Evening bulletin, 2026-11-17.\nSprint 1: 2 of 3 points loaded.",
+        wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false,
       },
     });
   });

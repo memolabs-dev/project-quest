@@ -66,7 +66,7 @@ describe("levels", () => {
     });
     expect(v.team).toEqual({ exists: false, parcels: false, labels: [], milestones: [],
       sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
-      wip: { limit: null, count: 0 }, bulletin: null, radio: expect.any(String), teamDay: false, visitJobs: [], duplicateWrong: false });
+      wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false });
   });
 
   it("refuses an unknown tutorial event", async () => {
@@ -211,7 +211,7 @@ describe("the team site", () => {
     const { app } = make(null, { progress, readPractice: reading(loaded), today: () => "2026-11-18" });
     const v = await view(await app.request("/api/levels/check", post({})));
     expect(v.team.sprint).toEqual({ field: true, current: "Sprint 1", points: 3, capacity: 5, loaded: [2, 3], unsized: [3] });
-    expect(v.team.milestones).toEqual([{ number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", openIssues: 0 }]);
+    expect(v.team.milestones).toEqual([{ number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", openIssues: 0, closedIssues: 0 }]);
   });
 
   it("records the team's day only once GitHub accepted it", async () => {
@@ -262,7 +262,6 @@ describe("the team site", () => {
     const v = await view(await app.request("/api/levels/check", post({})));
     expect(v.team.wip).toEqual({ limit: 2, count: 3 });
     expect(v.team.bulletin).toEqual({ status: "AT_RISK", body: "FICTIF Late." });
-    expect(v.team.radio).toContain("Being laid: 3 (limit 2).");
     expect(v.team.milestones[0]).toMatchObject({ number: 1, openIssues: 1 });
   });
 

@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 import {
-  boardCatchingUp, canFollow, capacityEditable, cardGestures, limitEditable, noOpenVisit, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
+  boardCatchingUp, canFollow, capacityEditable, cardGestures, limitEditable, noOpenVisit, radioDraft, requestsOf, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
 } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
 const NO_TEAM: LevelsView["team"] = {
   exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
-  wip: { limit: null, count: 0 }, bulletin: null, radio: "FICTIF Evening bulletin, 2026-11-17.", teamDay: false,
+  wip: { limit: null, count: 0 }, bulletin: null, teamDay: false,
   visitJobs: [], duplicateWrong: false,
 };
 const view = (stamped: number, exists = false): LevelsView => ({
@@ -136,7 +136,7 @@ describe("the lead's path", () => {
   it("the mayor sets the visit", () => {
     expect(mentorAction(lead("l6-milestone", { exists: true }), "team")).toBe("milestone");
     expect(speakerOf("l6-milestone")).toBe("mayor");
-    const set = lead("l6-milestone", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z", openIssues: 0 }] });
+    const set = lead("l6-milestone", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z", openIssues: 0, closedIssues: 0 }] });
     expect(cardGestures(set, 2)).toEqual(["attach"]);
     expect(cardGestures(lead("l6-milestone", { exists: true }), 2)).toEqual([]);
   });
@@ -150,11 +150,26 @@ describe("the lead's path", () => {
   it("puts the sprint truck and the mayor's ribbon on the team site", () => {
     const v = lead("l7-split", {
       exists: true, sprint: { ...NO_TEAM.sprint, field: true, current: "Sprint 1", points: 5, capacity: 8 },
-      milestones: [{ number: 2, title: "FICTIF Later", dueOn: "2026-12-20T12:00:00Z", openIssues: 0 }, { number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z", openIssues: 0 }, { number: 3, title: "FICTIF No date", dueOn: null, openIssues: 0 }],
+      milestones: [{ number: 2, title: "FICTIF Later", dueOn: "2026-12-20T12:00:00Z", openIssues: 0, closedIssues: 0 }, { number: 1, title: "FICTIF Visit", dueOn: "2026-11-29T12:00:00Z", openIssues: 0, closedIssues: 0 }, { number: 3, title: "FICTIF No date", dueOn: null, openIssues: 0, closedIssues: 0 }],
     });
     expect(teamRewards(v, "team")).toEqual({ truck: { title: "Sprint 1", points: 5, capacity: 8 }, ribbon: { title: "FICTIF Visit", dueOn: "2026-11-29" }, mast: null });
     expect(teamRewards(v, "main")).toEqual({ truck: null, ribbon: null, mast: null });
     expect(teamRewards(lead("l5-sprint"), "team")).toEqual({ truck: null, ribbon: null, mast: null });
+  });
+  it("the radio drafts the bulletin in the player's language, from the board", () => {
+    const say = (key: string, o?: Record<string, unknown>) => `${key} ${JSON.stringify(o ?? {})}`;
+    const v = lead("l9-bulletin", {
+      exists: true, sprint: { ...NO_TEAM.sprint, field: true, current: "Sprint 1", points: 2, capacity: 3 },
+      wip: { limit: 2, count: 1 },
+      milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", openIssues: 1, closedIssues: 1 }],
+    });
+    expect(radioDraft(v, "2026-11-17", say).split("\n")).toEqual([
+      'radio.title {"date":"2026-11-17"}',
+      'radio.sprint {"sprint":"Sprint 1","points":2,"capacity":3}',
+      'radio.wip {"count":1,"limit":2}',
+      'radio.visit {"title":"FICTIF Visit","date":"2026-12-01","done":1,"total":2}',
+    ]);
+    expect(radioDraft(lead("l9-bulletin"), "2026-11-17", say)).toBe('radio.title {"date":"2026-11-17"}');
   });
   it("the radio reads the bulletin", () => {
     expect(mentorAction(lead("l9-bulletin", { exists: true }), "team")).toBe("bulletin");
@@ -174,10 +189,10 @@ describe("the lead's path", () => {
   it("with no open visit, the mayor asks to reopen or set one, never an empty choice", () => {
     expect(mentorAction(lead("l11-visit", { exists: true }), "team")).toBeNull();
     expect(noOpenVisit(lead("l11-visit", { exists: true }))).toBe(true);
-    expect(noOpenVisit(lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: null, openIssues: 0 }] }))).toBe(false);
+    expect(noOpenVisit(lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: null, openIssues: 0, closedIssues: 0 }] }))).toBe(false);
   });
   it("the mayor's visit ends", () => {
-    const v = lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", openIssues: 1 }] });
+    const v = lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", openIssues: 1, closedIssues: 0 }] });
     expect(speakerOf("l11-visit")).toBe("mayor");
     expect(mentorAction(v, "team")).toBe("visit");
     expect(cardGestures({ ...v, team: { ...v.team, visitJobs: [2] } }, 2)).toEqual(["finish"]);
@@ -187,6 +202,15 @@ describe("the lead's path", () => {
     const v = lead("l10-wip", { exists: true, bulletin: { status: "AT_RISK", body: "FICTIF Evening bulletin.\nSprint 1: 2 of 3." } });
     expect(teamRewards(v, "team").mast).toEqual({ status: "AT_RISK", line: "FICTIF Evening bulletin." });
     expect(teamRewards(lead("l10-wip", { exists: true }), "team").mast).toBeNull();
+  });
+  it("names each request as it goes to GitHub: GraphQL or the REST path", () => {
+    expect(requestsOf({ kind: "milestone", repo: "fictif-lead/my-first-team", args: {}, mutations: [
+      { name: "createMilestone", input: { title: "x" } }, { name: "updateIssue", input: { id: "I_2" } },
+    ] })).toEqual(["POST /repos/fictif-lead/my-first-team/milestones", "POST /graphql  mutation updateIssue"]);
+    expect(requestsOf({ kind: "close-visit", repo: "fictif-lead/my-first-team", args: {}, mutations: [{ name: "updateMilestone", input: { number: 1, state: "closed" } }] }))
+      .toEqual(["PATCH /repos/fictif-lead/my-first-team/milestones/1"]);
+    expect(requestsOf({ kind: "found", owner: "fictif", name: "my-first-site", visibility: "PRIVATE", reuse: false, mutations: [{ name: "createOrUpdateFileContents", input: { path: "README.md" } }] }))
+      .toEqual(["PUT /repos/fictif/my-first-site/contents/README.md"]);
   });
   it("gives each lead level its speaker", () => {
     expect(speakerOf("l1-found-team")).toBe("meme");

@@ -528,5 +528,17 @@
     "truck": "{{sprint}} · {{points}}/{{capacity}} pts",
     "ribbon": "{{title}} · {{date}}",
     "mast": "{{status}} · {{line}}"
+  },
+  "commands": {
+    "editReadme": "modifie README.md dans ton éditeur, puis :",
+    "describeChange": "Dire ce que j'ai changé",
+    "makeFix": "fais la correction dans README.md, puis :",
+    "fixInspector": "Corriger ce que l'inspectrice a demandé"
+  },
+  "radio": {
+    "title": "FICTIF Bulletin du soir, {{date}}.",
+    "sprint": "{{sprint}} : {{points}} points chargés sur {{capacity}}.",
+    "wip": "En pose : {{count}} (limite {{limit}}).",
+    "visit": "{{title}}, {{date}} : {{done}} boulots finis sur {{total}}."
   }
 }

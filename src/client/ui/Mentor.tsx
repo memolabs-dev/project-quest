@@ -19,7 +19,7 @@ function Commands({ level }: { level: string }) {
   const [copied, setCopied] = useState<number | null>(null);
   if (!practice) return null;
   const branch = practice.workBranch && safeBranch(practice.workBranch) ? practice.workBranch : `work-${practice.issue ?? 1}`;
-  const lines = commandsFor(level, { nameWithOwner: repo, defaultBranch: practice.defaultBranch ?? "main" }, branch);
+  const lines = commandsFor(level, { nameWithOwner: repo, defaultBranch: practice.defaultBranch ?? "main" }, branch, (k) => t(k));
   if (lines.length === 0) return null;
   const copy = async (i: number, line: string) => {
     try {
