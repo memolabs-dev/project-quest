@@ -22,8 +22,35 @@ export function daylight(seconds: number): { sun: [number, number, number]; colo
   };
 }
 
-/** Where the shadow box stands: on the player, snapped to whole shadow texels so shadows never shimmer as it moves. */
-export function shadowBox(player: { x: number; z: number }, half: number, mapSize: number): { x: number; z: number } {
+/** How far the light stands from the box centre, along the sun: far enough that no tall caster is behind it. */
+export const SUN_DISTANCE = 120;
+
+const f = new THREE.Vector3();
+const r = new THREE.Vector3();
+const u = new THREE.Vector3();
+const p = new THREE.Vector3();
+const UP = new THREE.Vector3(0, 1, 0);
+
+/**
+ * Where the shadow box stands: on the player, snapped to whole texels of the light's own grid (its right and up axes,
+ * as the shadow camera sees them), so static shadows do not crawl as the box follows. The sun's own slow drift still
+ * moves them a little: that is the day passing.
+ */
+export function shadowBox(player: { x: number; z: number }, sun: [number, number, number], half: number, mapSize: number): { x: number; y: number; z: number } {
   const texel = (2 * half) / mapSize;
-  return { x: Math.round(player.x / texel) * texel, z: Math.round(player.z / texel) * texel };
+  f.set(...sun).negate().normalize();
+  r.crossVectors(f, UP).normalize();
+  u.crossVectors(r, f);
+  p.set(player.x, 0, player.z);
+  const a = Math.round(p.dot(r) / texel) * texel;
+  const b = Math.round(p.dot(u) / texel) * texel;
+  const c = p.dot(f);
+  p.copy(r).multiplyScalar(a).addScaledVector(u, b).addScaledVector(f, c);
+  return { x: p.x, y: p.y, z: p.z };
+}
+
+/** The light's position: the box centre plus the sun's direction at SUN_DISTANCE. */
+export function lightAt(box: { x: number; y: number; z: number }, sun: [number, number, number]): [number, number, number] {
+  p.set(...sun).normalize().multiplyScalar(SUN_DISTANCE);
+  return [box.x + p.x, box.y + p.y, box.z + p.z];
 }

@@ -1,6 +1,6 @@
 // The building site: ground, road, zone yards with their pallets, the buildings, the crane and the office.
 import { Html, KeyboardControls, PerformanceMonitor } from "@react-three/drei";
-import { QUALITY_LEVELS, quality, stepQuality } from "./quality.ts";
+import { QUALITY_START, nextQuality, quality } from "./quality.ts";
 import { SiteLight } from "./Light.tsx";
 import { TeamRewards } from "./Rewards.tsx";
 import { Director } from "./Director.tsx";
@@ -219,13 +219,11 @@ export function SiteCanvas({ site }: { site: SiteModel }) {
   const reduceMotion = useReducedMotion();
   const miniature = useQuest((s) => s.settings.miniature);
   // A weak machine lowers the quality one step per drop of the frame rate, and raises it back when it holds.
-  const [level, setLevel] = useState(0);
-  const q = quality(level, miniature);
+  const [level, setLevel] = useState(QUALITY_START);
+  const q = quality(level.level, miniature);
   return (
     <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={q.dpr} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
-      {/* Each change rebuilds the effects' shaders: after three back-and-forths the lowest level stays. */}
-      <PerformanceMonitor flipflops={3} onFallback={() => setLevel(QUALITY_LEVELS - 1)}
-        onDecline={() => setLevel((l) => stepQuality(l, "decline"))} onIncline={() => setLevel((l) => stepQuality(l, "incline"))} />
+      <PerformanceMonitor onDecline={() => setLevel((s) => nextQuality(s, "decline"))} onIncline={() => setLevel((s) => nextQuality(s, "incline"))} />
       <KeyboardControls map={KEY_MAP}>
         <Suspense fallback={null}>
           <Scene site={site} reduceMotion={reduceMotion} aoHalf={q.aoHalf} tiltShift={q.tiltShift} />

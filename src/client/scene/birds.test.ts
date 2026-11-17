@@ -25,8 +25,8 @@ describe("birds", () => {
       for (const b of f) {
         expect(b.y).toBeGreaterThanOrEqual(4.5);
         expect(b.y).toBeLessThanOrEqual(7);
-        expect(b.z).toBeGreaterThanOrEqual(-20);
-        expect(b.z).toBeLessThanOrEqual(-12);
+        expect(b.z).toBeGreaterThanOrEqual(-17); // the buildings start at z -18
+        expect(b.z).toBeLessThanOrEqual(-10);
       }
       if (first === null) first = f[0].x;
       last = f[0].x;

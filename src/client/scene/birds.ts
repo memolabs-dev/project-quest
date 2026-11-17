@@ -21,7 +21,8 @@ export function flockAt(seconds: number, seed: number): { x: number; y: number; 
       const way = k % 2 ? -1 : 1;
       const lead = way * (-SPAN + 2 * SPAN * p);
       const height = 5 + 0.6 * rand(seed, k + 500);
-      const z = -17 + 2 * rand(seed, k + 900);
+      // The V spreads 2.4 m each way: its rear stays in front of the buildings (z -18), whatever their height.
+      const z = -14.5 + 1 * rand(seed, k + 900);
       return Array.from({ length: FLOCK }, (_, i) => {
         const row = Math.ceil(i / 2);
         const side = i % 2 ? 1 : -1;
