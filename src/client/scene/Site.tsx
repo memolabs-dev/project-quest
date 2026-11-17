@@ -171,8 +171,20 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   );
 }
 
+/** Follows the system setting while the game is open, not only at load. */
+function useReducedMotion() {
+  const [reduce, setReduce] = useState(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
+  useEffect(() => {
+    const query = matchMedia("(prefers-reduced-motion: reduce)");
+    const follow = () => setReduce(query.matches);
+    query.addEventListener("change", follow);
+    return () => query.removeEventListener("change", follow);
+  }, []);
+  return reduce;
+}
+
 export function SiteCanvas({ site }: { site: SiteModel }) {
-  const reduceMotion = useMemo(() => matchMedia("(prefers-reduced-motion: reduce)").matches, []);
+  const reduceMotion = useReducedMotion();
   return (
     <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={[1, 2]} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
       <KeyboardControls map={KEY_MAP}>

@@ -5,7 +5,8 @@
     "unassigned": "Unassigned",
     "floors": "{{done}} of {{total}} floors",
     "controls": "{{keys}} or arrows to walk, Shift to run, {{action}} or a click to open a pallet",
-    "near": "Press {{action}} to look at pallet #{{number}}"
+    "near": "Press {{action}} to look at pallet #{{number}}",
+    "newFloor": "New floor laid"
   },
   "demo": {
     "banner": "Demo site: an invented project, nothing is sent to GitHub.",

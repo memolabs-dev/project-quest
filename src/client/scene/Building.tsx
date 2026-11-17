@@ -3,7 +3,7 @@
 import { Html, Sparkles } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import type { Building as BuildingModel } from "../../shared/site.ts";
@@ -12,6 +12,8 @@ import { buildingPlan, facade } from "./show.ts";
 
 const GROW_SECONDS = 0.56;
 const SPARK_SECONDS = 1.8;
+
+const LAID_NOTICE_MS = 4000;
 
 export function Building({ model, x, z, grow, reduceMotion }: {
   model: BuildingModel; x: number; z: number; grow: number; reduceMotion: boolean;
@@ -24,9 +26,16 @@ export function Building({ model, x, z, grow, reduceMotion }: {
   const growing = useRef(0);
   const sparkLeft = useRef(0);
 
-  // `grow` changes each time this building gains floors: replay the growth once.
+  // `grow` changes each time this building gains floors: replay the growth once. With reduced motion, no growth:
+  // the site board says it in colour and words for a few seconds instead.
+  const [justLaid, setJustLaid] = useState(false);
   useEffect(() => {
-    if (grow === 0 || reduceMotion) return;
+    if (grow === 0) return;
+    if (reduceMotion) {
+      const show = setTimeout(() => setJustLaid(true), 0);
+      const hide = setTimeout(() => setJustLaid(false), LAID_NOTICE_MS);
+      return () => { clearTimeout(show); clearTimeout(hide); };
+    }
     growing.current = GROW_SECONDS;
     sparkLeft.current = SPARK_SECONDS;
   }, [grow, reduceMotion]);
@@ -70,9 +79,10 @@ export function Building({ model, x, z, grow, reduceMotion }: {
       )}
       {/* The site board stands in front of the building, where the follow camera always sees it. */}
       <Html position={[0, 1.3, 2.4]} center distanceFactor={18} zIndexRange={[5, 0]}>
-        <div className="building-label" style={{ borderTopColor: colors.trim }}>
+        <div className={justLaid ? "building-label just-laid" : "building-label"} style={{ borderTopColor: colors.trim }}>
           <b dir="auto">{model.epicNumber === null ? t("site.unassigned") : model.title}</b>
           <span>{t("site.floors", { done: model.floorsDone, total: model.floorsTotal })}</span>
+          {justLaid && <span className="laid-note">{t("site.newFloor")}</span>}
         </div>
       </Html>
     </RigidBody>

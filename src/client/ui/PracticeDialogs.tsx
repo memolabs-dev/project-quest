@@ -404,9 +404,9 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
   const [chosen, setChosen] = useState<number[]>([]);
   const [milestone, setMilestone] = useState<number | null>(milestones[0]?.number ?? null);
   const levelsNow = useQuest((s) => s.levels);
-  const radio = levelsNow ? radioDraft(levelsNow, new Date().toISOString().slice(0, 10), (k, o) => t(k, o ?? {})) : "";
   const [status, setStatus] = useState<string>("ON_TRACK");
-  const [body, setBody] = useState(radio);
+  // The radio drafts tonight's bulletin once, when the dialog opens.
+  const [body, setBody] = useState(() => (levelsNow ? radioDraft(levelsNow, new Date().toISOString().slice(0, 10), (k, o) => t(k, o ?? {})) : ""));
   const [limit, setLimit] = useState(3);
   const [later, setLater] = useState(() => weekAfter(milestones[0]?.dueOn ?? null));
   const step = useTwoSteps<PreparedTeam>();
