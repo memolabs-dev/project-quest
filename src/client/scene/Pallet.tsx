@@ -89,8 +89,10 @@ export function Pallet({ pallet, x, z, color, near, reduceMotion, openedAt }: {
 
   if (folded && pallet.discarded) return null;
   return (
-    <RigidBody type="fixed" colliders="cuboid" position={[x, 0, z]}>
-      <group ref={crate}>
+    // A fixed body does not follow a new position prop: a new place makes a new body (the crate's animation lives in
+    // this component, so it carries on across the change).
+    <RigidBody key={`${x}:${z}`} type="fixed" colliders="cuboid" position={[x, 0, z]}>
+      <group ref={crate} name={`crate-${pallet.number}`}>
         <group scale={s} onClick={(e) => { e.stopPropagation(); open(pallet.number); }}>
           <Piece name="pallet" crateColor={color} outline={near ? 0.09 : 0.045} />
           {[0.435, -0.435].map((zf) => (
