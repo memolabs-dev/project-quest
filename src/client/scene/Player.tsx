@@ -8,6 +8,11 @@ import { useQuest } from "../store.ts";
 import { Foreman } from "./Foreman.tsx";
 import { badgeInitial } from "./show.ts";
 import { CAMERA_OFFSET as CAMERA_OFFSET_XYZ, LOOK_AHEAD as LOOK_AHEAD_XYZ, SPAWN } from "./layout.ts";
+import { cameraKick } from "../moments/camera.ts";
+import { kickAt } from "../moments/play.ts";
+import { useGameSound } from "./useGameSound.ts";
+
+const STEP_EVERY = 0.45;
 
 const NEAR_DISTANCE = 2.5;
 const CAMERA_OFFSET = new THREE.Vector3(...CAMERA_OFFSET_XYZ);
@@ -24,6 +29,8 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
 }) {
   const ref = body;
   const target = useRef(new THREE.Vector3());
+  const sound = useGameSound();
+  const walked = useRef({ x: NaN, z: NaN, since: 0 });
   const setNear = useQuest((s) => s.setNear);
   const cardOpen = useQuest((s) => s.openCard !== null);
   const sendEvent = useQuest((s) => s.sendEvent);
@@ -32,15 +39,25 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
   // ecctrl 2 does not read the keyboard itself: the keys are handed to it every frame.
   const [, getKeys] = useKeyboardControls();
 
-  useFrame(({ camera }, delta) => {
+  useFrame(({ camera, clock }, delta) => {
     const h = ref.current;
     if (!h) return;
+    // Footsteps every 0.45 m walked on the ground, quicker when running.
+    const w = walked.current;
+    if (h.isOnGround && h.isMoving && Number.isFinite(w.x)) {
+      w.since += Math.hypot(h.currPos.x - w.x, h.currPos.z - w.z);
+      if (w.since >= STEP_EVERY) { w.since = 0; sound.current?.play("step", { rate: h.runActive ? 1.15 : 0.95 }); }
+    }
+    w.x = h.currPos.x;
+    w.z = h.currPos.z;
     h.setMovement(cardOpen ? {} : getKeys());
     if (h.isMoving && h.moveSpeed > 0.4) sendEvent("walked"); // the store sends it once
     const pos = h.currPos;
     if (arrival.current <= 0) {
       const k = reduceMotion ? 1 : 1 - Math.exp(-4 * delta);
       camera.position.lerp(target.current.copy(pos).add(CAMERA_OFFSET), k);
+      // A moment's kick: a short dip that fades by itself (none with reduced motion: the director never starts one).
+      camera.position.y -= kickAt(clock.elapsedTime - cameraKick.started, cameraKick.strength);
       look.current.lerp(target.current.copy(pos).add(LOOK_AHEAD), k);
       camera.lookAt(look.current);
     }

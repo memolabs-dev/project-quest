@@ -1,6 +1,7 @@
 // The building site: ground, road, zone yards with their pallets, the buildings, the crane and the office.
 import { Html, KeyboardControls, Sky } from "@react-three/drei";
 import { TeamRewards } from "./Rewards.tsx";
+import { Director } from "./Director.tsx";
 import { useReducedMotion } from "./motion.ts";
 import { Canvas } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
@@ -145,6 +146,17 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         <TurningCrane position={[width / 2 - 2, 0, BUILDING_ROW_Z + 7]} reduceMotion={reduceMotion} />
         <Termites spots={termites} reduceMotion={reduceMotion} />
         <Dust body={body} reduceMotion={reduceMotion} />
+        <Director reduceMotion={reduceMotion} spotOf={(m) => {
+          if (m.pallet !== undefined) {
+            const p = layout.pallets.find((x) => x.number === m.pallet);
+            return p ? [p.x, p.z] : null;
+          }
+          if (m.building !== undefined) {
+            const b = layout.buildings.find((x) => x.key === (m.building === "unassigned" ? "unassigned" : `epic-${m.building}`));
+            return b ? [b.x, b.z] : null;
+          }
+          return null;
+        }} />
         <RigidBody type="fixed" colliders="cuboid" position={[-width / 2 + 1, 0, YARD_Z - 4]}>
           <Piece name="site_office" rotation-y={Math.PI / 2} />
         </RigidBody>

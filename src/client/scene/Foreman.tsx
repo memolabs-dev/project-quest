@@ -5,18 +5,24 @@ import { useFrame } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
+import { useQuest } from "../store.ts";
 
 const URL = "/models/foreman.glb";
 const HEIGHT = 1.85;
 const FADE = 0.2;
 
-type Clip = "Unarmed_Idle" | "Walking_A" | "Running_A" | "Jump_Full_Short";
+type Clip = "Unarmed_Idle" | "Walking_A" | "Running_A" | "Jump_Full_Short" | "Cheer" | "Interact";
+const REACTIONS = { cheer: "Cheer", lean: "Interact" } as const;
 
 export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>; feetY: number }) {
   const group = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF(URL);
   const { actions } = useAnimations(animations, group);
   const current = useRef<Clip | null>(null);
+  const reaction = useQuest((s) => s.reaction);
+  // A reaction plays once, then locomotion takes over again; walking away cuts it short.
+  const reacting = useRef<{ clip: Clip; left: number } | null>(null);
+  const seen = useRef(reaction?.at ?? 0);
 
   // Scale the model to a human height and stand it on the capsule's feet.
   const scale = useMemo(() => {
@@ -37,10 +43,25 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
     current.current = clip;
   };
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const h = body.current;
     // Actions are bound to the group: wait until it is mounted, or the first clip binds to nothing.
     if (!h || !group.current) return;
+    if (reaction && reaction.at !== seen.current) {
+      seen.current = reaction.at;
+      const clip = REACTIONS[reaction.kind];
+      const action = actions[clip];
+      if (action) {
+        action.setLoop(THREE.LoopOnce, 1);
+        reacting.current = { clip, left: action.getClip().duration };
+      }
+    }
+    const r = reacting.current;
+    if (r && !h.isMoving) {
+      r.left -= delta;
+      if (r.left > 0) { play(r.clip); return; }
+    }
+    reacting.current = null;
     if (!h.isOnGround && h.verticalSpeed > 0.5) play("Jump_Full_Short");
     else if (h.isMoving && h.runActive) play("Running_A");
     else if (h.isMoving && h.moveSpeed > 0.4) play("Walking_A");

@@ -51,6 +51,9 @@ interface QuestState {
   announce(...m: Moment[]): void;
   /** Hands the waiting moments to the director and forgets them. */
   takeMoments(): Moment[];
+  /** The foreman's latest reaction to a moment; `at` changes each time, so the same reaction can repeat. */
+  reaction: { kind: "cheer" | "lean"; at: number } | null;
+  react(kind: "cheer" | "lean"): void;
 }
 
 export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor" | "ask";
@@ -70,6 +73,8 @@ export const useQuest = create<QuestState>((set, get) => ({
   siteKind: siteKindFromUrl(pageSearch()),
   settings: loadSettings(),
   moments: [],
+  reaction: null,
+  react: (kind) => set((s) => ({ reaction: { kind, at: (s.reaction?.at ?? 0) + 1 } })),
   announce: (...m) => { if (m.length) set((s) => ({ moments: [...s.moments, ...m] })); },
   takeMoments() {
     const m = get().moments;
