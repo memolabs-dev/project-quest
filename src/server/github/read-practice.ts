@@ -30,17 +30,27 @@ export const PRACTICE_QUERY = /* GraphQL */ `
         nodes {
           id number url title
           owner { ... on User { login } ... on Organization { login } }
-          field(name: "Status") { ... on ProjectV2SingleSelectField { options { name } } }
+          field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name } } }
+          fields(first: 30) {
+            nodes { ... on ProjectV2FieldCommon { id name dataType } ... on ProjectV2SingleSelectField { options { id name } } }
+          }
         }
       }
+      labels(first: 50) { nodes { id name } }
       issues(first: 50, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
-          id number url closed
+          id number url closed body stateReason
+          duplicateOf { number }
+          labels(first: 20) { nodes { name } }
           author { login }
           assignees(first: 10) { nodes { login } }
           comments(first: 20) { nodes { author { login } url } }
           projectItems(first: 10) {
-            nodes { project { id number } status: fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } } }
+            nodes {
+              id project { id number }
+              status: fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
+              size: fieldValueByName(name: "Size") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
+            }
           }
         }
       }
@@ -67,15 +77,21 @@ interface PracticeResponse {
     }[] };
     projectsV2: { nodes: {
       id: string; number: number; url: string; title: string; owner: { login?: string } | null;
-      field: { options: { name: string }[] } | null;
+      field: { id?: string; options: { id: string; name: string }[] } | null;
+      fields?: { nodes: { id?: string; name?: string; dataType?: string; options?: { id: string; name: string }[] }[] };
     }[] };
+    labels?: { nodes: { id: string; name: string }[] };
     issues: {
       nodes: {
-        id: string; number: number; url: string; closed: boolean;
+        id: string; number: number; url: string; closed: boolean; body?: string; stateReason?: string | null;
+        duplicateOf?: { number: number } | null;
+        labels?: { nodes: { name: string }[] };
         author: { login: string } | null;
         assignees: { nodes: { login: string }[] };
         comments: { nodes: { author: { login: string } | null; url: string }[] };
-        projectItems: { nodes: { project: { id: string; number: number }; status: { name: string } | null }[] };
+        projectItems: { nodes: {
+          id?: string; project: { id: string; number: number }; status: { name: string } | null; size?: { name?: string } | null;
+        }[] };
       }[];
     };
   } | null;
@@ -99,16 +115,34 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
   const owned = r.projectsV2.nodes.filter((n) => n.owner?.login?.toLowerCase() === owner.toLowerCase());
   const p = owned.find((n) => n.title === name) ?? owned[0];
   const here = (repo: { nameWithOwner: string }) => repo.nameWithOwner.toLowerCase() === r.nameWithOwner.toLowerCase();
-  const board = p ? { id: p.id, number: p.number, url: p.url, columns: (p.field?.options ?? []).map((o) => o.name) } : null;
+  const columns = (p?.field?.options ?? []).map((o) => o.name);
+  const board = p ? {
+    id: p.id, number: p.number, url: p.url, columns,
+    statusFieldId: p.field?.id ?? "",
+    statusOptions: columns,
+    fields: (p.fields?.nodes ?? []).filter((f) => f.id && f.name).map((f) => ({
+      id: f.id!, name: f.name!, dataType: f.dataType ?? "", ...(f.options ? { options: f.options } : {}),
+    })),
+  } : null;
   return {
     repo: { id: r.id, nameWithOwner: r.nameWithOwner, url: r.url },
     board,
-    issues: r.issues.nodes.map((i) => ({
-      id: i.id, number: i.number, url: i.url, closed: i.closed, author: login(i.author),
-      assignees: i.assignees.nodes.map((a) => a.login),
-      comments: i.comments.nodes.map((c) => ({ author: login(c.author), url: c.url })),
-      status: board ? i.projectItems.nodes.find((n) => n.project.id === board.id)?.status?.name ?? null : null,
-    })),
+    labels: r.labels?.nodes ?? [],
+    issues: r.issues.nodes.map((i) => {
+      const item = board ? i.projectItems.nodes.find((n) => n.project.id === board.id) : undefined;
+      return {
+        id: i.id, number: i.number, url: i.url, closed: i.closed, author: login(i.author),
+        assignees: i.assignees.nodes.map((a) => a.login),
+        comments: i.comments.nodes.map((c) => ({ author: login(c.author), url: c.url })),
+        status: item?.status?.name ?? null,
+        labels: (i.labels?.nodes ?? []).map((l) => l.name),
+        body: i.body ?? "",
+        stateReason: i.stateReason ?? null,
+        duplicateOf: i.duplicateOf?.number ?? null,
+        itemId: item?.id ?? null,
+        size: item?.size?.name ?? null,
+      };
+    }),
     defaultBranch: r.defaultBranchRef
       ? { name: r.defaultBranchRef.name, oid: r.defaultBranchRef.target.oid, committedDate: r.defaultBranchRef.target.committedDate }
       : null,

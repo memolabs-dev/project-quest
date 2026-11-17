@@ -12,8 +12,8 @@ describe("readPractice", () => {
   it("maps the repository, its board and its issues", async () => {
     const p = await readPractice(gqlReturning(fixture), "fictif-volunteer", "my-first-site");
     expect(p?.repo).toEqual({ id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" });
-    expect(p?.board).toEqual({ id: "PVT_fictif", number: 3, url: "https://github.com/users/fictif-volunteer/projects/3", columns: ["Todo", "In Progress", "Done"] });
-    expect(p?.issues[0]).toEqual({
+    expect(p?.board).toMatchObject({ id: "PVT_fictif", number: 3, url: "https://github.com/users/fictif-volunteer/projects/3", columns: ["Todo", "In Progress", "Done"] });
+    expect(p?.issues[0]).toMatchObject({
       id: "I_fictif_1", number: 1, url: "https://github.com/fictif-volunteer/my-first-site/issues/1", author: "fictif-volunteer",
       assignees: ["fictif-volunteer"], closed: false, status: "In Progress",
       comments: [{ author: "fictif-volunteer", url: "https://github.com/fictif-volunteer/my-first-site/issues/1#issuecomment-1" }],
@@ -72,6 +72,19 @@ describe("how each commit was made", () => {
       { oid: "aaa111", committedDate: "2026-11-17T08:00:00Z", viaWeb: true },
     ] });
     expect(p?.pulls[0].commits.map((c) => c.viaWeb)).toEqual([true, false]);
+  });
+});
+
+describe("what the lead's levels need", () => {
+  it("maps the board's fields, the repository's labels and each issue's labels, body, close reason and size", async () => {
+    const p = await readPractice(gqlReturning(fixture), "fictif-volunteer", "my-first-site");
+    expect(p?.board).toMatchObject({ statusFieldId: "PVTSSF_status", statusOptions: ["Todo", "In Progress", "Done"] });
+    expect(p?.board?.fields?.find((f) => f.name === "Size")).toEqual({
+      id: "PVTSSF_size", name: "Size", dataType: "SINGLE_SELECT", options: [{ id: "s1", name: "XS" }, { id: "s2", name: "S" }],
+    });
+    expect(p?.labels).toEqual([{ id: "LA_bug", name: "bug" }, { id: "LA_enh", name: "enhancement" }]);
+    expect(p?.issues[0]).toMatchObject({ labels: ["bug"], body: "FICTIF body\n- [ ] one", stateReason: null, duplicateOf: null, itemId: "PVTI_1_3", size: "S" });
+    expect(p?.issues[1]).toMatchObject({ labels: [], stateReason: "DUPLICATE", duplicateOf: 1, itemId: "PVTI_2_3", size: null });
   });
 });
 

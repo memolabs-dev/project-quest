@@ -20,7 +20,18 @@ export interface PracticeIssue {
   /** The issue's column on the practice board, null when it has none. */
   status: string | null;
   closed: boolean;
+  labels?: string[];
+  body?: string;
+  /** Why it was closed: COMPLETED, NOT_PLANNED or DUPLICATE. */
+  stateReason?: string | null;
+  duplicateOf?: number | null;
+  /** Its item on the practice board, and its Size there. */
+  itemId?: string | null;
+  size?: string | null;
 }
+
+/** A field of a board; single selects carry their options. */
+export interface BoardField { id: string; name: string; dataType: string; options?: { id: string; name: string }[] }
 
 export interface PracticePull {
   id: string;
@@ -45,7 +56,15 @@ export interface BranchCommit { oid: string; committedDate: string; viaWeb: bool
 /** The player's practice repository as read on GitHub. */
 export interface PracticeSnapshot {
   repo: { id: string; nameWithOwner: string; url: string };
-  board: { id: string; number: number; url: string; columns: string[] } | null;
+  board: {
+    id: string; number: number; url: string; columns: string[];
+    statusFieldId?: string;
+    /** The Status options, in order (the same as columns). */
+    statusOptions?: string[];
+    fields?: BoardField[];
+  } | null;
+  /** The repository's labels, with their ids (for labelling). */
+  labels?: { id: string; name: string }[];
   issues: PracticeIssue[];
   /** Null while the repository has no commit at all. */
   defaultBranch: { name: string; oid: string; committedDate: string } | null;

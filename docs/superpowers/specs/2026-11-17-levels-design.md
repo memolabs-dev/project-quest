@@ -90,7 +90,7 @@ Sample lines (the final stock lives in `locales/en` and `locales/fr`):
 
 - `progress`: player, level id, stamped at, proof URL (or `tutorial`).
 - `players` gains the practice repository's name.
-- GitHub stays the truth: if the table is lost, re-checking every level on GitHub restores each stamp whose proof still exists.
+- GitHub stays the truth, but the stamps are worth keeping: re-checking restores only the stamps whose condition still holds on GitHub. The tutorial levels (game events), a Team leader branch since deleted (levels 12 and 13) and a comment older than its level (16) cannot be found again. Learned on 2026-11-17, when the database tests emptied the game's own tables; they now run on their own `quest_test` database.
 
 ## 8. Safety
 
