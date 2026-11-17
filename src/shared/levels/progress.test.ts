@@ -48,13 +48,13 @@ describe("progress", () => {
     expect(unlocks(new Set(LEVELS.map((l) => l.id)))).toMatchObject({ van: true, realProjects: true });
   });
   it("reaches the Journeyman rank after the Apprentice one", () => {
-    const all = LEVELS.map((l) => l.id);
-    const journeyman = LEVELS.filter((l) => l.rank === "apprentice" || l.rank === "journeyman").map((l) => l.id);
-    const teamLeader = LEVELS.filter((l) => l.rank !== "real-project").map((l) => l.id);
-    expect(rankReached(LEVELS, new Set(ids))).toBe("apprentice");
-    expect(rankReached(LEVELS, new Set(journeyman))).toBe("journeyman");
-    expect(rankReached(LEVELS, new Set(teamLeader))).toBe("team-leader");
-    expect(rankReached(LEVELS, new Set(all))).toBe("real-project");
-    expect(currentLevel(LEVELS, new Set(ids))?.id).toBe("a8-edit-file");
+    const all = levelsOf("volunteer").map((l) => l.id);
+    const journeyman = levelsOf("volunteer").filter((l) => l.rank === "apprentice" || l.rank === "journeyman").map((l) => l.id);
+    const teamLeader = levelsOf("volunteer").filter((l) => l.rank !== "real-project").map((l) => l.id);
+    expect(rankReached(levelsOf("volunteer"), new Set(ids))).toBe("apprentice");
+    expect(rankReached(levelsOf("volunteer"), new Set(journeyman))).toBe("journeyman");
+    expect(rankReached(levelsOf("volunteer"), new Set(teamLeader))).toBe("team-leader");
+    expect(rankReached(levelsOf("volunteer"), new Set(all))).toBe("real-project");
+    expect(currentLevel(levelsOf("volunteer"), new Set(ids))?.id).toBe("a8-edit-file");
   });
 });

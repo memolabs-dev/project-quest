@@ -75,14 +75,21 @@
       "apprentice": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant.",
       "journeyman": "Te voilà compagne ou compagnon. Ta première contribution est entrée, de la branche à la fusion. La suite : les vrais projets.",
       "team-leader": "Te voilà cheffe ou chef d'équipe. Tu connais git de bout en bout. Les vrais projets t'attendent.",
-      "real-project": "Tu as fait tout le chemin. Tu connais GitHub de la première issue à un vrai projet. Bienvenue dans l'équipe."
+      "real-project": "Tu as fait tout le chemin. Tu connais GitHub de la première issue à un vrai projet. Bienvenue dans l'équipe.",
+      "site-foreman": "Te voilà contremaîtresse ou contremaître. Ce qui arrive est trié, prêt et mesuré. La suite : planifier."
     },
     "fold": "Replier Mémé",
     "copy": "Copier",
     "copied": "Copié",
     "commands": "Tape ceci dans un terminal :",
     "toMain": "Vers le vrai chantier",
-    "noGoodFirst": "Aucune issue n'est marquée « good first issue » sur ce projet pour l'instant. Demande à son équipe, ou reviens plus tard."
+    "noGoodFirst": "Aucune issue n'est marquée « good first issue » sur ce projet pour l'instant. Demande à son équipe, ou reviens plus tard.",
+    "choose": {
+      "question": "Tu es là pour donner un coup de main, ou pour mener le chantier ?",
+      "volunteer": "Donner un coup de main",
+      "lead": "Mener le chantier"
+    },
+    "toTeam": "Vers ton chantier d'équipe"
   },
   "skills": {
     "title": "Compétences",
@@ -90,11 +97,18 @@
       "apprentice": "Apprenti",
       "journeyman": "Compagnon",
       "team-leader": "Chef d'équipe",
-      "real-project": "Vrai projet"
+      "real-project": "Vrai projet",
+      "site-foreman": "Contremaître",
+      "site-manager": "Chef de chantier",
+      "project-director": "Directeur de travaux"
     },
     "proof": "Voir sur GitHub",
     "tutorial": "Fait sur le chantier d'apprentissage",
-    "notYet": "Pas encore acquise"
+    "notYet": "Pas encore acquise",
+    "paths": {
+      "volunteer": "Donner un coup de main",
+      "lead": "Mener le chantier"
+    }
   },
   "levels": {
     "a1-walk": {
@@ -192,6 +206,30 @@
       "goal": "Sur le vrai chantier, ouvre une palette marquée « good first issue » et demande-la dans un commentaire.",
       "lesson": "Sur un vrai projet, on ne prend pas : on demande. Quelqu'un qui le mène dira oui et t'assignera. C'est comme ça que la confiance commence.",
       "done": "Tu as demandé comme une pro, ou un pro. Une personne qui mène le projet décide, et tu verras ton badge sur le chantier quand elle dira oui."
+    },
+    "l1-found-team": {
+      "skill": "Fonder le chantier d'équipe",
+      "goal": "Fonde ton chantier d'équipe : un dépôt et son tableau, avec les cinq zones et un champ Taille.",
+      "lesson": "Mener un chantier commence par un endroit pour le travail. Cinq zones, du stock aux étages posés, pour que chacun voie où en est chaque boulot.",
+      "done": "Ton chantier d'équipe est debout. Cinq zones, et de quoi dire la taille de chaque boulot."
+    },
+    "l2-sort-parcels": {
+      "skill": "Trier ce qui arrive",
+      "goal": "Ouvre les six colis de la maire : mets une étiquette sur chacun, et ferme comme doublon celui qui en répète un autre.",
+      "lesson": "Voici mes petites idées ! Six. Certaines sont claires, d'autres non, et l'une d'elles, tu l'as déjà vue.",
+      "done": "Trié. Chaque colis a son étiquette, et le doublon est fermé avec sa raison."
+    },
+    "l3-ready": {
+      "skill": "La définition de prêt",
+      "goal": "Sur un colis, écris la liste de ce qui doit être vrai avant de commencer, puis passe-le en Prête à poser.",
+      "lesson": "Rien ne monte sur l'échafaudage tant que ce n'est pas prêt. Une liste sous l'issue : quoi faire, comment on sait que c'est fini. Alors, et seulement alors, Prête à poser.",
+      "done": "Tamponné par l'inspection. Celui-là se posera sans surprise."
+    },
+    "l4-size": {
+      "skill": "Donner une taille",
+      "goal": "Donne une taille à chaque boulot en Prête à poser : XS, S, M, L ou XL.",
+      "lesson": "Une taille n'est pas une promesse de temps. Elle dit si le boulot a l'air gros, pour ne jamais charger plus que l'équipe ne peut porter.",
+      "done": "Chaque boulot prêt a sa taille. Tu peux planifier."
     }
   },
   "practice": {
@@ -273,5 +311,10 @@
   "inspector": {
     "name": "L'inspectrice",
     "remark": "Bon début. Une chose : ajoute une ligne qui dit pourquoi tu as fait ce changement, puis renvoie-le. Une pull request prend les nouveaux commits, pas besoin d'en ouvrir une autre."
+  },
+  "speakers": {
+    "meme": "Mémé Truelle",
+    "mayor": "La maire",
+    "inspector": "L'inspectrice"
   }
 }

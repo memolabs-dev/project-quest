@@ -98,6 +98,8 @@ export interface Observed {
   practice: PracticeSnapshot | null;
   /** Read only once the Team leader rank is done. */
   real?: RealSnapshot | null;
+  /** The lead's team site, as read on GitHub. */
+  team?: PracticeSnapshot | null;
   /** When the last level began (the Team leader rank's last stamp): older comments never count. */
   realSince?: string | null;
 }

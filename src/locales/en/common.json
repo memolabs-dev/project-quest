@@ -75,14 +75,21 @@
       "apprentice": "That's the Apprentice rank. You know your way around now.",
       "journeyman": "That's the Journeyman rank. Your first contribution is in, from branch to merge. Real projects are next.",
       "team-leader": "That's the Team leader rank. You know git from end to end. Real projects are waiting for you.",
-      "real-project": "That's the whole path. You know GitHub from the first issue to a real project. Welcome to the crew."
+      "real-project": "That's the whole path. You know GitHub from the first issue to a real project. Welcome to the crew.",
+      "site-foreman": "That's the Site foreman rank. What comes in is sorted, ready and sized. Planning is next."
     },
     "fold": "Fold Mémé away",
     "copy": "Copy",
     "copied": "Copied",
     "commands": "Type these in a terminal:",
     "toMain": "To the real site",
-    "noGoodFirst": "No issue is marked \"good first issue\" on this project yet. Ask its team, or come back later."
+    "noGoodFirst": "No issue is marked \"good first issue\" on this project yet. Ask its team, or come back later.",
+    "choose": {
+      "question": "Are you here to lend a hand, or to run the site?",
+      "volunteer": "Lend a hand",
+      "lead": "Run the site"
+    },
+    "toTeam": "To your team site"
   },
   "skills": {
     "title": "Skills",
@@ -90,11 +97,18 @@
       "apprentice": "Apprentice",
       "journeyman": "Journeyman",
       "team-leader": "Team leader",
-      "real-project": "Real project"
+      "real-project": "Real project",
+      "site-foreman": "Site foreman",
+      "site-manager": "Site manager",
+      "project-director": "Project director"
     },
     "proof": "See it on GitHub",
     "tutorial": "Done on the tutorial site",
-    "notYet": "Not earned yet"
+    "notYet": "Not earned yet",
+    "paths": {
+      "volunteer": "Lend a hand",
+      "lead": "Run the site"
+    }
   },
   "levels": {
     "a1-walk": {
@@ -192,6 +206,30 @@
       "goal": "On the real site, open a pallet marked \"good first issue\" and ask for it in a comment.",
       "lesson": "On a real project, you don't take: you ask. Someone who runs it will say yes and assign you. That's how trust starts.",
       "done": "You asked like a pro. Now a maintainer decides, and you'll see your badge on the site when they say yes."
+    },
+    "l1-found-team": {
+      "skill": "Found the team site",
+      "goal": "Found your team site: a repository and its board, with the five zones and a Size field.",
+      "lesson": "Running a site starts with a place for the work. Five zones, from the stock to the laid floors, so anyone sees where each job stands.",
+      "done": "Your team site is up. Five zones, and a way to say how big each job is."
+    },
+    "l2-sort-parcels": {
+      "skill": "Sort what comes in",
+      "goal": "Open the mayor's six parcels: put a label on each, and close the one that repeats another as a duplicate.",
+      "lesson": "Here are my small ideas! Six of them. Some are clear, some are not, and one of them you have seen before.",
+      "done": "Sorted. Every parcel has its label, and the duplicate is closed with its reason."
+    },
+    "l3-ready": {
+      "skill": "The Definition of Ready",
+      "goal": "On one parcel, write the checklist of what must be true before work starts, then move it to Ready to lay.",
+      "lesson": "Nothing goes on the scaffolding until it is ready. A checklist under the issue: what to do, how we know it is done. Then, and only then, Ready to lay.",
+      "done": "Stamped by the inspection. That one can be laid without surprises."
+    },
+    "l4-size": {
+      "skill": "Size the work",
+      "goal": "Give a size to every job in Ready to lay: XS, S, M, L or XL.",
+      "lesson": "A size is not a promise of time. It says how big the job looks, so you never load more than the team can carry.",
+      "done": "Every ready job has its size. Now you can plan."
     }
   },
   "practice": {
@@ -273,5 +311,10 @@
   "inspector": {
     "name": "The inspector",
     "remark": "Good start. One thing: add a line saying why you made this change, then send it again. A pull request takes new commits, no need to open another one."
+  },
+  "speakers": {
+    "meme": "Mémé Truelle",
+    "mayor": "The mayor",
+    "inspector": "The inspector"
   }
 }
