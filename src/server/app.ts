@@ -157,6 +157,14 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
   const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") !== undefined ? demo : live);
   // Levels always belong to the real player, even while they play the tutorial on the demo site.
   const levels = async () => checkLevels(live, (await live.viewer()).login);
+  // After a write GitHub accepted, a failed re-read must never turn the done gesture into an error: the client reads again.
+  const levelsAfterWrite = async () => {
+    try {
+      return await levels();
+    } catch {
+      return null;
+    }
+  };
   return new Hono()
     // Defence in depth: a write comes only from the game's own page, never from another site the player has open.
     .use("/api/*", async (c, next) => {
@@ -291,11 +299,11 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       await record(live, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
       if (!result.ok) return c.json(result);
       if (rebuilt.kind === "found") await live.progress.setPracticeRepo(login, name);
-      let view = await levels();
+      let view = await levelsAfterWrite();
       // GitHub links a new pull request to the issue it closes a moment after creating it: read again, a few times.
-      for (let i = 0; i < 3 && rebuilt.kind === "pull" && view.current === "a9-open-pull"; i++) {
+      for (let i = 0; i < 3 && rebuilt.kind === "pull" && view?.current === "a9-open-pull"; i++) {
         await new Promise((r) => setTimeout(r, settleMs));
-        view = await levels();
+        view = await levelsAfterWrite();
       }
       return c.json({ ok: true as const, levels: view });
     })
@@ -306,7 +314,8 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       return c.json(prepareAsk(await live.readGoodFirst(issueNumber), login, issueNumber, comment));
     })
     .post("/api/real/ask/apply", zValidator("json", z.looseObject({
-      kind: z.literal("ask"), repo: z.string(), issueNumber: z.number(), comment: z.string(), mutations,
+      // GitHub takes a comment of 65536 characters at most.
+      kind: z.literal("ask"), repo: z.string(), issueNumber: z.number(), comment: z.string().max(65_536), mutations,
     })), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedAsk;
       if (c.req.query("demo") !== undefined) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
@@ -330,7 +339,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       }
       await record(live, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
       if (!result.ok) return c.json(result);
-      return c.json({ ok: true as const, levels: await levels() });
+      return c.json({ ok: true as const, levels: await levelsAfterWrite() });
     })
     // ---------- The lead's team site (its own guard: only <viewer>/<teamName>) ----------
     .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size|sprint-field|load|unload|milestone|attach|split|rope|bulletin|wip-limit|team-day|finish|close-visit|move-visit}/prepare", zValidator("json", teamArgs), async (c) => {
@@ -366,7 +375,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       // What GitHub cannot show afterwards is kept as a game event, only once GitHub accepted the gesture.
       if (rebuilt.kind === "team-day") await live.progress.addEvent(login, "team-day");
       if (rebuilt.kind === "move-visit") await live.progress.addEvent(login, "visit-moved");
-      return c.json({ ok: true as const, levels: await levels() });
+      return c.json({ ok: true as const, levels: await levelsAfterWrite() });
     })
     .post("/api/team/moves/prepare", zValidator("json", prepareBody), async (c) => {
       const board = await practiceBoard(live, "team");

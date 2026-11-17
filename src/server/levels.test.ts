@@ -318,6 +318,33 @@ describe("the sprint's capacity", () => {
   });
 });
 
+describe("after a write GitHub accepted", () => {
+  it("answers ok even when reading the levels again fails, so the player never sees an error for a done gesture", async () => {
+    let reads = 0;
+    const real = { repo: "memolabs-dev/project-quest-sandbox", issues: [{ id: "I_9", number: 9, title: "FICTIF", url: "u9", assignees: [], comments: [] }] };
+    const progress = memoryProgress();
+    for (const id of ["a1-walk", "a2-read-issue", "a3-read-board", "a4-found-site", "a5-write-issue", "a6-take-issue", "a7-move-issue",
+      "a8-edit-file", "a9-open-pull", "a10-answer-review", "a11-merge", "a12-push-branch", "a13-bring-main", "a14-fix-from-machine", "a15-clean-up"]) {
+      await progress.stamp(VIEWER, id, "u");
+    }
+    const { app, sent } = make(null, {
+      progress,
+      readGoodFirst: async () => { reads += 1; if (reads > 2) throw new Error("GitHub hiccup"); return real; },
+    });
+    const claim = await (await app.request("/api/real/ask/prepare", post({ issueNumber: 9, comment: "I'd like to work on this one." }))).json();
+    const res = await app.request("/api/real/ask/apply", post(claim));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, levels: null });
+    expect(sent).toHaveLength(1);
+  });
+  it("refuses an ask longer than GitHub takes", async () => {
+    const { app } = make(null, { readGoodFirst: async () => ({ repo: "memolabs-dev/project-quest-sandbox", issues: [{ id: "I_9", number: 9, title: "FICTIF", url: "u9", assignees: [], comments: [] }] }) });
+    const body = { kind: "ask", repo: "memolabs-dev/project-quest-sandbox", issueNumber: 9, comment: "x".repeat(65_537), mutations: [] };
+    expect((await app.request("/api/real/ask/apply", post({ ...body, comment: "short" }))).status).not.toBe(400);
+    expect((await app.request("/api/real/ask/apply", post(body))).status).toBe(400);
+  });
+});
+
 describe("the demo and origin guards", () => {
   it("a page marked demo never sends, even with an empty value", async () => {
     const { app, sent } = make(site());

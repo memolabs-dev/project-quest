@@ -84,7 +84,8 @@ export interface LevelsView {
 }
 
 export type PracticeApplyResponse =
-  | { ok: true; levels: LevelsView }
+  /** levels is null when GitHub accepted the gesture but the levels could not be read again right after. */
+  | { ok: true; levels: LevelsView | null }
   | { ok: false; reason: "github"; message: string; applied: string[] };
 
 export type { PreparedMove, PreparedPractice };

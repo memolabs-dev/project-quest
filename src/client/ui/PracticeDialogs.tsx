@@ -63,6 +63,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
   const close = (v: null) => { closePractice(v); closeTeam(v); };
   const refresh = useQuest((s) => s.refresh);
   const setLevels = useQuest((s) => s.setLevels);
+  const refreshLevels = useQuest((s) => s.refreshLevels);
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -73,7 +74,8 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
       const r = prepared.kind === "ask" ? await api.applyAsk(prepared)
         : "args" in prepared ? await api.applyTeam(prepared) : await api.applyPractice(prepared);
       if (r.ok) {
-        setLevels(r.levels);
+        if (r.levels) setLevels(r.levels);
+        else void refreshLevels(true);
         close(null);
         await refresh();
       } else {
