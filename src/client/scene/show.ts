@@ -102,3 +102,9 @@ export function dronePose(t: number, siteWidth: number, end: CameraPose): Camera
   const mix = (a: number[], b: number[]) => a.map((v, i) => v + (b[i] - v) * e);
   return { position: mix(start.position, end.position), target: mix(start.target, end.target) };
 }
+
+/** The pallets that stand on the site: a cleared duplicate is neither in the player's way nor near them. */
+export function solidPallets<P extends { number: number }>(site: { pallets: { number: number; discarded: boolean }[] }, pallets: P[]): P[] {
+  const gone = new Set(site.pallets.filter((p) => p.discarded).map((p) => p.number));
+  return pallets.filter((p) => !gone.has(p.number));
+}

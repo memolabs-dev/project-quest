@@ -14,6 +14,8 @@ export interface MomentSpec {
   react: "cheer" | "lean" | null;
   /** With reduced motion: the same sound, and words where motion told the story. */
   reduced: { sound: SoundName | null; text: string | null };
+  /** The sound and the dust wait for the crate to touch the ground (the pallet announces its landing). */
+  onLanding?: boolean;
 }
 
 const quiet = (sound: SoundName | null, o: Partial<MomentSpec> = {}): MomentSpec => ({
@@ -21,9 +23,9 @@ const quiet = (sound: SoundName | null, o: Partial<MomentSpec> = {}): MomentSpec
 });
 
 export const MOMENTS: Record<MomentKind, MomentSpec> = {
-  "pallet-moved": quiet("land", { dust: "puff" }),
+  "pallet-moved": quiet("land", { dust: "puff", onLanding: true }),
   "floor-laid": { sound: "chime", dust: "ring", kick: 0.12, react: "cheer", reduced: { sound: "chime", text: "site.newFloor" } },
-  parcel: quiet("thud", { dust: "puff" }),
+  parcel: quiet("thud", { dust: "puff", onLanding: true }),
   cleared: quiet("poof", { dust: "puff" }),
   stamp: quiet("stamp"),
   refused: quiet("bonk"),

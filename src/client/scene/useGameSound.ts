@@ -16,6 +16,8 @@ export function useGameSound() {
       s.setMuted(!settings.sound);
       s.setVolume(settings.volume);
       if (unlocked.current) s.unlock();
+    }).catch(() => {
+      // No sound (the audio module failed to load): the game plays on, silent.
     });
     return () => { live = false; };
   }, [settings.sound, settings.volume]);

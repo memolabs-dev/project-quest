@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Building, Site } from "../../shared/site.ts";
 import {
-  badgeInitial, buildingPlan, crateScale, growsNow, dronePose, facade, idleOffset, jacketColor, termiteSpots, workerSpots,
+  badgeInitial, buildingPlan, crateScale, growsNow, solidPallets, dronePose, facade, idleOffset, jacketColor, termiteSpots, workerSpots,
 } from "./show.ts";
 
 const b = (floorsDone: number, floorsTotal: number, epicNumber: number | null = 1): Building => ({ epicNumber, title: "FICTIF", floorsDone, floorsTotal });
@@ -24,6 +24,14 @@ describe("buildingPlan", () => {
     expect(buildingPlan(b(39, 40))).toEqual({ built: 11, scaffold: 1, roof: false });
     expect(buildingPlan(b(40, 40))).toEqual({ built: 12, scaffold: 0, roof: true });
     expect(buildingPlan(b(1, 40)).built).toBe(1);
+  });
+});
+
+describe("solidPallets", () => {
+  it("a cleared duplicate is neither near the player nor in the way", () => {
+    const pallets = [{ number: 1, x: 0, z: 0 }, { number: 2, x: 1, z: 0 }];
+    const site = { pallets: [{ number: 1, discarded: false }, { number: 2, discarded: true }] } as unknown as Parameters<typeof solidPallets>[0];
+    expect(solidPallets(site, pallets).map((p) => p.number)).toEqual([1]);
   });
 });
 

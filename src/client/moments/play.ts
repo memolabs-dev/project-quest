@@ -13,6 +13,10 @@ export interface MomentPlan {
 
 export function planMoment(m: Moment, reduced: boolean): MomentPlan {
   const spec = MOMENTS[m.kind];
+  // A crate still in the air: no thud, no dust yet; its landing brings them.
+  if (spec.onLanding && !m.landed) {
+    return { sound: null, dust: null, kick: reduced ? 0 : spec.kick, react: reduced ? null : spec.react, text: null };
+  }
   if (reduced) return { sound: spec.reduced.sound, dust: null, kick: 0, react: null, text: spec.reduced.text };
   return { sound: spec.sound, dust: spec.dust, kick: spec.kick, react: spec.react, text: null };
 }
@@ -21,7 +25,7 @@ const KICK_SECONDS = 0.3;
 
 /** The camera kick's offset t seconds after it began: a quick dip that rebounds and fades to nothing at 300 ms. */
 export function kickAt(t: number, strength: number): number {
-  if (t >= KICK_SECONDS) return 0;
+  if (t < 0 || t >= KICK_SECONDS) return 0;
   const k = t / KICK_SECONDS;
   return strength * Math.cos(k * Math.PI * 3) * (1 - k);
 }

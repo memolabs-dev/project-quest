@@ -2,7 +2,13 @@
 import type { Site } from "../../shared/site.ts";
 import type { MomentKind } from "./list.ts";
 
-export interface Moment { kind: MomentKind; pallet?: number; building?: number | "unassigned" }
+export interface Moment {
+  kind: MomentKind; pallet?: number; building?: number | "unassigned";
+  /** Where it happens, when the one who announces it knows better than the last drawn layout. */
+  spot?: [number, number];
+  /** The crate touched the ground: its sound and dust play now (announced by the pallet itself). */
+  landed?: boolean;
+}
 
 /**
  * The facts a refresh shows: moved, new, cleared pallets, and floors laid. Several floors laid at once make one big

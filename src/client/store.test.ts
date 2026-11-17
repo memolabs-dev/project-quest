@@ -27,6 +27,29 @@ describe("the store's moments", () => {
     expect(useQuest.getState().motions[8]).toMatchObject({ kind: "parcel" });
     useQuest.getState().takeMoments();
   });
+  it("founding a site from the empty plot brings no flood of parcels", async () => {
+    const { EMPTY_PLOT } = await import("./store.ts");
+    useQuest.getState().setSite(EMPTY_PLOT);
+    useQuest.getState().takeMoments();
+    useQuest.getState().setSite(site([pallet(1), pallet(2), pallet(3)]));
+    expect(useQuest.getState().takeMoments()).toEqual([]);
+  });
+  it("keeps only the latest moments when nothing plays them (a hidden tab)", () => {
+    useQuest.getState().takeMoments();
+    for (let i = 0; i < 40; i++) useQuest.getState().announce({ kind: "stamp" });
+    expect(useQuest.getState().takeMoments()).toHaveLength(12);
+  });
+  it("a landing is played, never a new motion for the pallet", () => {
+    const before = useQuest.getState().motions[1];
+    useQuest.getState().announce({ kind: "pallet-moved", pallet: 1, landed: true, spot: [0, 0] });
+    expect(useQuest.getState().motions[1]).toBe(before);
+    useQuest.getState().takeMoments();
+  });
+  it("a card's rustle never replaces the pallet's own motion (closing the card right after a move)", () => {
+    useQuest.getState().announce({ kind: "pallet-moved", pallet: 9 }, { kind: "card-close", pallet: 9 }, { kind: "card-open", pallet: 9 });
+    expect(useQuest.getState().motions[9]).toMatchObject({ kind: "pallet-moved" });
+    useQuest.getState().takeMoments();
+  });
   it("opening and closing a card announce their rustle", () => {
     useQuest.getState().takeMoments();
     useQuest.getState().open(3);

@@ -6,7 +6,7 @@ import { useReducedMotion } from "./motion.ts";
 import { Canvas } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
-import { Suspense, useMemo, useRef } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import type { Site as SiteModel } from "../../shared/site.ts";
@@ -21,7 +21,7 @@ import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
-import { jacketColor, termiteSpots, workerSpots } from "./show.ts";
+import { jacketColor, solidPallets, termiteSpots, workerSpots } from "./show.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
 
@@ -109,6 +109,10 @@ function GateSign({ x }: { x: number }) {
 
 function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean }) {
   const layout = useMemo(() => layoutSite(site), [site]);
+  // A cleared duplicate is neither in the player's way nor near them.
+  const solid = useMemo(() => solidPallets(site, layout.pallets), [site, layout]);
+  // The moments' count when the scene opened: pallets already there never replay their arrival.
+  const [openedAt] = useState(() => Object.values(useQuest.getState().motions).reduce((n, m) => Math.max(n, m.at), 0));
   const near = useQuest((s) => s.nearPallet);
   const zoneIndex = new Map(site.zones.map((z) => [z.name, z.index]));
   const width = site.zones.length * ZONE_SPACING + 10;
@@ -138,7 +142,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         ))}
         {layout.pallets.map((p) => {
           const pallet = site.pallets.find((x) => x.number === p.number)!;
-          return <Pallet key={p.number} pallet={pallet} x={p.x} z={p.z} color={zoneColor(zoneIndex.get(pallet.zone) ?? 0)} near={near === p.number} reduceMotion={reduceMotion} />;
+          return <Pallet key={p.number} pallet={pallet} x={p.x} z={p.z} color={zoneColor(zoneIndex.get(pallet.zone) ?? 0)} near={near === p.number} reduceMotion={reduceMotion} openedAt={openedAt} />;
         })}
         {layout.buildings.map((b, i) => (
           <Building key={b.key} model={site.buildings[i]} x={b.x} z={b.z} reduceMotion={reduceMotion} />
@@ -167,7 +171,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         {spots.map((s) => <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} />)}
         <GateSign x={-width / 2 + 1.5} />
         <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
-        <Player pallets={layout.pallets} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
+        <Player pallets={solid} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
       <Effects />

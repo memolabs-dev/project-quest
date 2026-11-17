@@ -38,7 +38,7 @@ export function Director({ spotOf, reduceMotion }: { spotOf(m: Moment): [number,
     for (const m of take()) {
       const plan = planMoment(m, reduceMotion);
       if (plan.sound) sound.current?.play(plan.sound);
-      const spot = spotOf(m);
+      const spot = m.spot ?? spotOf(m);
       if (plan.dust && spot) spawn(spot[0], spot[1], plan.dust === "ring" ? 16 : 8, plan.dust === "ring");
       if (plan.kick) { cameraKick.started = clock.elapsedTime; cameraKick.strength = plan.kick; }
       if (plan.react) react(plan.react);

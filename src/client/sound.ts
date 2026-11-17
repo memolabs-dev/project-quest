@@ -47,18 +47,25 @@ export function createSound(make: (src: string) => HowlLike, now: () => number =
     },
     setVolume(v: number) { volume = Math.min(1, Math.max(0, v)); },
     setMuted(m: boolean) { muted = m; },
-    unlock() { unlocked = true; },
+    /** The first gesture: every file is readied now, inside the gesture, so the first sounds are not late. */
+    unlock() {
+      unlocked = true;
+      for (const files of Object.values(FILES)) for (const f of files) howl(f);
+    },
   };
 }
 
 export type Sound = ReturnType<typeof createSound>;
 
-let shared: Sound | null = null;
-/** The game's one sound player, made with Howler on first use (browser only). */
-export async function gameSound(): Promise<Sound> {
-  if (!shared) {
-    const { Howl } = await import("howler");
-    shared = createSound((src) => new Howl({ src: [src], preload: true }));
-  }
+let shared: Promise<Sound> | null = null;
+/** The game's one sound player, made with Howler on first use (browser only); every caller gets the same one. */
+export function gameSound(): Promise<Sound> {
+  shared ??= import("howler").then(({ Howl, Howler }) => {
+    const sound = createSound((src) => new Howl({ src: [src], preload: true }));
+    const unlock = sound.unlock;
+    // Safari can keep the audio context suspended until a gesture asks it to resume.
+    sound.unlock = () => { unlock(); void Howler.ctx?.resume(); };
+    return sound;
+  });
   return shared;
 }

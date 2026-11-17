@@ -61,7 +61,13 @@ interface QuestState {
 export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor" | "ask";
 
 const sent = new Set<TutorialEvent>();
-const EMPTY_PLOT: Site = { zones: [], buildings: [], pallets: [], workers: [] };
+export const EMPTY_PLOT: Site = { zones: [], buildings: [], pallets: [], workers: [] };
+/** Moments wait for the director at most this many: a hidden tab never piles up a flood. */
+const QUEUE = 12;
+/** The moments a pallet animates itself; a card's rustle or the truck's creak never replaces them. */
+const MOVES_A_PALLET = new Set<Moment["kind"]>(["pallet-moved", "parcel", "cleared", "refused"]);
+/** The site the moments compare with: the empty plot before founding counts as a first view. */
+const shown = (site: Site | null) => (site === EMPTY_PLOT ? null : site);
 
 export const useQuest = create<QuestState>((set, get) => ({
   load: { status: "loading" },
@@ -83,8 +89,8 @@ export const useQuest = create<QuestState>((set, get) => ({
     set((s) => {
       const motions = { ...s.motions };
       let at = Object.values(s.motions).reduce((n, x) => Math.max(n, x.at), 0);
-      for (const x of m) if (x.pallet !== undefined) motions[x.pallet] = { kind: x.kind, at: ++at };
-      return { moments: [...s.moments, ...m], motions };
+      for (const x of m) if (x.pallet !== undefined && !x.landed && MOVES_A_PALLET.has(x.kind)) motions[x.pallet] = { kind: x.kind, at: ++at };
+      return { moments: [...s.moments, ...m].slice(-QUEUE), motions };
     });
   },
   takeMoments() {
@@ -122,7 +128,7 @@ export const useQuest = create<QuestState>((set, get) => ({
   async refresh() {
     try {
       const r = await api.site();
-      get().announce(...momentsBetween(get().site, r.site));
+      get().announce(...momentsBetween(shown(get().site), r.site));
       set({ site: r.site, viewer: r.viewer, mode: r.mode, demoReason: r.demoReason, load: { status: "ready" } });
     } catch (e) {
       // Before founding, the practice site is an empty plot: the mentor offers to found it.
@@ -134,7 +140,7 @@ export const useQuest = create<QuestState>((set, get) => ({
     }
   },
   setSite(site) {
-    get().announce(...momentsBetween(get().site, site));
+    get().announce(...momentsBetween(shown(get().site), site));
     set({ site });
   },
   setNear: (nearPallet) => set((s) => (s.nearPallet === nearPallet ? s : { nearPallet })),

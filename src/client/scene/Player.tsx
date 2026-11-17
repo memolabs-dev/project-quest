@@ -12,7 +12,8 @@ import { cameraKick } from "../moments/camera.ts";
 import { kickAt } from "../moments/play.ts";
 import { useGameSound } from "./useGameSound.ts";
 
-const STEP_EVERY = 0.45;
+/** A footstep every stride (metres): about two to three a second walking. */
+const STEP_EVERY = 1.4;
 
 const NEAR_DISTANCE = 2.5;
 const CAMERA_OFFSET = new THREE.Vector3(...CAMERA_OFFSET_XYZ);
@@ -29,6 +30,8 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
 }) {
   const ref = body;
   const target = useRef(new THREE.Vector3());
+  // The smoothed follow position, kept apart so a moment's kick never builds into it.
+  const follow = useRef<THREE.Vector3 | null>(null);
   const sound = useGameSound();
   const walked = useRef({ x: NaN, z: NaN, since: 0 });
   const setNear = useQuest((s) => s.setNear);
@@ -46,7 +49,7 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
     const w = walked.current;
     if (h.isOnGround && h.isMoving && Number.isFinite(w.x)) {
       w.since += Math.hypot(h.currPos.x - w.x, h.currPos.z - w.z);
-      if (w.since >= STEP_EVERY) { w.since = 0; sound.current?.play("step", { rate: h.runActive ? 1.15 : 0.95 }); }
+      if (w.since >= (h.runActive ? STEP_EVERY * 1.3 : STEP_EVERY)) { w.since = 0; sound.current?.play("step", { rate: h.runActive ? 1.15 : 0.95 }); }
     }
     w.x = h.currPos.x;
     w.z = h.currPos.z;
@@ -55,8 +58,10 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
     const pos = h.currPos;
     if (arrival.current <= 0) {
       const k = reduceMotion ? 1 : 1 - Math.exp(-4 * delta);
-      camera.position.lerp(target.current.copy(pos).add(CAMERA_OFFSET), k);
-      // A moment's kick: a short dip that fades by itself (none with reduced motion: the director never starts one).
+      follow.current ??= camera.position.clone();
+      follow.current.lerp(target.current.copy(pos).add(CAMERA_OFFSET), k);
+      // A moment's kick: a short dip on top of the follow position, fading by itself (never with reduced motion).
+      camera.position.copy(follow.current);
       camera.position.y -= kickAt(clock.elapsedTime - cameraKick.started, cameraKick.strength);
       look.current.lerp(target.current.copy(pos).add(LOOK_AHEAD), k);
       camera.lookAt(look.current);

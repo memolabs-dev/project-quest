@@ -58,6 +58,13 @@ describe("the site's sounds", () => {
     sound.play("land");
     expect(f.played).toHaveLength(2);
   });
+  it("the first gesture readies every sound, so the first ones are not late", () => {
+    const made: string[] = [];
+    const sound = createSound((src) => { made.push(src); return { play: () => 1, volume: () => {}, rate: () => {} }; }, () => 0);
+    expect(made).toEqual([]);
+    sound.unlock();
+    expect(made).toHaveLength(12);
+  });
   it("footsteps take one of four steps, at the walker's rate", () => {
     const f = fake();
     const sound = createSound(f.make, f.clock.now);
