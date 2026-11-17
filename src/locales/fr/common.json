@@ -71,7 +71,10 @@
     "toTutorial": "Viens, je te fais visiter",
     "toPractice": "Maintenant, ton propre chantier",
     "connectGithub": "Pour le faire pour de vrai, le bureau de chantier a besoin de ta clé GitHub : lance gh auth login, puis recharge.",
-    "rankDone": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant.",
+    "rankDone": {
+      "apprentice": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant.",
+      "journeyman": "Te voilà compagne ou compagnon. Ta première contribution est entrée, de la branche à la fusion. La suite : les vrais projets."
+    },
     "fold": "Replier Mémé"
   },
   "skills": {

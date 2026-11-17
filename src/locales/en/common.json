@@ -71,7 +71,10 @@
     "toTutorial": "Come, I'll show you round",
     "toPractice": "Now, your own site",
     "connectGithub": "To do it for real, the site office needs your GitHub key: run gh auth login, then reload.",
-    "rankDone": "That's the Apprentice rank. You know your way around now.",
+    "rankDone": {
+      "apprentice": "That's the Apprentice rank. You know your way around now.",
+      "journeyman": "That's the Journeyman rank. Your first contribution is in, from branch to merge. Real projects are next."
+    },
     "fold": "Fold Mémé away"
   },
   "skills": {

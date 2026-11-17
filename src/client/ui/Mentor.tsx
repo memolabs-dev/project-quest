@@ -61,7 +61,7 @@ export function Mentor() {
           <span className="stamp" aria-hidden="true">✓</span> {t("mentor.stamped", { skill: t(`levels.${cheer}.skill`) })} {t(`levels.${cheer}.done`)}
         </p>
       ) : current === null ? (
-        <p>{t("mentor.rankDone")}</p>
+        <p>{t(`mentor.rankDone.${levels.rank ?? "apprentice"}`)}</p>
       ) : (
         <>
           {levels.stamps.length === 0 && <p>{t("mentor.hello")}</p>}

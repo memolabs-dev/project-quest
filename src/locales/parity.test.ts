@@ -29,6 +29,7 @@ describe("locales", () => {
     for (const l of LEVELS) {
       for (const part of ["skill", "goal", "lesson", "done"]) expect(en[`levels.${l.id}.${part}`], `${l.id}.${part}`).toBeTruthy();
       expect(en[`skills.rank.${l.rank}`], l.rank).toBeTruthy();
+      expect(en[`mentor.rankDone.${l.rank}`], `rankDone.${l.rank}`).toBeTruthy();
     }
   });
 
