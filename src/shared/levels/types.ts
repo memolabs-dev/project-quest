@@ -28,10 +28,27 @@ export interface PracticeIssue {
   /** Its item on the practice board, and its Size there. */
   itemId?: string | null;
   size?: string | null;
+  /** The iteration it is loaded on, on the board's Sprint field. */
+  iteration?: string | null;
+  /** The number of its milestone. */
+  milestone?: number | null;
+  subIssues?: number[];
+  /** The issues it waits for. */
+  blockedBy?: number[];
 }
 
+/** One week of an iteration field. */
+export interface Iteration { id: string; title: string; startDate: string; duration: number }
+
+/** A milestone of the repository: the mayor's visit. */
+export interface Milestone { id: string; number: number; title: string; dueOn: string | null; url: string; closed: boolean }
+
 /** A field of a board; single selects carry their options. */
-export interface BoardField { id: string; name: string; dataType: string; options?: { id: string; name: string }[] }
+export interface BoardField {
+  id: string; name: string; dataType: string; options?: { id: string; name: string }[];
+  /** An iteration field's iterations, past ones included, oldest first. */
+  iterations?: Iteration[];
+}
 
 export interface PracticePull {
   id: string;
@@ -67,6 +84,7 @@ export interface PracticeSnapshot {
   } | null;
   /** The repository's labels, with their ids (for labelling). */
   labels?: { id: string; name: string }[];
+  milestones?: Milestone[];
   issues: PracticeIssue[];
   /** Null while the repository has no commit at all. */
   defaultBranch: { name: string; oid: string; committedDate: string } | null;

@@ -1,7 +1,7 @@
 // Reads the player's practice repository: its board (the viewer's own linked project) and its newest issues,
 // with each issue's column on that board. Null when the repository does not exist yet.
 import type { QuestConfig } from "../../shared/config.ts";
-import type { PracticeSnapshot } from "../../shared/levels/types.ts";
+import type { Iteration, Milestone, PracticeSnapshot } from "../../shared/levels/types.ts";
 import type { Gql } from "./client.ts";
 import { BoardNotFoundError } from "./errors.ts";
 
@@ -32,15 +32,28 @@ export const PRACTICE_QUERY = /* GraphQL */ `
           owner { ... on User { login } ... on Organization { login } }
           field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name } } }
           fields(first: 30) {
-            nodes { ... on ProjectV2FieldCommon { id name dataType } ... on ProjectV2SingleSelectField { options { id name } } }
+            nodes {
+              ... on ProjectV2FieldCommon { id name dataType }
+              ... on ProjectV2SingleSelectField { options { id name } }
+              ... on ProjectV2IterationField { configuration {
+                iterations { id title startDate duration }
+                completedIterations { id title startDate duration }
+              } }
+            }
           }
         }
       }
       labels(first: 50) { nodes { id name } }
+      milestones(first: 20, states: [OPEN, CLOSED], orderBy: { field: CREATED_AT, direction: DESC }) {
+        nodes { id number title dueOn url closed }
+      }
       issues(first: 50, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
           id number url closed body stateReason
           duplicateOf { number }
+          milestone { number }
+          subIssues(first: 20) { nodes { number } }
+          blockedBy(first: 10) { nodes { number } }
           labels(first: 20) { nodes { name } }
           author { login }
           assignees(first: 10) { nodes { login } }
@@ -50,6 +63,7 @@ export const PRACTICE_QUERY = /* GraphQL */ `
               id project { id number }
               status: fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
               size: fieldValueByName(name: "Size") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
+              sprint: fieldValueByName(name: "Sprint") { ... on ProjectV2ItemFieldIterationValue { iterationId } }
             }
           }
         }
@@ -78,19 +92,27 @@ interface PracticeResponse {
     projectsV2: { nodes: {
       id: string; number: number; url: string; title: string; owner: { login?: string } | null;
       field: { id?: string; options: { id: string; name: string }[] } | null;
-      fields?: { nodes: { id?: string; name?: string; dataType?: string; options?: { id: string; name: string }[] }[] };
+      fields?: { nodes: {
+        id?: string; name?: string; dataType?: string; options?: { id: string; name: string }[];
+        configuration?: { iterations: Iteration[]; completedIterations: Iteration[] };
+      }[] };
     }[] };
     labels?: { nodes: { id: string; name: string }[] };
+    milestones?: { nodes: Milestone[] };
     issues: {
       nodes: {
         id: string; number: number; url: string; closed: boolean; body?: string; stateReason?: string | null;
         duplicateOf?: { number: number } | null;
+        milestone?: { number: number } | null;
+        subIssues?: { nodes: { number: number }[] };
+        blockedBy?: { nodes: { number: number }[] };
         labels?: { nodes: { name: string }[] };
         author: { login: string } | null;
         assignees: { nodes: { login: string }[] };
         comments: { nodes: { author: { login: string } | null; url: string }[] };
         projectItems: { nodes: {
           id?: string; project: { id: string; number: number }; status: { name: string } | null; size?: { name?: string } | null;
+          sprint?: { iterationId?: string } | null;
         }[] };
       }[];
     };
@@ -123,12 +145,15 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
     statusOptionIds: p.field?.options ?? [],
     fields: (p.fields?.nodes ?? []).filter((f) => f.id && f.name).map((f) => ({
       id: f.id!, name: f.name!, dataType: f.dataType ?? "", ...(f.options ? { options: f.options } : {}),
+      ...(f.configuration ? { iterations: [...f.configuration.completedIterations, ...f.configuration.iterations]
+        .sort((a, b) => a.startDate.localeCompare(b.startDate)) } : {}),
     })),
   } : null;
   return {
     repo: { id: r.id, nameWithOwner: r.nameWithOwner, url: r.url },
     board,
     labels: r.labels?.nodes ?? [],
+    milestones: r.milestones?.nodes ?? [],
     issues: r.issues.nodes.map((i) => {
       const item = board ? i.projectItems.nodes.find((n) => n.project.id === board.id) : undefined;
       return {
@@ -142,6 +167,10 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
         duplicateOf: i.duplicateOf?.number ?? null,
         itemId: item?.id ?? null,
         size: item?.size?.name ?? null,
+        iteration: item?.sprint?.iterationId ?? null,
+        milestone: i.milestone?.number ?? null,
+        subIssues: (i.subIssues?.nodes ?? []).map((n) => n.number),
+        blockedBy: (i.blockedBy?.nodes ?? []).map((n) => n.number),
       };
     }),
     defaultBranch: r.defaultBranchRef

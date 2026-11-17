@@ -86,6 +86,22 @@ describe("what the lead's levels need", () => {
     expect(p?.issues[0]).toMatchObject({ labels: ["bug"], body: "FICTIF body\n- [ ] one", stateReason: null, duplicateOf: null, itemId: "PVTI_1_3", size: "S" });
     expect(p?.issues[1]).toMatchObject({ labels: [], stateReason: "DUPLICATE", duplicateOf: 1, itemId: "PVTI_2_3", size: null });
   });
+  it("maps the sprint field's iterations, each item's sprint, the milestones, sub-issues and what blocks each issue", async () => {
+    const p = await readPractice(gqlReturning(fixture), "fictif-volunteer", "my-first-site");
+    expect(p?.board?.fields?.find((f) => f.name === "Sprint")).toEqual({
+      id: "PVTIF_sprint", name: "Sprint", dataType: "ITERATION",
+      iterations: [
+        { id: "it1", title: "Sprint 1", startDate: "2026-11-10", duration: 7 },
+        { id: "it2", title: "Sprint 2", startDate: "2026-11-17", duration: 7 },
+      ],
+    });
+    expect(p?.milestones).toEqual([{
+      id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z",
+      url: "https://github.com/fictif-volunteer/my-first-site/milestone/1", closed: false,
+    }]);
+    expect(p?.issues[0]).toMatchObject({ iteration: "it2", milestone: 1, subIssues: [2, 5], blockedBy: [] });
+    expect(p?.issues[1]).toMatchObject({ iteration: null, milestone: null, subIssues: [], blockedBy: [1] });
+  });
 });
 
 describe("the practice board", () => {

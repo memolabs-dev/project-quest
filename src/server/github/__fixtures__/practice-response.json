@@ -70,6 +70,29 @@
                     "name": "S"
                   }
                 ]
+              },
+              {
+                "id": "PVTIF_sprint",
+                "name": "Sprint",
+                "dataType": "ITERATION",
+                "configuration": {
+                  "iterations": [
+                    {
+                      "id": "it2",
+                      "title": "Sprint 2",
+                      "startDate": "2026-11-17",
+                      "duration": 7
+                    }
+                  ],
+                  "completedIterations": [
+                    {
+                      "id": "it1",
+                      "title": "Sprint 1",
+                      "startDate": "2026-11-10",
+                      "duration": 7
+                    }
+                  ]
+                }
               }
             ]
           }
@@ -114,7 +137,10 @@
                   "name": "Elsewhere"
                 },
                 "id": "PVTI_1_7",
-                "size": null
+                "size": null,
+                "sprint": {
+                  "iterationId": "it_elsewhere"
+                }
               },
               {
                 "project": {
@@ -127,6 +153,9 @@
                 "id": "PVTI_1_3",
                 "size": {
                   "name": "S"
+                },
+                "sprint": {
+                  "iterationId": "it2"
                 }
               }
             ]
@@ -140,7 +169,23 @@
           },
           "body": "FICTIF body\n- [ ] one",
           "stateReason": null,
-          "duplicateOf": null
+          "duplicateOf": null,
+          "milestone": {
+            "number": 1
+          },
+          "subIssues": {
+            "nodes": [
+              {
+                "number": 2
+              },
+              {
+                "number": 5
+              }
+            ]
+          },
+          "blockedBy": {
+            "nodes": []
+          }
         },
         {
           "id": "I_fictif_2",
@@ -179,6 +224,17 @@
           "stateReason": "DUPLICATE",
           "duplicateOf": {
             "number": 1
+          },
+          "milestone": null,
+          "subIssues": {
+            "nodes": []
+          },
+          "blockedBy": {
+            "nodes": [
+              {
+                "number": 1
+              }
+            ]
           }
         }
       ]
@@ -351,6 +407,18 @@
         {
           "id": "LA_enh",
           "name": "enhancement"
+        }
+      ]
+    },
+    "milestones": {
+      "nodes": [
+        {
+          "id": "MI_1",
+          "number": 1,
+          "title": "FICTIF The mayor visits",
+          "dueOn": "2026-11-29T12:00:00Z",
+          "url": "https://github.com/fictif-volunteer/my-first-site/milestone/1",
+          "closed": false
         }
       ]
     }
