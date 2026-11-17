@@ -12,6 +12,8 @@ import { useGameSound } from "./useGameSound.ts";
 
 const POOL = 64;
 const LIFE = 0.7;
+// A slow frame ages dust by one tenth of a second at most: one frame of lag never hides it whole.
+const STEP = 0.1;
 const tmp = new THREE.Object3D();
 
 type Particle = { age: number; x: number; z: number; vx: number; vz: number; vy: number };
@@ -45,11 +47,12 @@ export function Director({ spotOf, reduceMotion }: { spotOf(m: Moment): [number,
     }
     const m = mesh.current;
     if (!m) return;
+    const dt = Math.min(delta, STEP);
     particles.current.forEach((p, i) => {
-      p.age = Math.min(LIFE, p.age + delta);
+      p.age = Math.min(LIFE, p.age + dt);
       const k = p.age / LIFE;
-      p.x += p.vx * delta * (1 - k);
-      p.z += p.vz * delta * (1 - k);
+      p.x += p.vx * dt * (1 - k);
+      p.z += p.vz * dt * (1 - k);
       tmp.position.set(p.x, 0.1 + p.vy * k * (1 - k) * 2, p.z);
       tmp.scale.setScalar(k >= 1 ? 0 : 0.08 + Math.sin(k * Math.PI) * 0.16);
       tmp.updateMatrix();
