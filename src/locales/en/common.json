@@ -543,5 +543,17 @@
     "sprint": "{{sprint}}: {{points}} of {{capacity}} points loaded.",
     "wip": "Being laid: {{count}} (limit {{limit}}).",
     "visit": "{{title}}, {{date}}: {{done}} of {{total}} jobs done."
+  },
+  "settings": {
+    "title": "Settings",
+    "sound": "Sound",
+    "volume": "Volume",
+    "miniature": "Miniature effect",
+    "motion": "Motion",
+    "motions": {
+      "system": "Follow my system",
+      "reduce": "Reduced",
+      "full": "Full"
+    }
   }
 }

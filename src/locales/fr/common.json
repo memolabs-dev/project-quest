@@ -543,5 +543,17 @@
     "sprint": "{{sprint}} : {{points}} points chargés sur {{capacity}}.",
     "wip": "En pose : {{count}} (limite {{limit}}).",
     "visit": "{{title}}, {{date}} : {{done}} boulots finis sur {{total}}."
+  },
+  "settings": {
+    "title": "Réglages",
+    "sound": "Son",
+    "volume": "Volume",
+    "miniature": "Effet maquette",
+    "motion": "Mouvement",
+    "motions": {
+      "system": "Comme mon système",
+      "reduce": "Réduit",
+      "full": "Complet"
+    }
   }
 }

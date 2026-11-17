@@ -9,6 +9,7 @@ import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
 import { Mentor } from "./Mentor.tsx";
 import { PracticeDialogs } from "./PracticeDialogs.tsx";
+import { Settings } from "./Settings.tsx";
 import { SkillBook } from "./SkillBook.tsx";
 
 const NOTICE_MS = 6000;
@@ -225,6 +226,7 @@ export function Overlays() {
     <>
       <div className="top-right">
         <LanguageSwitch />
+        <Settings />
         <SkillBook />
         <Logbook />
       </div>

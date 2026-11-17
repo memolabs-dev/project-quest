@@ -1,10 +1,11 @@
 // The building site: ground, road, zone yards with their pallets, the buildings, the crane and the office.
 import { Html, KeyboardControls, Sky } from "@react-three/drei";
 import { TeamRewards } from "./Rewards.tsx";
+import { useReducedMotion } from "./motion.ts";
 import { Canvas } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import * as THREE from "three";
 import type { Site as SiteModel } from "../../shared/site.ts";
@@ -160,18 +161,6 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
       <Effects />
     </>
   );
-}
-
-/** Follows the system setting while the game is open, not only at load. */
-function useReducedMotion() {
-  const [reduce, setReduce] = useState(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
-  useEffect(() => {
-    const query = matchMedia("(prefers-reduced-motion: reduce)");
-    const follow = () => setReduce(query.matches);
-    query.addEventListener("change", follow);
-    return () => query.removeEventListener("change", follow);
-  }, []);
-  return reduce;
 }
 
 export function SiteCanvas({ site }: { site: SiteModel }) {

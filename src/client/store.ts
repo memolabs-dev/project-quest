@@ -6,6 +6,7 @@ import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Site } from "../shared/site.ts";
 import { ApiFailure, api } from "./api.ts";
 import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
+import { loadSettings, saveSettings, type Settings } from "./settings.ts";
 
 type Load = { status: "loading" } | { status: "ready" } | { status: "error"; failure: ApiFailure | Error };
 
@@ -41,6 +42,9 @@ interface QuestState {
   setNear(n: number | null): void;
   open(n: number | null): void;
   setPending(p: PreparedMove | null): void;
+  /** Sound, the miniature effect, motion: kept in the browser. */
+  settings: Settings;
+  setSettings(patch: Partial<Settings>): void;
 }
 
 export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor" | "ask";
@@ -58,6 +62,12 @@ export const useQuest = create<QuestState>((set, get) => ({
   openCard: null,
   pending: null,
   siteKind: typeof location === "undefined" ? "main" : siteKindFromUrl(location.search),
+  settings: loadSettings(),
+  setSettings(patch) {
+    const settings = { ...get().settings, ...patch };
+    saveSettings(settings);
+    set({ settings });
+  },
   levels: null,
   levelsBefore: null,
   practiceDialog: null,

@@ -226,6 +226,15 @@
   .mentor-tab { top: 118px; bottom: auto; right: 8px; }
 }
 
+/* The settings panel, beside the language */
+.settings { position: relative; }
+.settings-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: 260px; display: grid; gap: 10px;
+  background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px 14px;
+}
+.settings-panel .field-inline { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.settings-panel input[type="range"] { width: 100%; }
+
 /* The Site manager's rewards and the sprint's load */
 /* A long milestone title or bulletin line is cut, never stretched across the site. */
 .reward-label { white-space: nowrap; pointer-events: none; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
