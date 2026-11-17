@@ -577,6 +577,16 @@
       "uncheer": "Taken back {{sign}}",
       "thank": "Thanked {{sign}}"
     },
-    "mentions": "These words will notify {{logins}}."
+    "mentions": "These words will notify {{logins}}.",
+    "thank": "Thank",
+    "thankWho": "Thank {{logins}}?",
+    "thankTeam": "Thank the team?",
+    "notNow": "Not now",
+    "thankFor": "Thank for #{{number}}",
+    "thankSign": "A sign",
+    "words": "Your words (optional)",
+    "wordsHint": "A few words of thanks, in your own voice",
+    "noMention": "The game adds no @mention: only the words you write are sent.",
+    "show": "Show what will be sent"
   }
 }

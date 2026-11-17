@@ -7,7 +7,7 @@ import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Site } from "../shared/site.ts";
 import { ApiFailure, api, pageSearch } from "./api.ts";
 import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
-import { momentsBetween, type Moment } from "./moments/diff.ts";
+import { laidBetween, momentsBetween, type Moment } from "./moments/diff.ts";
 import { loadSettings, saveSettings, type Settings } from "./settings.ts";
 
 type Load = { status: "loading" } | { status: "ready" } | { status: "error"; failure: ApiFailure | Error };
@@ -69,6 +69,12 @@ interface QuestState {
   /** The one notice over the site (a gesture's outcome); it clears by itself. */
   notice: string | null;
   say(text: string | null): void;
+  /** Pallets just laid, waiting for the player's thank-you or "not now"; each is offered once. */
+  toThank: number[];
+  dismissThank(n: number): void;
+  /** The thank-you dialog open, for this pallet. */
+  thanking: number | null;
+  openThank(n: number | null): void;
 }
 
 export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor" | "ask";
@@ -81,6 +87,27 @@ const QUEUE = 12;
 const MOVES_A_PALLET = new Set<Moment["kind"]>(["pallet-moved", "parcel", "cleared", "refused"]);
 /** The site the moments compare with: the empty plot before founding counts as a first view. */
 const shown = (site: Site | null) => (site === EMPTY_PLOT ? null : site);
+
+/** The pallets already offered for a thank-you, remembered in the browser (read in a try: the game works without it). */
+const OFFERED_KEY = "project-quest.thank-offered";
+const offered = (() => {
+  try {
+    return new Set<number>(JSON.parse(globalThis.localStorage?.getItem(OFFERED_KEY) ?? "[]") as number[]);
+  } catch {
+    return new Set<number>();
+  }
+})();
+const offerThanks = (waiting: number[], laid: number[]) => {
+  const fresh = laid.filter((n) => !offered.has(n) && !waiting.includes(n));
+  if (!fresh.length) return waiting;
+  for (const n of fresh) offered.add(n);
+  try {
+    globalThis.localStorage?.setItem(OFFERED_KEY, JSON.stringify([...offered].slice(-200)));
+  } catch {
+    // Not remembered: the offer may come back after a reload, nothing worse.
+  }
+  return [...waiting, ...fresh];
+};
 
 export const useQuest = create<QuestState>((set, get) => ({
   load: { status: "loading" },
@@ -142,6 +169,7 @@ export const useQuest = create<QuestState>((set, get) => ({
     try {
       const r = await api.site();
       get().announce(...momentsBetween(shown(get().site), r.site));
+      set({ toThank: offerThanks(get().toThank, laidBetween(shown(get().site), r.site)) });
       set({ site: r.site, viewer: r.viewer, mode: r.mode, demoReason: r.demoReason, load: { status: "ready" } });
     } catch (e) {
       // Before founding, the practice site is an empty plot: the mentor offers to found it.
@@ -154,7 +182,7 @@ export const useQuest = create<QuestState>((set, get) => ({
   },
   setSite(site) {
     get().announce(...momentsBetween(shown(get().site), site));
-    set({ site });
+    set({ site, toThank: offerThanks(get().toThank, laidBetween(shown(get().site), site)) });
   },
   setNear: (nearPallet) => set((s) => (s.nearPallet === nearPallet ? s : { nearPallet })),
   open(openCard) {
@@ -174,4 +202,8 @@ export const useQuest = create<QuestState>((set, get) => ({
   setWarm: (warm) => set({ warm }),
   notice: null,
   say: (notice) => set({ notice }),
+  toThank: [],
+  dismissThank: (n) => set((s) => ({ toThank: s.toThank.filter((x) => x !== n) })),
+  thanking: null,
+  openThank: (thanking) => set((s) => ({ thanking, toThank: thanking === null ? s.toThank : s.toThank.filter((x) => x !== thanking) })),
 }));

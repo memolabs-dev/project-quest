@@ -12,7 +12,7 @@ import { Mentor } from "./Mentor.tsx";
 import { PracticeDialogs } from "./PracticeDialogs.tsx";
 import { Settings } from "./Settings.tsx";
 import { SkillBook } from "./SkillBook.tsx";
-import { ConfirmWarm, Notice, WarmPicker } from "./Warm.tsx";
+import { ConfirmWarm, Notice, ThankDialog, ThankOffer, WarmPicker } from "./Warm.tsx";
 
 function PalletCard({ number }: { number: number }) {
   const { t } = useTranslation();
@@ -27,6 +27,7 @@ function PalletCard({ number }: { number: number }) {
   const ask = useQuest((s) => s.ask);
   // The warm gestures go to the configured project only (and play on the demo site).
   const warmSite = useQuest((s) => s.siteKind === "main" || s.siteKind === "demo");
+  const openThank = useQuest((s) => s.openThank);
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { closeRef.current?.focus(); sendEvent("card-opened"); }, [sendEvent]);
@@ -71,6 +72,9 @@ function PalletCard({ number }: { number: number }) {
             ))}
           </div>
         </>
+      )}
+      {warmSite && pallet.closed && !pallet.discarded && (
+        <button type="button" className="got-it" onClick={() => { open(null); openThank(pallet.number); }}>{t("warm.thank")}</button>
       )}
       {warmSite && !pallet.discarded && (
         <div className="warm-row">
@@ -238,6 +242,8 @@ export function Overlays() {
       <Mentor />
       {openCard !== null && <PalletCard key={openCard} number={openCard} />}
       <ConfirmMove />
+      <ThankOffer />
+      <ThankDialog />
       <ConfirmWarm />
       <Notice />
       <PracticeDialogs />

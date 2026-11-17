@@ -54,3 +54,27 @@ test("the card cheers a pallet with no worker", async ({ page }) => {
   await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
   await expect(page.getByRole("status")).toContainText(/Cheered/);
 });
+
+test("after a pallet is laid, Thank is offered and sends a reaction with words", async ({ page }) => {
+  await ready(page);
+  // A pallet already laid on the demo board, seen open then laid: what a refresh shows when someone closes it.
+  await page.evaluate(async () => {
+    const { useQuest } = await import("/src/client/store.ts");
+    const now = useQuest.getState().site!;
+    const reopened = { ...now, pallets: now.pallets.map((p) => (/Pour the foundations/.test(p.title) ? { ...p, closed: false, zone: "In progress" } : p)) };
+    useQuest.getState().setSite(reopened);
+    useQuest.getState().setSite(now);
+  });
+  const offer = page.getByRole("region", { name: /Thank/ });
+  await expect(offer).toContainText(/Thank the team/);
+  await offer.getByRole("button", { name: /^Thank$/ }).click();
+  const dialog = page.getByRole("dialog", { name: /Thank for/ });
+  await dialog.getByRole("radio", { name: /❤️/ }).check();
+  await dialog.getByRole("textbox").fill("Thanks @maria-fictif, the foundations are solid!");
+  await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
+  await expect(confirmation(page)).toContainText("addComment");
+  await expect(confirmation(page)).toContainText("These words will notify @maria-fictif.");
+  await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
+  await expect(page.getByRole("status")).toContainText(/Thanked/);
+  await expect(offer).toHaveCount(0);
+});

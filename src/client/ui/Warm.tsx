@@ -103,3 +103,67 @@ export function Notice() {
   }, [notice, say]);
   return <div className="toast" role="status" aria-live="polite">{notice}</div>;
 }
+
+/** The offer after a pallet is laid: thank, or not now. One at a time, each offered once. */
+export function ThankOffer() {
+  const { t } = useTranslation();
+  const next = useQuest((s) => s.toThank[0] ?? null);
+  const site = useQuest((s) => s.site);
+  const busy = useQuest((s) => s.openCard !== null || s.warm !== null || s.thanking !== null);
+  const dismiss = useQuest((s) => s.dismissThank);
+  const openThank = useQuest((s) => s.openThank);
+  const warmSite = useQuest((s) => s.siteKind === "main" || s.siteKind === "demo");
+  const pallet = next === null ? null : site?.pallets.find((p) => p.number === next);
+  if (!pallet || busy || !warmSite) return null;
+  const logins = site!.workers.filter((w) => w.carrying.includes(pallet.number)).map((w) => w.login);
+  return (
+    <section className="thank-offer" aria-label={t("warm.thank")}>
+      {/* Who it goes to: the workers who carried the pallet, or the team. */}
+      <p><b>{logins.length ? t("warm.thankWho", { logins: logins.join(", ") }) : t("warm.thankTeam")}</b> <span dir="auto">#{pallet.number} {pallet.title}</span></p>
+      <div className="actions">
+        <button type="button" className="primary" onClick={() => openThank(pallet.number)}>{t("warm.thank")}</button>
+        <button type="button" onClick={() => dismiss(pallet.number)}>{t("warm.notNow")}</button>
+      </div>
+    </section>
+  );
+}
+
+/** The thank-you: 🎉 or ❤️, and the player's own words if they wish; then the confirmation shows what leaves. */
+export function ThankDialog() {
+  const { t } = useTranslation();
+  const number = useQuest((s) => s.thanking);
+  const pallet = useQuest((s) => s.site?.pallets.find((p) => p.number === s.thanking) ?? null);
+  const openThank = useQuest((s) => s.openThank);
+  const prepare = useWarmGesture();
+  const [sign, setSign] = useState<"HOORAY" | "HEART">("HOORAY");
+  const [words, setWords] = useState("");
+  if (number === null || !pallet) return null;
+  const go = async () => {
+    await prepare("thank", { issueNumber: number, content: sign, words: words.trim() ? words : null });
+    openThank(null);
+    setWords("");
+  };
+  return (
+    <div className="confirm" role="dialog" aria-modal="true" aria-labelledby="thank-title">
+      <h2 id="thank-title">{t("warm.thankFor", { number })}</h2>
+      <p className="issue" dir="auto">{pallet.title}</p>
+      <fieldset className="choice">
+        <legend>{t("warm.thankSign")}</legend>
+        {(["HOORAY", "HEART"] as const).map((e) => (
+          <label key={e}>
+            <input type="radio" name="thank-sign" checked={sign === e} onChange={() => setSign(e)} />
+            {GLYPH[e]} {t(`warm.signs.${e}`)}
+          </label>
+        ))}
+      </fieldset>
+      <label className="field">{t("warm.words")}
+        <textarea rows={3} value={words} onChange={(e) => setWords(e.target.value)} placeholder={t("warm.wordsHint")} />
+      </label>
+      <p className="hint">{t("warm.noMention")}</p>
+      <div className="actions">
+        <button type="button" className="primary" onClick={() => void go()}>{t("warm.show")}</button>
+        <button type="button" onClick={() => openThank(null)}>{t("confirm.cancel")}</button>
+      </div>
+    </div>
+  );
+}

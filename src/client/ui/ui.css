@@ -257,3 +257,8 @@
 .warm-picker button[aria-pressed="true"] { background: var(--accent); }
 .warm-words { border-left: 4px solid var(--accent); margin: 8px 0; padding: 4px 10px; white-space: pre-wrap; }
 .warning { font-weight: 700; }
+.thank-offer {
+  position: absolute; z-index: 21; left: 50%; bottom: 120px; transform: translateX(-50%); max-width: min(420px, calc(100vw - 32px));
+  background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: 6px 6px 0 var(--ink); padding: 12px 16px;
+}
+.thank-offer .actions button { min-height: 44px; }

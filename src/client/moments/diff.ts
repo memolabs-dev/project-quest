@@ -35,6 +35,13 @@ export function momentsBetween(prev: Site | null, next: Site): Moment[] {
   return moments;
 }
 
+/** The pallets a refresh shows newly laid (closed as completed, not cleared): the game offers to thank for them. */
+export function laidBetween(prev: Site | null, next: Site): number[] {
+  if (!prev) return [];
+  const before = new Map(prev.pallets.map((p) => [p.number, p]));
+  return next.pallets.filter((p) => p.closed && !p.discarded && before.has(p.number) && !before.get(p.number)!.closed).map((p) => p.number);
+}
+
 /** A move GitHub refused (or found stale) answers with a soft refusal; an accepted one is told by the refreshed site. */
 export const momentsAfterMove = (result: { ok: boolean }, pallet: number): Moment[] =>
   result.ok ? [] : [{ kind: "refused", pallet }];

@@ -58,3 +58,20 @@ describe("the store's moments", () => {
     expect(useQuest.getState().takeMoments()).toEqual([{ kind: "card-open", pallet: 3 }, { kind: "card-close", pallet: 3 }]);
   });
 });
+
+describe("the thank offer", () => {
+  it("the thank offer shows once per laid pallet", () => {
+    const open = site([pallet(41)]);
+    const laid = site([{ ...pallet(41, "Done"), closed: true }]);
+    useQuest.getState().setSite(open);
+    useQuest.getState().setSite(laid);
+    expect(useQuest.getState().toThank).toEqual([41]);
+    useQuest.getState().dismissThank(41);
+    expect(useQuest.getState().toThank).toEqual([]);
+    // Seen again (a reload, a refresh that goes back and forth): offered once is enough.
+    useQuest.getState().setSite(open);
+    useQuest.getState().setSite(laid);
+    expect(useQuest.getState().toThank).toEqual([]);
+    useQuest.getState().takeMoments();
+  });
+});

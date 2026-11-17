@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Building, Pallet, Site } from "../../shared/site.ts";
-import { momentsAfterMove, momentsBetween } from "./diff.ts";
+import { laidBetween, momentsAfterMove, momentsBetween } from "./diff.ts";
 
 const pallet = (number: number, o: Partial<Pallet> = {}): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone: "Backlog", closed: false, discarded: false,
@@ -40,5 +40,14 @@ describe("momentsAfterMove", () => {
     expect(momentsAfterMove({ ok: false }, 4)).toEqual([{ kind: "refused", pallet: 4 }]);
     // An accepted move is announced by the refreshed site, once.
     expect(momentsAfterMove({ ok: true }, 4)).toEqual([]);
+  });
+});
+
+describe("laidBetween", () => {
+  it("a pallet closed as completed is laid, a duplicate is not", () => {
+    const before = site([pallet(1), pallet(2), pallet(3, { closed: true, zone: "Done" })]);
+    const after = site([pallet(1, { closed: true, zone: "Done" }), pallet(2, { closed: true, discarded: true, zone: "Done" }), pallet(3, { closed: true, zone: "Done" })]);
+    expect(laidBetween(before, after)).toEqual([1]);
+    expect(laidBetween(null, after)).toEqual([]);
   });
 });

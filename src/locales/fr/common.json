@@ -577,6 +577,16 @@
       "uncheer": "Retiré {{sign}}",
       "thank": "Remercié {{sign}}"
     },
-    "mentions": "Ces mots préviendront {{logins}}."
+    "mentions": "Ces mots préviendront {{logins}}.",
+    "thank": "Remercier",
+    "thankWho": "Remercier {{logins}} ?",
+    "thankTeam": "Remercier l'équipe ?",
+    "notNow": "Pas maintenant",
+    "thankFor": "Remercier pour #{{number}}",
+    "thankSign": "Un signe",
+    "words": "Tes mots (facultatif)",
+    "wordsHint": "Quelques mots de merci, avec ta voix",
+    "noMention": "Le jeu n'ajoute aucune @mention : seuls les mots que tu écris partent.",
+    "show": "Voir ce qui partira"
   }
 }
