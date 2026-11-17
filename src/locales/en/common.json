@@ -77,7 +77,8 @@
       "team-leader": "That's the Team leader rank. You know git from end to end. Real projects are waiting for you.",
       "real-project": "That's the whole path. You know GitHub from the first issue to a real project. Welcome to the crew.",
       "site-foreman": "That's the Site foreman rank. What comes in is sorted, ready and sized. Planning is next.",
-      "site-manager": "That's the Site manager rank. The week is planned, the visit is set, big jobs are cut and roped. Steering is next."
+      "site-manager": "That's the Site manager rank. The week is planned, the visit is set, big jobs are cut and roped. Steering is next.",
+      "project-director": "That's the Project director rank, and the whole lead's path. You can run a site from the first parcel to the mayor's visit."
     },
     "fold": "Fold Mémé away",
     "copy": "Copy",
@@ -267,6 +268,24 @@
       "goal": "Mark that one job waits for another: blocked by it.",
       "lesson": "Some jobs can't start before another is done. Saying so on the board stops anyone lifting the wrong pallet first.",
       "done": "The two pallets are roped. Everyone can see which goes first."
+    },
+    "l9-bulletin": {
+      "skill": "The evening bulletin",
+      "goal": "Post a status update on your board: how the site stands tonight, in a few lines.",
+      "lesson": "A team that knows where things stand works calmer. Say it plainly, good news or bad: on track, at risk, off track.",
+      "done": "The bulletin is on the air. Everyone knows where the site stands."
+    },
+    "l10-wip": {
+      "skill": "Keep work in progress under the limit",
+      "goal": "Set a limit on Being laid, let the team's day push it over, then bring it back under.",
+      "lesson": "Too many jobs started at once and none gets finished. A limit says: finish before you start another.",
+      "done": "Being laid is back under its limit. Things get finished again."
+    },
+    "l11-visit": {
+      "skill": "The mayor's visit",
+      "goal": "When the jobs of her visit are done, close the milestone. If they won't be, move the date and say so.",
+      "lesson": "A date is a promise. Keep it, or move it early and openly; never let it slip in silence.",
+      "done": "The mayor's visit is settled. That's how a project is steered."
     }
   },
   "practice": {

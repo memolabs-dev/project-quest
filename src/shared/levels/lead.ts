@@ -91,3 +91,40 @@ export const SITE_MANAGER: Level[] = [
     return i ? { done: true, proof: i.url } : NOT_YET;
   }),
 ];
+
+/** The zone the work-in-progress limit watches: "Being laid". */
+export const LAYING = "In progress";
+
+/**
+ * The limit on "Being laid", written on GitHub in that zone's description ("Limit: 3"): GitHub's own column limit
+ * is not in its API, and the capacity stays the game's only rule (lead's path spec, principle 5).
+ */
+export function wipLimit(t: PracticeSnapshot | null | undefined): number | null {
+  const description = t?.board?.statusOptionIds?.find((o) => o.name === LAYING)?.description ?? "";
+  const n = /limit:\s*(\d+)/i.exec(description)?.[1];
+  return n ? Number(n) : null;
+}
+
+/** The open issues being laid. */
+export const inProgress = (t: PracticeSnapshot | null | undefined) =>
+  (t?.issues ?? []).filter((i) => !i.closed && i.status === LAYING).length;
+
+const director = levelOf("project-director");
+
+export const PROJECT_DIRECTOR: Level[] = [
+  director("l9-bulletin", (o) => {
+    const said = (o.team?.board?.statusUpdates ?? []).some((u) => u.status && u.body.trim());
+    return said && o.team?.board ? { done: true, proof: o.team.board.url } : NOT_YET;
+  }),
+  director("l10-wip", (o) => {
+    const limit = wipLimit(o.team);
+    const back = limit !== null && o.events.includes("team-day") && inProgress(o.team) <= limit;
+    return back && o.team?.board ? { done: true, proof: o.team.board.url } : NOT_YET;
+  }),
+  director("l11-visit", (o) => {
+    const milestones = o.team?.milestones ?? [];
+    const ended = milestones.find((m) => m.closed && m.openIssues === 0 && m.closedIssues > 0)
+      ?? (o.events.includes("visit-moved") ? milestones.find((m) => !m.closed && m.dueOn) : undefined);
+    return ended ? { done: true, proof: ended.url } : NOT_YET;
+  }),
+];

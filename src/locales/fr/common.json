@@ -77,7 +77,8 @@
       "team-leader": "Te voilà cheffe ou chef d'équipe. Tu connais git de bout en bout. Les vrais projets t'attendent.",
       "real-project": "Tu as fait tout le chemin. Tu connais GitHub de la première issue à un vrai projet. Bienvenue dans l'équipe.",
       "site-foreman": "Te voilà contremaîtresse ou contremaître. Ce qui arrive est trié, prêt et mesuré. La suite : planifier.",
-      "site-manager": "Te voilà cheffe ou chef de chantier. La semaine est planifiée, la visite fixée, les gros boulots coupés et encordés. La suite : piloter."
+      "site-manager": "Te voilà cheffe ou chef de chantier. La semaine est planifiée, la visite fixée, les gros boulots coupés et encordés. La suite : piloter.",
+      "project-director": "Te voilà directrice ou directeur de travaux, au bout du chemin du lead. Tu sais mener un chantier du premier colis à la visite de la maire."
     },
     "fold": "Replier Mémé",
     "copy": "Copier",
@@ -267,6 +268,24 @@
       "goal": "Indique qu'un boulot en attend un autre : bloqué par lui.",
       "lesson": "Certains boulots ne peuvent pas commencer avant qu'un autre soit fini. Le dire sur le tableau évite de soulever la mauvaise palette en premier.",
       "done": "Les deux palettes sont encordées. Tout le monde voit laquelle passe d'abord."
+    },
+    "l9-bulletin": {
+      "skill": "Le bulletin du soir",
+      "goal": "Publie un point d'avancement sur ton tableau : où en est le chantier ce soir, en quelques lignes.",
+      "lesson": "Une équipe qui sait où on en est travaille plus sereinement. Dis-le simplement, bonne ou mauvaise nouvelle : dans les temps, à risque, en retard.",
+      "done": "Le bulletin est à l'antenne. Tout le monde sait où en est le chantier."
+    },
+    "l10-wip": {
+      "skill": "Tenir la limite du travail en cours",
+      "goal": "Fixe une limite à En pose, laisse la journée de l'équipe la dépasser, puis ramène-la en dessous.",
+      "lesson": "Trop de boulots commencés à la fois, et aucun ne se termine. Une limite dit : finis avant d'en commencer un autre.",
+      "done": "En pose est revenu sous sa limite. Les boulots se terminent à nouveau."
+    },
+    "l11-visit": {
+      "skill": "La visite de la maire",
+      "goal": "Quand les boulots de sa visite sont finis, ferme le jalon. S'ils ne le seront pas, déplace la date et dis-le.",
+      "lesson": "Une date est une promesse. On la tient, ou on la déplace tôt et franchement ; jamais en silence.",
+      "done": "La visite de la maire est réglée. C'est comme ça qu'on pilote un projet."
     }
   },
   "practice": {

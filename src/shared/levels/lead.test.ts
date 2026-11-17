@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SITE_FOREMAN, SITE_MANAGER, SIZE_POINTS, currentIteration } from "./lead.ts";
+import { PROJECT_DIRECTOR, SITE_FOREMAN, SITE_MANAGER, SIZE_POINTS, currentIteration, inProgress, wipLimit } from "./lead.ts";
 import { PARCELS, ZONES, SIZES, parcelBody } from "./parcels.ts";
 import type { Observed, PracticeIssue, PracticeSnapshot } from "./types.ts";
 
@@ -171,6 +171,63 @@ describe("the Site manager levels", () => {
     it("needs the waiting issue open", () => {
       expect(m("l8-rope").check(seen(team({ issues: [parcel("bench", { blockedBy: [1], closed: true })] }))).done).toBe(false);
       expect(m("l8-rope").check(seen(team({ issues: [parcel("bench")] }))).done).toBe(false);
+    });
+  });
+});
+
+describe("the Project director levels", () => {
+  const d = (id: string) => PROJECT_DIRECTOR.find((l) => l.id === id)!;
+  const withLimit = (limit: string | null, o: Partial<NonNullable<PracticeSnapshot["board"]>> = {}) => board({
+    statusOptionIds: ZONES.map((name, i) => ({ id: `z${i}`, name, description: name === "In progress" && limit ? limit : "" })), ...o,
+  });
+  const visit = { id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", url: "u-visit", closed: false, openIssues: 0, closedIssues: 2 };
+
+  it("are three, on the lead's path, after the Site manager", () => {
+    expect(PROJECT_DIRECTOR.map((l) => l.id)).toEqual(["l9-bulletin", "l10-wip", "l11-visit"]);
+    expect(PROJECT_DIRECTOR.every((l) => l.path === "lead" && l.rank === "project-director")).toBe(true);
+  });
+
+  describe("l9-bulletin", () => {
+    it("passes on a status update with a status and words, proof the board", () => {
+      const t = team({ board: board({ statusUpdates: [{ status: "ON_TRACK", body: "FICTIF All good.", createdAt: "2026-11-17T18:00:00Z" }] }) });
+      expect(d("l9-bulletin").check(seen(t))).toEqual({ done: true, proof: board().url });
+    });
+    it("l9 needs a status and words", () => {
+      for (const u of [{ status: null, body: "words" }, { status: "AT_RISK", body: "  " }]) {
+        expect(d("l9-bulletin").check(seen(team({ board: board({ statusUpdates: [{ ...u, createdAt: "x" }] }) }))).done).toBe(false);
+      }
+      expect(d("l9-bulletin").check(seen(team())).done).toBe(false);
+    });
+  });
+
+  describe("l10-wip", () => {
+    const laying = (n: number) => Array.from({ length: n }, (_, i) => parcel(PARCELS[i].key, { status: "In progress" }));
+    it("l10 reads the limit from the zone's description", () => {
+      expect(wipLimit(team({ board: withLimit("Being laid. Limit: 3.") }))).toBe(3);
+      expect(wipLimit(team({ board: withLimit("Being laid") }))).toBeNull();
+      expect(wipLimit(team({ board: withLimit("limit: 12") }))).toBe(12);
+      expect(inProgress(team({ issues: [...laying(2), parcel("square", { status: "In progress", closed: true })] }))).toBe(2);
+    });
+    it("passes once the team's day happened and Being laid is back under its limit, proof the board", () => {
+      const o: Observed = { ...seen(team({ board: withLimit("Being laid. Limit: 3."), issues: laying(3) })), events: ["team-day"] };
+      expect(d("l10-wip").check(o)).toEqual({ done: true, proof: board().url });
+      expect(d("l10-wip").check({ ...o, team: team({ board: withLimit("Being laid. Limit: 3."), issues: laying(4) }) }).done).toBe(false);
+    });
+    it("l10 needs the team's day first", () => {
+      expect(d("l10-wip").check(seen(team({ board: withLimit("Being laid. Limit: 3."), issues: laying(1) }))).done).toBe(false);
+      expect(d("l10-wip").check({ ...seen(team({ board: withLimit(null), issues: laying(1) })), events: ["team-day"] }).done).toBe(false);
+    });
+  });
+
+  describe("l11-visit", () => {
+    it("l11 passes on a visit closed with all its jobs done, or moved", () => {
+      expect(d("l11-visit").check(seen(team({ milestones: [{ ...visit, closed: true }] })))).toEqual({ done: true, proof: "u-visit" });
+      expect(d("l11-visit").check({ ...seen(team({ milestones: [{ ...visit, openIssues: 1 }] })), events: ["visit-moved"] })).toEqual({ done: true, proof: "u-visit" });
+    });
+    it("needs every job done before the visit closes, and something under it", () => {
+      expect(d("l11-visit").check(seen(team({ milestones: [{ ...visit, closed: true, openIssues: 1 }] }))).done).toBe(false);
+      expect(d("l11-visit").check(seen(team({ milestones: [{ ...visit, closed: true, closedIssues: 0 }] }))).done).toBe(false);
+      expect(d("l11-visit").check(seen(team({ milestones: [visit] }))).done).toBe(false);
     });
   });
 });
