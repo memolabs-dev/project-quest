@@ -67,6 +67,8 @@ function rebuild(claim: PreparedPractice, viewer: { login: string; id: string },
 const teamArgs = z.object({
   visibility: z.enum(["PUBLIC", "PRIVATE"]).optional(), issueNumber: z.number().int().optional(), label: z.string().optional(),
   original: z.number().int().optional(), items: z.array(z.string()).optional(), size: z.string().optional(),
+  title: z.string().optional(), dueOn: z.string().optional(), issues: z.array(z.number().int()).optional(),
+  milestone: z.number().int().optional(), titles: z.array(z.string()).optional(), blocking: z.number().int().optional(),
 }) satisfies z.ZodType<TeamArgs>;
 
 const NOT_YOURS = "Levels write only to your own practice site: nothing was sent";
@@ -320,12 +322,12 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       return c.json({ ok: true as const, levels: await levels() });
     })
     // ---------- The lead's team site (its own guard: only <viewer>/<teamName>) ----------
-    .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size}/prepare", zValidator("json", teamArgs), async (c) => {
+    .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size|sprint-field|load|unload|milestone|attach|split|rope}/prepare", zValidator("json", teamArgs), async (c) => {
       const { login, name, practice } = await teamContext(live);
       const viewer = { login, id: c.req.param("kind") === "team-found" ? await live.viewerId() : "" };
       return c.json(rebuildTeam(c.req.param("kind") as TeamKind, c.req.valid("json"), viewer, name, practice, todayOf(live)));
     })
-    .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size}/apply", zValidator("json", z.looseObject({
+    .post("/api/team/:kind{team-found|parcels|label|duplicate|checklist|size|sprint-field|load|unload|milestone|attach|split|rope}/apply", zValidator("json", z.looseObject({
       kind: z.string(), repo: z.string(), args: teamArgs, mutations,
     })), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedTeam;

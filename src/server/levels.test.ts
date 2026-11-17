@@ -64,7 +64,8 @@ describe("levels", () => {
       name: "my-first-site", exists: false, readme: null, issue: null, pull: null,
       unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false,
     });
-    expect(v.team).toEqual({ exists: false, parcels: false, labels: [] });
+    expect(v.team).toEqual({ exists: false, parcels: false, labels: [], milestones: [],
+      sprint: { field: false, current: null, points: 0, capacity: null, unsized: [] } });
   });
 
   it("refuses an unknown tutorial event", async () => {
@@ -182,6 +183,34 @@ describe("the team site", () => {
       expect((await app.request("/api/team/parcels/apply", post({ ...parcels, repo }))).status).toBe(409);
     }
     expect(sent).toEqual([]);
+  });
+
+  it("a sprint gesture is rebuilt with the server's date", async () => {
+    const withBoard = { ...team, board: { ...team.board!, fields: [] }, issues: [] };
+    const { app, sent } = make(null, { readPractice: reading(withBoard), today: () => "2026-11-17" });
+    const claim = (await (await app.request("/api/team/sprint-field/prepare", post({}))).json()) as { mutations: { input: Record<string, unknown> }[] };
+    expect(claim.mutations[0].input).toMatchObject({ name: "Sprint", iterationConfiguration: { startDate: "2026-11-17" } });
+    const forged = structuredClone(claim);
+    (forged.mutations[0].input.iterationConfiguration as Record<string, unknown>).startDate = "2026-11-01";
+    expect((await app.request("/api/team/sprint-field/apply", post(forged))).status).toBe(409);
+    expect((await app.request("/api/team/sprint-field/apply", post(claim))).status).toBe(200);
+    expect(sent).toHaveLength(1);
+  });
+
+  it("the view tells the sprint's load against the capacity, and the milestones", async () => {
+    const progress = memoryProgress();
+    await progress.setPath(VIEWER, "lead");
+    await progress.setCapacity(VIEWER, 5);
+    const loaded = {
+      ...team,
+      board: { ...team.board!, fields: [{ id: "F_sprint", name: "Sprint", dataType: "ITERATION", iterations: [{ id: "it1", title: "Sprint 1", startDate: "2026-11-17", duration: 7 }] }] },
+      milestones: [{ id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "m", closed: false }],
+      issues: [issue({ number: 2, iteration: "it1", size: "M" }), issue({ number: 3, iteration: "it1" }), issue({ number: 4, iteration: "it1", size: "XL", closed: true })],
+    };
+    const { app } = make(null, { progress, readPractice: reading(loaded), today: () => "2026-11-18" });
+    const v = await view(await app.request("/api/levels/check", post({})));
+    expect(v.team.sprint).toEqual({ field: true, current: "Sprint 1", points: 3, capacity: 5, unsized: [3] });
+    expect(v.team.milestones).toEqual([{ number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z" }]);
   });
 
   it("refuses a lead gesture that does not match a fresh read, or from a page marked demo", async () => {

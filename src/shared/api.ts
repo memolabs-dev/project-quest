@@ -66,7 +66,13 @@ export interface LevelsView {
   /** The real project's good first issues, once read (after the Team leader rank). */
   real: { issues: number } | null;
   /** The lead's team site: founded, the mayor's parcels arrived, its labels (for sorting). */
-  team: { exists: boolean; parcels: boolean; labels: string[] };
+  team: {
+    exists: boolean; parcels: boolean; labels: string[];
+    /** This week's sprint: its title, its open pallets' points against the declared capacity, those without a size. */
+    sprint: { field: boolean; current: string | null; points: number; capacity: number | null; unsized: number[] };
+    /** The open milestones: the mayor's visits. */
+    milestones: { number: number; title: string; dueOn: string | null }[];
+  };
 }
 
 export type PracticeApplyResponse =

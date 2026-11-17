@@ -4,6 +4,9 @@ import { LEVELS } from "../shared/levels/index.ts";
 import { boardCatchingUp, canFollow, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
+const NO_TEAM: LevelsView["team"] = {
+  exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, unsized: [] },
+};
 const view = (stamped: number, exists = false): LevelsView => ({
   login: "fictif-volunteer", canWrite: true, path: null, ranks: { volunteer: null, lead: null },
   stamps: ids.slice(0, stamped).map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
@@ -12,10 +15,10 @@ const view = (stamped: number, exists = false): LevelsView => ({
   unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3, trowel: stamped > 6, firstBuilding: stamped > 10, van: stamped > 10, realProjects: stamped > 14 },
   practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
   real: null,
-  team: { exists: false, parcels: false, labels: [] },
+  team: NO_TEAM,
 });
-const lead = (current: string, team = { exists: false, parcels: false, labels: [] as string[] }): LevelsView => ({
-  ...view(0), path: "lead", current, rank: null, team,
+const lead = (current: string, team: Partial<LevelsView["team"]> = {}): LevelsView => ({
+  ...view(0), path: "lead", current, rank: null, team: { ...NO_TEAM, ...team },
 });
 
 describe("mentorAction", () => {
