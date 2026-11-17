@@ -2,6 +2,7 @@
 // what will be sent to GitHub, then sends only on the player's click. On the demo site nothing can be sent.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import type { PreparedPractice } from "../../shared/api.ts";
 import { ApiFailure, api } from "../api.ts";
 import { useQuest } from "../store.ts";
@@ -23,7 +24,24 @@ function Dialog({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-/** The second step, shared by the three gestures: what leaves for GitHub, then Send or Back. */
+/** What a gesture will do, in one plain sentence, above the exact request. */
+function summarize(p: PreparedPractice, t: TFunction): string {
+  switch (p.kind) {
+    case "found":
+      return t(p.reuse ? "practice.summary.foundReuse" : "practice.summary.found", {
+        owner: p.owner, name: p.name, visibility: t(`practice.summary.${p.visibility === "PUBLIC" ? "public" : "private"}`),
+      });
+    case "issue": return t("practice.summary.issue", { title: p.title, repo: p.repo });
+    case "take": return t("practice.summary.take", { number: p.issueNumber, repo: p.repo, comment: p.comment });
+    case "edit":
+      return [p.foundation ? t("practice.summary.foundation", { repo: p.repo }) : "", t("practice.summary.edit", { path: p.path, branch: p.branch, message: p.message })]
+        .filter(Boolean).join(" ");
+    case "pull": return t("practice.summary.pull", { branch: p.branch, title: p.title, number: p.issueNumber });
+    case "merge": return t("practice.summary.merge", { number: p.pullNumber, repo: p.repo });
+  }
+}
+
+/** The second step, shared by the gestures: what leaves for GitHub, then Send or Back. */
 function Preview({ prepared, note, onBack }: { prepared: PreparedPractice; note?: string; onBack(): void }) {
   const { t } = useTranslation();
   const canWrite = useQuest((s) => s.levels?.canWrite ?? false);
@@ -52,12 +70,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice; note?
     }
   };
 
-  const summary = prepared.kind === "found"
-    ? t(prepared.reuse ? "practice.summary.foundReuse" : "practice.summary.found", {
-      owner: prepared.owner, name: prepared.name, visibility: t(`practice.summary.${prepared.visibility === "PUBLIC" ? "public" : "private"}`),
-    })
-    : prepared.kind === "issue" ? t("practice.summary.issue", { title: prepared.title, repo: prepared.repo })
-      : t("practice.summary.take", { number: prepared.issueNumber, repo: prepared.repo, comment: prepared.comment });
+  const summary = summarize(prepared, t);
   return (
     <>
       <p className="move">{summary}</p>

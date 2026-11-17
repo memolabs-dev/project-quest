@@ -188,6 +188,31 @@ describe("practice gestures", () => {
     expect(moved).toHaveLength(1);
   });
 
+  it("refuses an edit, a pull request or a merge outside the practice repository", async () => {
+    const mine = issue({ assignees: [VIEWER] });
+    const ready = site({
+      issues: [mine], defaultBranch: { name: "main", oid: "a1" },
+      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c" }],
+    });
+    const { app, sent } = make(ready);
+    const edit = (await (await app.request("/api/practice/edit/prepare", post({ issueNumber: 1, content: "x", message: "m" }))).json()) as Record<string, unknown>;
+    const pull = (await (await app.request("/api/practice/pull/prepare", post({ issueNumber: 1, title: "t", why: "w" }))).json()) as Record<string, unknown>;
+    for (const claim of [edit, pull]) {
+      expect((await app.request(`/api/practice/${String(claim.kind)}/apply`, post({ ...claim, repo: "fictif-volunteer/other-repo" }))).status).toBe(409);
+    }
+    const merge = { kind: "merge", repo: "FICTIF-OTHER/my-first-site", pullNumber: 2, mutations: [] };
+    expect((await app.request("/api/practice/merge/apply", post(merge))).status).toBe(409);
+    expect(sent).toEqual([]);
+  });
+
+  it("sends an edit the server rebuilt", async () => {
+    const mine = issue({ assignees: [VIEWER] });
+    const { app, sent } = make(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }));
+    const edit = await (await app.request("/api/practice/edit/prepare", post({ issueNumber: 1, content: "# my-first-site\n", message: "Paint" }))).json();
+    expect((await app.request("/api/practice/edit/apply", post(edit))).status).toBe(200);
+    expect(sent).toHaveLength(1);
+  });
+
   it("remembers the founded site's name", async () => {
     const { app, deps } = make(null);
     const prepared = await (await app.request("/api/practice/found/prepare", post({ visibility: "PRIVATE" }))).json();

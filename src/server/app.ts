@@ -7,7 +7,10 @@ import { Hono, type Context } from "hono";
 import { z } from "zod";
 import type { QuestConfig } from "../shared/config.ts";
 import { GestureError, prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
-import { prepareFound, prepareIssue, prepareTake, type PreparedPractice } from "../shared/gestures/practice.ts";
+import {
+  prepareEdit, prepareFound, prepareIssue, prepareMerge, preparePull, prepareTake, type PreparedPractice,
+} from "../shared/gestures/practice.ts";
+import type { PracticeSnapshot } from "../shared/levels/types.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
 import { SiteError, buildSite, type BoardSnapshot } from "../shared/site.ts";
 import type { Deps } from "./deps.ts";
@@ -36,7 +39,26 @@ const practiceClaim = z.discriminatedUnion("kind", [
   z.looseObject({ kind: z.literal("found"), owner: z.string(), name: z.string(), visibility: z.enum(["PUBLIC", "PRIVATE"]), mutations }),
   z.looseObject({ kind: z.literal("issue"), repo: z.string(), title: z.string(), body: z.string(), mutations }),
   z.looseObject({ kind: z.literal("take"), repo: z.string(), issueNumber: z.number(), comment: z.string(), mutations }),
+  z.looseObject({ kind: z.literal("edit"), repo: z.string(), issueNumber: z.number().optional(), branch: z.string(), content: z.string(), message: z.string(), mutations }),
+  z.looseObject({ kind: z.literal("pull"), repo: z.string(), issueNumber: z.number(), title: z.string(), body: z.string(), mutations }),
+  z.looseObject({ kind: z.literal("merge"), repo: z.string(), pullNumber: z.number(), mutations }),
 ]);
+
+/** The issue a practice branch works on: "practice-<n>". */
+const issueOfBranch = (branch: string) => Number(/^practice-(\d+)$/.exec(branch)?.[1] ?? NaN);
+
+/** The server's own copy of a claimed gesture, from its fresh read of the practice site. */
+function rebuild(claim: PreparedPractice, viewer: { login: string; id: string }, name: string, practice: PracticeSnapshot | null): PreparedPractice {
+  if (claim.kind === "found") return prepareFound(viewer, practice, name, claim.visibility);
+  if (!practice) throw new GestureError("Your practice site is not founded yet");
+  switch (claim.kind) {
+    case "issue": return prepareIssue(practice, claim.title, claim.body);
+    case "take": return prepareTake(practice, viewer, claim.issueNumber, claim.comment);
+    case "edit": return prepareEdit(practice, viewer, issueOfBranch(claim.branch), claim.content, claim.message);
+    case "pull": return preparePull(practice, viewer, claim.issueNumber, claim.title, claim.body.replace(/\n\nCloses #\d+$/, ""));
+    case "merge": return prepareMerge(practice, viewer, claim.pullNumber);
+  }
+}
 
 const NOT_YOURS = "Levels write only to your own practice site: nothing was sent";
 
@@ -175,8 +197,25 @@ export function createApp(live: Deps, demo?: Deps) {
       const { issueNumber, comment } = c.req.valid("json");
       return c.json(prepareTake(practice, { login, id: await live.viewerId() }, issueNumber, comment));
     })
-    // Only the three gestures: "moves" has its own routes below.
-    .post("/api/practice/:kind{found|issue|take}/apply", zValidator("json", practiceClaim), async (c) => {
+    // Only the gestures: "moves" has its own routes below.
+    .post("/api/practice/edit/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), content: z.string(), message: z.string() })), async (c) => {
+      const { login, practice } = await practiceContext(live);
+      if (!practice) return c.json(PRACTICE_MISSING, 404);
+      const { issueNumber, content, message } = c.req.valid("json");
+      return c.json(prepareEdit(practice, { login, id: "" }, issueNumber, content, message));
+    })
+    .post("/api/practice/pull/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), title: z.string(), why: z.string() })), async (c) => {
+      const { login, practice } = await practiceContext(live);
+      if (!practice) return c.json(PRACTICE_MISSING, 404);
+      const { issueNumber, title, why } = c.req.valid("json");
+      return c.json(preparePull(practice, { login }, issueNumber, title, why));
+    })
+    .post("/api/practice/merge/prepare", zValidator("json", z.object({ pullNumber: z.number().int() })), async (c) => {
+      const { login, practice } = await practiceContext(live);
+      if (!practice) return c.json(PRACTICE_MISSING, 404);
+      return c.json(prepareMerge(practice, { login }, c.req.valid("json").pullNumber));
+    })
+    .post("/api/practice/:kind{found|issue|take|edit|pull|merge}/apply", zValidator("json", practiceClaim), async (c) => {
       const claim = c.req.valid("json") as unknown as PreparedPractice;
       // A page marked demo never sends, even on a server that could.
       if (c.req.query("demo")) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
@@ -186,11 +225,8 @@ export function createApp(live: Deps, demo?: Deps) {
       const target = claim.kind === "found" ? `${claim.owner}/${claim.name}` : claim.repo;
       if (target.toLowerCase() !== `${login}/${name}`.toLowerCase()) return c.json({ error: "gesture" as const, message: NOT_YOURS }, 409);
       if (claim.kind !== "found" && !practice) return c.json(PRACTICE_MISSING, 404);
-      const viewer = { login, id: claim.kind === "issue" ? "" : await live.viewerId() };
-      const rebuilt: PreparedPractice =
-        claim.kind === "found" ? prepareFound(viewer, practice, name, claim.visibility)
-          : claim.kind === "issue" ? prepareIssue(practice!, claim.title, claim.body)
-            : prepareTake(practice!, viewer, claim.issueNumber, claim.comment);
+      const viewer = { login, id: claim.kind === "found" || claim.kind === "take" ? await live.viewerId() : "" };
+      const rebuilt = rebuild(claim, viewer, name, practice);
       if (!isDeepStrictEqual(rebuilt, claim)) {
         return c.json({ error: "gesture" as const, message: "This gesture does not match your site: nothing was sent" }, 409);
       }

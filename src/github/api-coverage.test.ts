@@ -32,6 +32,15 @@ describe("GitHub API coverage", () => {
     }
   });
 
+  it("makes the Journeyman's gestures gestures, and merging one only on your practice site", () => {
+    for (const id of ["graphql.mutation.createRef", "graphql.mutation.createCommitOnBranch", "graphql.mutation.createPullRequest",
+      "graphql.mutation.mergePullRequest", "rest.repos/create-or-update-file-contents"]) {
+      expect(OPERATIONS[id]?.kind, id).toBe("gesture");
+    }
+    const merge = OPERATIONS["graphql.mutation.mergePullRequest"];
+    expect(merge.kind === "gesture" && merge.gesture).toMatch(/your own pull request on your practice site/);
+  });
+
   it("gives every decision a reason or a gesture", () => {
     const decisions: Decision[] = [...Object.values(OPERATIONS), ...Object.values(CATEGORY_DECISIONS)];
     for (const d of decisions) {

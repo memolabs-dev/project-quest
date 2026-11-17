@@ -90,16 +90,21 @@ export const OPERATIONS: Record<string, Decision> = {
   ...all(m(["createProjectV2View", "updateProjectV2View", "deleteProjectV2View", "deleteProjectV2Workflow"]), out(SITE_SETUP)),
   ...all(m(["linkProjectV2ToRepository", "unlinkProjectV2FromRepository", "linkProjectV2ToTeam", "unlinkProjectV2FromTeam", "updateProjectV2Collaborators"]), out(SITE_SETUP)),
 
+  // ---------- The Journeyman's trowel: editing a file without a terminal (levels, practice site) ----------
+  ...all(m(["createRef", "createCommitOnBranch"]), gesture("The trowel: edit a file in the game, on a branch of its own, on your practice site (levels, Journeyman rank)")),
+  ...all(r(["repos/create-or-update-file-contents"]), gesture("Lay the foundation stone: the first commit of an empty practice repository, the only way GitHub allows it")),
+
   // ---------- GraphQL: pull requests (the inspection) ----------
   ...all(m(["requestReviews", "requestReviewsByLogin"]), gesture("Send the inspector: ask someone to review a pull request")),
   ...all(m(["submitPullRequestReview", "addPullRequestReview"]), later("v2-contributors", "Stamp the inspection from inside the game; v1 opens GitHub, where the diff is read")),
   ...all(m(["addPullRequestReviewComment", "addPullRequestReviewThread", "addPullRequestReviewThreadReply", "updatePullRequestReview", "updatePullRequestReviewComment",
     "deletePullRequestReview", "deletePullRequestReviewComment", "dismissPullRequestReview", "resolveReviewThread", "unresolveReviewThread", "markFileAsViewed", "unmarkFileAsViewed", "rerequestReviews"]),
     later("v2-contributors", "Line-by-line review needs the code on screen; GitHub's own page does it better")),
-  ...all(m(["mergePullRequest"]), later("v2-contributors", "Merging stays on GitHub with its checks and rules; a merge gesture needs the repo's branch protections on screen")),
+  ...all(m(["mergePullRequest"]), gesture("Merge your own pull request on your practice site (levels, Journeyman rank); merging on a real project stays on GitHub with its checks and rules")),
   ...all(m(["enablePullRequestAutoMerge", "disablePullRequestAutoMerge", "enqueuePullRequest", "dequeuePullRequest", "updatePullRequestBranch"]),
     later("v2-contributors", "Merge mechanics; designed together with mergePullRequest")),
-  ...all(m(["createPullRequest", "updatePullRequest", "closePullRequest", "reopenPullRequest", "convertPullRequestToDraft", "markPullRequestReadyForReview", "revertPullRequest"]),
+  ...all(m(["createPullRequest"]), gesture("Knock on the door: open a pull request that closes your issue, on your practice site (levels, Journeyman rank)")),
+  ...all(m(["updatePullRequest", "closePullRequest", "reopenPullRequest", "convertPullRequestToDraft", "markPullRequestReadyForReview", "revertPullRequest"]),
     later("v2-contributors", "A contributor's own pull request; comes with the contributors' version")),
   ...all(m(["archivePullRequest", "unarchivePullRequest"]), out("Archiving pull requests is housekeeping, not site work")),
   ...all(m(["requestCopilotCodeReview"]), later("idea", "An AI inspector; a fun character once v1 works")),

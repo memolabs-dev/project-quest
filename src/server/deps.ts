@@ -7,7 +7,7 @@ import type { PracticeSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
 import { memoryProgress, pgProgress, type ProgressStore } from "./db/progress.ts";
-import { GitHubAuthError, githubGql, githubToken, type Gql } from "./github/client.ts";
+import { GitHubAuthError, githubGql, githubRest, githubToken, type Gql, type Rest } from "./github/client.ts";
 import { applyMove, type ApplyResult } from "./github/move-item.ts";
 import { applyPractice, type PracticeResult } from "./github/practice-apply.ts";
 import { readBoard } from "./github/read-board.ts";
@@ -41,6 +41,8 @@ const json = (path: string) => JSON.parse(readFileSync(new URL(path, root), "utf
 export function liveDeps(config: QuestConfig): Deps {
   let gql: Promise<Gql> | null = null;
   const client = () => (gql ??= githubGql().catch((e) => { gql = null; throw e; }));
+  let rest: Promise<Rest> | null = null;
+  const restClient = () => (rest ??= githubRest().catch((e) => { rest = null; throw e; }));
   const url = process.env.DATABASE_URL;
   if (!url) console.warn("[project-quest] DATABASE_URL is not set: the action log is kept in memory only");
   return {
@@ -57,7 +59,7 @@ export function liveDeps(config: QuestConfig): Deps {
     progress: url ? pgProgress(url) : memoryProgress(),
     practiceName: PRACTICE_NAME,
     readPractice: async (owner, name) => readPractice(await client(), owner, name),
-    applyPractice: async (p) => applyPractice(await client(), p),
+    applyPractice: async (p) => applyPractice(await client(), await restClient(), p),
   };
 }
 

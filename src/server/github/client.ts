@@ -25,3 +25,22 @@ export async function githubGql(): Promise<Gql> {
   const { withGitHubErrors } = await import("./errors.ts");
   return withGitHubErrors(<T>(query: string, variables: Record<string, unknown>) => client<T>(query, variables));
 }
+
+export type Rest = (method: "PUT", path: string, body: Record<string, unknown>) => Promise<unknown>;
+
+/** The REST door, for the one write GraphQL cannot do (the first commit of an empty repository). */
+export async function githubRest(): Promise<Rest> {
+  const token = await githubToken();
+  return async (method, path, body) => {
+    const res = await fetch(`https://api.github.com${path}`, {
+      method,
+      headers: { authorization: `token ${token}`, accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28" },
+      body: JSON.stringify(body),
+    });
+    const json = (await res.json().catch(() => ({}))) as { message?: string };
+    if (res.status === 401) throw new GitHubAuthError("GitHub refused the login: run `gh auth login`");
+    // Shaped like a GraphQL error, so a refusal is reported to the player with what was already done.
+    if (!res.ok) throw Object.assign(new Error(json.message ?? `GitHub answered ${res.status}`), { errors: [{ message: json.message ?? `GitHub answered ${res.status}` }] });
+    return json;
+  };
+}

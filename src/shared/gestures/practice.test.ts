@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { PracticeIssue, PracticeSnapshot } from "../levels/types.ts";
+import type { PracticeIssue, PracticePull, PracticeSnapshot } from "../levels/types.ts";
 import { GestureError } from "./move.ts";
-import { prepareFound, prepareIssue, prepareTake } from "./practice.ts";
+import { prepareEdit, prepareFound, prepareIssue, prepareMerge, preparePull, prepareTake } from "./practice.ts";
 
 const viewer = { login: "fictif-volunteer", id: "U_fictif" };
 const site = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
@@ -76,5 +76,85 @@ describe("prepareTake", () => {
     expect(() => prepareTake(site({ issues: [issue({ closed: true })] }), viewer, 1, "mine")).toThrow(GestureError);
     expect(() => prepareTake(site({ issues: [issue()] }), viewer, 9, "mine")).toThrow(GestureError);
     expect(() => prepareTake(site({ issues: [issue()] }), viewer, 1, "  ")).toThrow(GestureError);
+  });
+});
+
+const decode = (b64: string) => new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+const mine = issue({ assignees: ["fictif-volunteer"] });
+
+describe("prepareEdit", () => {
+  it("lays the foundation stone on an empty repository", () => {
+    const p = prepareEdit(site({ issues: [mine] }), viewer, 1, "# my-first-site\n\nA blue gate.\n", "Paint the gate blue");
+    expect(p).toMatchObject({ kind: "edit", repo: "fictif-volunteer/my-first-site", branch: "practice-1", path: "README.md", foundation: true });
+    expect(p.mutations.map((m) => m.name)).toEqual(["createOrUpdateFileContents", "createRef", "createCommitOnBranch"]);
+    expect(decode(p.mutations[0].input.content as string)).toBe("# my-first-site\n");
+    expect(p.mutations[1].input).toEqual({ repositoryId: "R_fictif", name: "refs/heads/practice-1", oid: "$headOid" });
+    expect(p.mutations[2].input).toMatchObject({
+      branch: { repositoryNameWithOwner: "fictif-volunteer/my-first-site", branchName: "practice-1" },
+      expectedHeadOid: "$headOid", message: { headline: "Paint the gate blue" },
+    });
+  });
+  it("branches from the default branch head", () => {
+    const p = prepareEdit(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }), viewer, 1, "text", "msg");
+    expect(p.foundation).toBe(false);
+    expect(p.mutations.map((m) => m.name)).toEqual(["createRef", "createCommitOnBranch"]);
+    expect(p.mutations[0].input).toMatchObject({ oid: "a1" });
+    expect(p.mutations[1].input).toMatchObject({ expectedHeadOid: "a1" });
+  });
+  it("edits on the branch head the server read", () => {
+    const p = prepareEdit(site({
+      issues: [mine], defaultBranch: { name: "main", oid: "a1" },
+      branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c" }],
+    }), viewer, 1, "text", "Say why");
+    expect(p.mutations.map((m) => m.name)).toEqual(["createCommitOnBranch"]);
+    expect(p.mutations[0].input).toMatchObject({ expectedHeadOid: "b7" });
+  });
+  it("encodes any text exactly", () => {
+    const p = prepareEdit(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }), viewer, 1, "Façade 🧱 bleue", "msg");
+    const additions = (p.mutations[1].input.fileChanges as { additions: { path: string; contents: string }[] }).additions;
+    expect(additions[0].path).toBe("README.md");
+    expect(decode(additions[0].contents)).toBe("Façade 🧱 bleue");
+  });
+  it("refuses an issue not assigned to you, and an empty message", () => {
+    expect(() => prepareEdit(site({ issues: [issue()] }), viewer, 1, "t", "m")).toThrow(GestureError);
+    expect(() => prepareEdit(site({ issues: [mine] }), viewer, 1, "t", "  ")).toThrow(GestureError);
+  });
+});
+
+const pullOf = (o: Partial<PracticePull> = {}): PracticePull => ({
+  id: "PR_2", number: 2, url: "p2", author: "fictif-volunteer", state: "OPEN", createdAt: "2026-11-17T10:00:00Z",
+  headRefName: "practice-1", headRefOid: "b7", closes: [1], commits: [], ...o,
+});
+const branched = (o: Partial<PracticeSnapshot> = {}) => site({
+  issues: [mine], defaultBranch: { name: "main", oid: "a1" },
+  branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c" }], ...o,
+});
+
+describe("preparePull", () => {
+  it("opens a pull request that closes the issue", () => {
+    const p = preparePull(branched(), viewer, 1, "Paint the gate blue", "The gate was grey.");
+    expect(p).toMatchObject({ kind: "pull", branch: "practice-1", issueNumber: 1, body: "The gate was grey.\n\nCloses #1" });
+    expect(p.mutations).toEqual([{ name: "createPullRequest", input: {
+      repositoryId: "R_fictif", baseRefName: "main", headRefName: "practice-1", title: "Paint the gate blue", body: "The gate was grey.\n\nCloses #1",
+    } }]);
+  });
+  it("never opens a second pull request from the same branch", () => {
+    expect(() => preparePull(branched({ pulls: [pullOf()] }), viewer, 1, "t", "w")).toThrow(GestureError);
+  });
+  it("needs the branch first", () => {
+    expect(() => preparePull(site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" } }), viewer, 1, "t", "w")).toThrow(GestureError);
+  });
+});
+
+describe("prepareMerge", () => {
+  it("merges your pull request on its head", () => {
+    const p = prepareMerge(branched({ pulls: [pullOf()] }), viewer, 2);
+    expect(p).toMatchObject({ kind: "merge", repo: "fictif-volunteer/my-first-site", pullNumber: 2 });
+    expect(p.mutations).toEqual([{ name: "mergePullRequest", input: { pullRequestId: "PR_2", expectedHeadOid: "b7", mergeMethod: "MERGE" } }]);
+  });
+  it("never merges a pull request that is not yours", () => {
+    expect(() => prepareMerge(branched({ pulls: [pullOf({ author: "someone-else" })] }), viewer, 2)).toThrow(GestureError);
+    expect(() => prepareMerge(branched({ pulls: [pullOf({ state: "MERGED" })] }), viewer, 2)).toThrow(GestureError);
+    expect(() => prepareMerge(branched({ pulls: [pullOf({ closes: [] })] }), viewer, 2)).toThrow(GestureError);
   });
 });
