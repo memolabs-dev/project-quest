@@ -63,6 +63,7 @@ describe("levels", () => {
       name: "my-first-site", exists: false, readme: null, issue: null, pull: null,
       unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false,
     });
+    expect(v.team).toEqual({ exists: false, parcels: false, labels: [] });
   });
 
   it("refuses an unknown tutorial event", async () => {

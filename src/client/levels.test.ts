@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
-import { laterView, mentorAction, newStamps, noGoodFirst, siteKindFromUrl } from "./levels.ts";
+import { laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
 const view = (stamped: number, exists = false): LevelsView => ({
@@ -12,6 +12,10 @@ const view = (stamped: number, exists = false): LevelsView => ({
   unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3, trowel: stamped > 6, firstBuilding: stamped > 10, van: stamped > 10, realProjects: stamped > 14 },
   practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
   real: null,
+  team: { exists: false, parcels: false, labels: [] },
+});
+const lead = (current: string, team = { exists: false, parcels: false, labels: [] as string[] }): LevelsView => ({
+  ...view(0), path: "lead", current, rank: null, team,
 });
 
 describe("mentorAction", () => {
@@ -78,12 +82,37 @@ describe("mentorAction", () => {
   });
 });
 
+describe("the lead's path", () => {
+  it("asks the path first", () => {
+    expect(needsPath({ ...view(0), path: null })).toBe(true);
+    expect(needsPath({ ...view(0), path: "volunteer" })).toBe(false);
+    expect(needsPath({ ...view(3), path: null })).toBe(false);
+  });
+  it("sends a lead to their team site", () => {
+    expect(mentorAction(lead("l1-found-team"), "main")).toBe("to-team");
+    expect(mentorAction(lead("l1-found-team"), "practice")).toBe("to-team");
+  });
+  it("founds, then the parcels, then the card gestures", () => {
+    expect(mentorAction(lead("l1-found-team"), "team")).toBe("found-team");
+    expect(mentorAction(lead("l2-sort-parcels", { exists: true, parcels: false, labels: [] }), "team")).toBe("parcels");
+    expect(mentorAction(lead("l2-sort-parcels", { exists: true, parcels: true, labels: ["bug"] }), "team")).toBeNull();
+    expect(mentorAction(lead("l3-ready", { exists: true, parcels: true, labels: [] }), "team")).toBeNull();
+  });
+  it("gives each lead level its speaker", () => {
+    expect(speakerOf("l1-found-team")).toBe("meme");
+    expect(speakerOf("l2-sort-parcels")).toBe("mayor");
+    expect(speakerOf("l4-size")).toBe("inspector");
+    expect(speakerOf("a5-write-issue")).toBe("meme");
+  });
+});
+
 describe("siteKindFromUrl", () => {
   it("reads the site kind from the address", () => {
     expect(siteKindFromUrl("")).toBe("main");
     expect(siteKindFromUrl("?demo=1")).toBe("demo");
     expect(siteKindFromUrl("?site=practice")).toBe("practice");
     expect(siteKindFromUrl("?demo=1&site=practice")).toBe("demo");
+    expect(siteKindFromUrl("?site=team")).toBe("team");
   });
 });
 

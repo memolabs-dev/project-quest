@@ -60,6 +60,7 @@ export function memoryProgress(): ProgressStore {
     async reset(login) {
       stamps.delete(key(login));
       events.delete(key(login));
+      paths.delete(key(login));
     },
   };
 }
@@ -100,6 +101,7 @@ export function pgProgress(url: string): ProgressStore & { clearForTests(): Prom
     async reset(login) {
       await db.delete(progress).where(eq(progress.playerLogin, key(login)));
       await db.delete(tutorialEvents).where(eq(tutorialEvents.playerLogin, key(login)));
+      await db.update(players).set({ path: null }).where(eq(players.githubLogin, key(login)));
     },
     async clearForTests() {
       assertTestDatabase(url);

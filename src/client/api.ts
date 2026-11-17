@@ -6,6 +6,7 @@ import type {
   PreparedEdit, PreparedFound, PreparedIssue, PreparedMayor, PreparedMerge, PreparedPull, PreparedTake,
 } from "../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../shared/gestures/real.ts";
+import type { PreparedTeam, TeamArgs, TeamKind } from "../shared/gestures/team.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import { siteKindFromUrl } from "./levels.ts";
 
@@ -31,12 +32,15 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
   return json as T;
 }
 
-/** On the practice site (?site=practice), the site and its moves are the player's own board. */
-const practice = () => siteKindFromUrl(location.search) === "practice";
-const moves = () => (practice() ? "/api/practice/moves" : "/api/moves");
+/** On the practice (?site=practice) or team (?site=team) site, the site and its moves are the player's own board. */
+const own = () => { const k = siteKindFromUrl(location.search); return k === "practice" || k === "team" ? k : null; };
+const moves = () => (own() ? `/api/${own()}/moves` : "/api/moves");
 
 export const api = {
-  site: () => call<SiteResponse>(practice() ? "/api/site?site=practice" : "/api/site"),
+  site: () => call<SiteResponse>(own() ? `/api/site?site=${own()}` : "/api/site"),
+  choosePath: (path: "volunteer" | "lead") => call<LevelsView>("/api/levels/path", { path }),
+  prepareTeam: (kind: TeamKind, args: TeamArgs) => call<PreparedTeam>(`/api/team/${kind}/prepare`, args),
+  applyTeam: (p: PreparedTeam) => call<PracticeApplyResponse>(`/api/team/${p.kind}/apply`, p),
   prepareMove: (itemId: string, toZone: string) => call<PreparedMove>(`${moves()}/prepare`, { itemId, toZone }),
   applyMove: (prepared: PreparedMove) => call<ApplyResponse>(`${moves()}/apply`, prepared),
   log: () => call<LoggedActionView[]>("/api/log"),

@@ -2,6 +2,7 @@
 // the levels' checks decide, and each passing level is stamped with its proof. Never another player's progress.
 import type { LevelsView } from "../shared/api.ts";
 import { levelsOf } from "../shared/levels/index.ts";
+import { parcelOf } from "../shared/levels/parcels.ts";
 import { currentLevel, rankReached, unlocks } from "../shared/levels/progress.ts";
 import type { Observed, Path, PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { Deps } from "./deps.ts";
@@ -40,10 +41,12 @@ export async function checkLevels(deps: Deps, login: string, seen?: Observed): P
       stamped.add(level.id);
     }
   }
-  return view(deps, login, o.practice, o.real ?? null);
+  return view(deps, login, o.practice, o.real ?? null, o.team ?? null);
 }
 
-async function view(deps: Deps, login: string, practice: PracticeSnapshot | null, real: RealSnapshot | null): Promise<LevelsView> {
+async function view(
+  deps: Deps, login: string, practice: PracticeSnapshot | null, real: RealSnapshot | null, team: PracticeSnapshot | null,
+): Promise<LevelsView> {
   const stamps = await deps.progress.stamps(login);
   const done = new Set(stamps.map((s) => s.levelId));
   const path = await deps.progress.path(login);
@@ -59,6 +62,11 @@ async function view(deps: Deps, login: string, practice: PracticeSnapshot | null
     unlocks: unlocks(done),
     practice: { name: await practiceNameOf(deps, login), exists: practice !== null, ...forGestures(practice, login) },
     real: real ? { issues: real.issues.length } : null,
+    team: {
+      exists: team?.board != null,
+      parcels: (team?.issues ?? []).some((i) => parcelOf(i.body)),
+      labels: (team?.labels ?? []).map((l) => l.name),
+    },
   };
 }
 

@@ -3,28 +3,35 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LEVELS } from "../../shared/levels/index.ts";
-import type { Rank } from "../../shared/levels/types.ts";
+import type { Path, Rank } from "../../shared/levels/types.ts";
 import { useQuest } from "../store.ts";
 
-/** One page per rank, in the order they are reached. */
-const RANKS = [...new Set(LEVELS.map((l) => l.rank))] as Rank[];
+/** One page per rank, in the order they are reached, for one path. */
+const ranksOf = (path: Path) => [...new Set(LEVELS.filter((l) => l.path === path).map((l) => l.rank))] as Rank[];
 
 export function SkillBook() {
   const { t, i18n } = useTranslation();
   const levels = useQuest((s) => s.levels);
   const [open, setOpen] = useState(false);
-  if (!levels?.unlocks.skillBook) return null;
+  const [shown, setShown] = useState<Path | null>(null);
+  if (!levels || (!levels.unlocks.skillBook && levels.path !== "lead")) return null;
+  const path: Path = shown ?? levels.path ?? "volunteer";
   const stamps = new Map(levels.stamps.map((s) => [s.levelId, s]));
   return (
     <div className="skillbook">
       <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>{t("skills.title")}</button>
       {open && (
         <section className="skill-panel" aria-label={t("skills.title")}>
-          {RANKS.map((rank) => (
+          <div className="skill-paths" role="tablist">
+            {(["volunteer", "lead"] as Path[]).map((p) => (
+              <button key={p} type="button" role="tab" aria-selected={p === path} onClick={() => setShown(p)}>{t(`skills.paths.${p}`)}</button>
+            ))}
+          </div>
+          {ranksOf(path).map((rank) => (
             <section key={rank} className="skill-page">
               <h2>{t(`skills.rank.${rank}`)}</h2>
               <ol>
-                {LEVELS.filter((l) => l.rank === rank).map((l) => {
+                {LEVELS.filter((l) => l.path === path && l.rank === rank).map((l) => {
                   const s = stamps.get(l.id);
                   return (
                     <li key={l.id} className={s ? "earned" : "outline"}>

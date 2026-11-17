@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commandsFor, safeBranch } from "../commands.ts";
-import { mentorAction, newStamps, noGoodFirst } from "../levels.ts";
+import { api } from "../api.ts";
+import { mentorAction, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
@@ -56,6 +57,8 @@ export function Mentor() {
   const pallets = useQuest((s) => s.site?.pallets ?? NO_PALLETS);
   const refreshLevels = useQuest((s) => s.refreshLevels);
   const openPractice = useQuest((s) => s.openPractice);
+  const openTeam = useQuest((s) => s.openTeam);
+  const setLevels = useQuest((s) => s.setLevels);
   const [folded, setFolded] = useState(false);
   const [checking, setChecking] = useState(false);
   const [cheer, setCheer] = useState<string | null>(null);
@@ -79,6 +82,14 @@ export function Mentor() {
   if (!levels) return null;
   const action = mentorAction(levels, kind);
   const current = levels.current;
+  const speaker = current ? speakerOf(current) : "meme";
+  const choose = async (path: "volunteer" | "lead") => {
+    try {
+      setLevels(await api.choosePath(path));
+    } catch {
+      // The choice can be made again; nothing was lost.
+    }
+  };
 
   const check = async () => {
     setChecking(true);
@@ -94,11 +105,20 @@ export function Mentor() {
   return (
     <aside className="mentor" aria-label={t("mentor.name")} aria-live="polite">
       <div className="mentor-head">
-        <span className="mentor-face" aria-hidden="true">M</span>
-        <b>{t("mentor.name")}</b>
+        <span className="mentor-face" aria-hidden="true">{t(`speakers.${speaker}`).charAt(0)}</span>
+        <b>{t(`speakers.${speaker}`)}</b>
         <button type="button" className="mentor-fold" aria-label={t("mentor.fold")} onClick={() => setFolded(true)}>×</button>
       </div>
-      {cheer ? (
+      {needsPath(levels) ? (
+        <>
+          <p>{t("mentor.hello")}</p>
+          <p className="mentor-goal">{t("mentor.choose.question")}</p>
+          <div className="mentor-actions">
+            <button type="button" className="primary" onClick={() => void choose("volunteer")}>{t("mentor.choose.volunteer")}</button>
+            <button type="button" className="primary" onClick={() => void choose("lead")}>{t("mentor.choose.lead")}</button>
+          </div>
+        </>
+      ) : cheer ? (
         <p className="mentor-cheer">
           <span className="stamp" aria-hidden="true">✓</span> {t("mentor.stamped", { skill: t(`levels.${cheer}.skill`) })} {t(`levels.${cheer}.done`)}
         </p>
@@ -117,17 +137,24 @@ export function Mentor() {
         </>
       )}
       {action === "commands" && current && <Commands level={current} />}
-      <div className="mentor-actions">
+      {!needsPath(levels) && <div className="mentor-actions">
         {action === "to-tutorial" && <a className="primary" href="?demo=1">{t("mentor.toTutorial")}</a>}
         {action === "to-practice" && <a className="primary" href="?site=practice">{t("mentor.toPractice")}</a>}
         {action === "to-main" && <a className="primary" href="./">{t("mentor.toMain")}</a>}
-        {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "to-main" && action !== "move" && action !== "commands" && (
+        {action === "to-team" && <a className="primary" href="?site=team">{t("mentor.toTeam")}</a>}
+        {(action === "found-team" || action === "parcels") && (
+          <button type="button" className="primary" onClick={() => openTeam({ kind: action === "found-team" ? "team-found" : "parcels" })}>
+            {t(`team.${action}.open`)}
+          </button>
+        )}
+        {action !== null && action !== "to-tutorial" && action !== "to-practice" && action !== "to-main" && action !== "to-team"
+          && action !== "found-team" && action !== "parcels" && action !== "move" && action !== "commands" && (
           <button type="button" className="primary" onClick={() => openPractice(action)}>{t(`practice.${action}.open`)}</button>
         )}
         {current !== null && (
           <button type="button" disabled={checking} onClick={() => void check()}>{t("mentor.checkAgain")}</button>
         )}
-      </div>
+      </div>}
     </aside>
   );
 }

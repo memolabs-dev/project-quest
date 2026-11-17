@@ -55,7 +55,7 @@ function Ground({ width }: { width: number }) {
 }
 
 /** A yard: tinted gravel, a tape border on posts, its number painted on the ground, the sign at the road. */
-function Yard({ name, index, x, z }: { name: string; index: number; x: number; z: number }) {
+function Yard({ name, index, x, z, count }: { name: string; index: number; x: number; z: number; count: number | null }) {
   const color = zoneColor(index);
   const number = useMemo(() => paintedNumber(String(index + 1), "rgba(255,255,255,0.85)"), [index]);
   const w = ZONE_SPACING - 1.2;
@@ -85,7 +85,7 @@ function Yard({ name, index, x, z }: { name: string; index: number; x: number; z
       ))}
       <Piece name="zone_sign" position={[0, 0, 0.9]} />
       <Html position={[0, 1.55, 0.95]} center transform distanceFactor={6} zIndexRange={[5, 0]}>
-        <div className="sign-label" style={{ borderColor: color }}>{zoneLabel(name)}</div>
+        <div className="sign-label" style={{ borderColor: color }}>{zoneLabel(name)}{count !== null && <b className="yard-count"> · {count}</b>}</div>
       </Html>
     </group>
   );
@@ -110,6 +110,8 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   const width = site.zones.length * ZONE_SPACING + 10;
   const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
   const termites = useMemo(() => termiteSpots(site, layout.pallets), [site, layout]);
+  // The Site foreman's reward: on the team site, each yard's sign counts its open pallets.
+  const counting = useQuest((s) => s.siteKind === "team" && s.levels?.ranks.lead != null);
   const body = useRef<EcctrlHandle>(null);
   // The drone flies over once, when the site first opens; never with reduced motion.
   const arrival = useRef(reduceMotion ? 0 : ARRIVAL_SECONDS);
@@ -134,7 +136,10 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
         shadow-camera-left={-45} shadow-camera-right={45} shadow-camera-top={45} shadow-camera-bottom={-45} shadow-bias={-0.0004} />
       <Physics>
         <Ground width={width} />
-        {layout.zones.map((z) => <Yard key={z.name} name={z.name} index={zoneIndex.get(z.name) ?? 0} x={z.x} z={z.z} />)}
+        {layout.zones.map((z) => (
+          <Yard key={z.name} name={z.name} index={zoneIndex.get(z.name) ?? 0} x={z.x} z={z.z}
+            count={counting ? site.pallets.filter((p) => p.zone === z.name && !p.closed).length : null} />
+        ))}
         {layout.pallets.map((p) => {
           const pallet = site.pallets.find((x) => x.number === p.number)!;
           return <Pallet key={p.number} pallet={pallet} x={p.x} z={p.z} color={zoneColor(zoneIndex.get(pallet.zone) ?? 0)} near={near === p.number} />;

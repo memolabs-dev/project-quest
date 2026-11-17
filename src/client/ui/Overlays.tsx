@@ -18,6 +18,8 @@ function PalletCard({ number }: { number: number }) {
   const sendEvent = useQuest((s) => s.sendEvent);
   const reading = useQuest((s) => s.siteKind === "demo" && s.levels?.current === "a2-read-issue");
   const asking = useQuest((s) => s.siteKind === "main" && s.levels?.current === "a16-ask-good-first");
+  const leading = useQuest((s) => (s.siteKind === "team" && s.levels?.path === "lead" ? s.levels.current : null));
+  const openTeam = useQuest((s) => s.openTeam);
   const ask = useQuest((s) => s.ask);
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -65,6 +67,20 @@ function PalletCard({ number }: { number: number }) {
       )}
       {error && <p className="error" role="alert">{error}</p>}
       {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
+      {leading && !pallet.closed && (
+        <div className="lead-actions">
+          {leading === "l2-sort-parcels" && <>
+            <button type="button" className="got-it" onClick={() => openTeam({ kind: "label", issue: pallet.number })}>{t("team.label.open")}</button>
+            <button type="button" className="got-it" onClick={() => openTeam({ kind: "duplicate", issue: pallet.number })}>{t("team.duplicate.open")}</button>
+          </>}
+          {leading === "l3-ready" && (
+            <button type="button" className="got-it" onClick={() => openTeam({ kind: "checklist", issue: pallet.number })}>{t("team.checklist.open")}</button>
+          )}
+          {leading === "l4-size" && (
+            <button type="button" className="got-it" onClick={() => openTeam({ kind: "size", issue: pallet.number })}>{t("team.size.open")}</button>
+          )}
+        </div>
+      )}
       {asking && pallet.goodFirst && !pallet.closed && workers.length === 0 && (
         <button type="button" className="got-it" onClick={() => ask(pallet.number)}>{t("practice.ask.open")}</button>
       )}

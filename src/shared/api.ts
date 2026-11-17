@@ -65,6 +65,8 @@ export interface LevelsView {
   };
   /** The real project's good first issues, once read (after the Team leader rank). */
   real: { issues: number } | null;
+  /** The lead's team site: founded, the mayor's parcels arrived, its labels (for sorting). */
+  team: { exists: boolean; parcels: boolean; labels: string[] };
 }
 
 export type PracticeApplyResponse =

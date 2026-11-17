@@ -48,6 +48,7 @@ for (const width of [1280, 375]) {
     await page.goto("/?demo=1");
     await expect(page.locator(".sign-label").first()).toBeVisible();
     const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
+    await mentor.getByRole("button", { name: "Lend a hand" }).click();
     await expect(mentor).toContainText(/Walk with the keys/);
 
     // Level 1: walk, then open a pallet.
@@ -90,6 +91,7 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
       stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false, van: false, realProjects: false },
       practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
+      real: null, team: { exists: false, parcels: false, labels: [] },
     });
   });
   const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
@@ -112,7 +114,7 @@ test("at the last level, a good first issue's card offers to ask for it, and the
       stamps: Array.from({ length: 15 }, (_, i) => ({ levelId: `x${i}`, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: true, van: true, realProjects: true },
       practice: { name: "my-first-site", exists: true, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
-      real: { issues: 1 },
+      real: { issues: 1 }, team: { exists: false, parcels: false, labels: [] },
     });
   });
   await openPallet(page, /Lay the square's paving/);
@@ -123,4 +125,21 @@ test("at the last level, a good first issue's card offers to ask for it, and the
   await expect(dialog).toContainText(/I'd like to work on this one/);
   await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
   await page.screenshot({ path: "e2e/screenshots/levels-ask.png" });
+});
+
+test("a lead chooses to run the site, then founds the team site: the requests are shown, nothing is sent", async ({ page }) => {
+  await startAgain(page);
+  await page.goto("/");
+  const mentor = page.getByRole("complementary", { name: "Mémé Truelle" });
+  await mentor.getByRole("button", { name: "Run the site" }).click();
+  await expect(mentor.getByRole("link", { name: /To your team site/ })).toBeVisible();
+  await page.goto("/?site=team");
+  await expect(page.getByTestId("site-canvas")).toBeVisible();
+  await mentor.getByRole("button", { name: /Found my team site/ }).click();
+  const dialog = page.getByRole("dialog", { name: /Found your team site/ });
+  await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
+  for (const m of ["createRepository", "createProjectV2", "updateProjectV2Field", "createProjectV2Field"]) await expect(dialog).toContainText(m);
+  await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
+  await page.screenshot({ path: "e2e/screenshots/lead-found.png" });
+  await startAgain(page);
 });

@@ -316,5 +316,51 @@
     "meme": "Mémé Truelle",
     "mayor": "La maire",
     "inspector": "L'inspectrice"
+  },
+  "team": {
+    "found-team": {
+      "open": "Fonder mon chantier d'équipe"
+    },
+    "team-found": {
+      "title": "Fonder ton chantier d'équipe",
+      "body": "Le jeu crée my-first-team dans ton compte, avec un tableau de cinq zones et un champ Taille. Personne d'autre que toi n'y écrit."
+    },
+    "parcels": {
+      "open": "Recevoir les colis de la maire",
+      "title": "Les colis de la maire",
+      "body": "Six issues FICTIF arrivent sur ton chantier d'équipe, chacune marquée comme écrite par project-quest pour s'entraîner."
+    },
+    "label": {
+      "open": "L'étiqueter",
+      "title": "Étiqueter l'issue n°{{number}}",
+      "body": "Une étiquette dit de quel genre de boulot il s'agit, pour que les bonnes personnes le trouvent.",
+      "field": "Étiquette"
+    },
+    "duplicate": {
+      "open": "Fermer comme doublon",
+      "title": "Fermer l'issue n°{{number}} comme doublon",
+      "body": "Elle répète une autre issue : ferme-la en indiquant l'originale, pour que personne ne le fasse deux fois.",
+      "field": "L'originale"
+    },
+    "checklist": {
+      "open": "Définition de prêt",
+      "title": "Définition de prêt pour l'issue n°{{number}}",
+      "body": "Une ligne par chose qui doit être vraie avant de commencer. Puis passe-la en Prête à poser.",
+      "field": "Une ligne par chose"
+    },
+    "size": {
+      "open": "Lui donner une taille",
+      "title": "Taille de l'issue n°{{number}}",
+      "body": "Ça a l'air gros comment ? Pas combien de temps : quelle taille.",
+      "field": "Taille"
+    },
+    "summary": {
+      "team-found": "Préparer {{repo}} : le dépôt et le tableau qui manquent, les cinq zones et le champ Taille.",
+      "parcels": "Écrire les {{count}} colis FICTIF de la maire dans {{repo}} et les poser sur le tableau.",
+      "label": "Mettre l'étiquette « {{label}} » sur l'issue n°{{issueNumber}}.",
+      "duplicate": "Fermer l'issue n°{{issueNumber}} comme doublon du n°{{original}}.",
+      "checklist": "Ajouter une définition de prêt de {{items}} lignes sous l'issue n°{{issueNumber}}.",
+      "size": "Donner la taille {{size}} à l'issue n°{{issueNumber}}."
+    }
   }
 }

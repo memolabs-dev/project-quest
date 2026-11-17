@@ -316,5 +316,51 @@
     "meme": "Mémé Truelle",
     "mayor": "The mayor",
     "inspector": "The inspector"
+  },
+  "team": {
+    "found-team": {
+      "open": "Found my team site"
+    },
+    "team-found": {
+      "title": "Found your team site",
+      "body": "The game creates my-first-team in your account, with a board of five zones and a Size field. Only you write there."
+    },
+    "parcels": {
+      "open": "Receive the mayor's parcels",
+      "title": "The mayor's parcels",
+      "body": "Six FICTIF issues arrive on your team site, each marked as written by project-quest for practice."
+    },
+    "label": {
+      "open": "Label it",
+      "title": "Label issue #{{number}}",
+      "body": "A label says what kind of job it is, so the right people find it.",
+      "field": "Label"
+    },
+    "duplicate": {
+      "open": "Close as duplicate",
+      "title": "Close issue #{{number}} as a duplicate",
+      "body": "It repeats another issue: close it and point to the original, so nobody does it twice.",
+      "field": "The original"
+    },
+    "checklist": {
+      "open": "Definition of Ready",
+      "title": "Definition of Ready for issue #{{number}}",
+      "body": "One line per thing that must be true before work starts. Then move it to Ready to lay.",
+      "field": "One line each"
+    },
+    "size": {
+      "open": "Size it",
+      "title": "Size issue #{{number}}",
+      "body": "How big does it look? Not how long: how big.",
+      "field": "Size"
+    },
+    "summary": {
+      "team-found": "Set up {{repo}}: the repository and board it still needs, the five zones and the Size field.",
+      "parcels": "Write the mayor's {{count}} FICTIF parcels in {{repo}} and put them on the board.",
+      "label": "Put the label \"{{label}}\" on issue #{{issueNumber}}.",
+      "duplicate": "Close issue #{{issueNumber}} as a duplicate of #{{original}}.",
+      "checklist": "Add a Definition of Ready of {{items}} lines under issue #{{issueNumber}}.",
+      "size": "Give issue #{{issueNumber}} the size {{size}}."
+    }
   }
 }

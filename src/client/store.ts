@@ -1,6 +1,7 @@
 // Game state: the site, what the player is near, the open card and the move waiting for confirmation.
 import { create } from "zustand";
 import type { LevelsView, PreparedMove, SiteResponse } from "../shared/api.ts";
+import type { TeamKind } from "../shared/gestures/team.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Site } from "../shared/site.ts";
 import { ApiFailure, api } from "./api.ts";
@@ -30,6 +31,9 @@ interface QuestState {
   /** The practice gesture dialog open, if any. */
   practiceDialog: PracticeDialog | null;
   openPractice(d: PracticeDialog | null): void;
+  /** The lead's gesture dialog open, if any, with the issue it is about. */
+  teamDialog: { kind: TeamKind; issue?: number } | null;
+  openTeam(d: { kind: TeamKind; issue?: number } | null): void;
   /** The real project's issue the player is asking for (level 16). */
   askIssue: number | null;
   ask(issue: number): void;
@@ -58,6 +62,8 @@ export const useQuest = create<QuestState>((set, get) => ({
   levelsBefore: null,
   practiceDialog: null,
   openPractice: (practiceDialog) => set({ practiceDialog }),
+  teamDialog: null,
+  openTeam: (teamDialog) => set({ teamDialog, openCard: null }),
   askIssue: null,
   ask: (askIssue) => set({ askIssue, practiceDialog: "ask", openCard: null }),
   async refreshLevels(check = false) {

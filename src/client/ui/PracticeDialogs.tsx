@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type { PreparedPractice } from "../../shared/api.ts";
 import type { PreparedAsk } from "../../shared/gestures/real.ts";
+import type { PreparedTeam, TeamArgs, TeamKind } from "../../shared/gestures/team.ts";
+import { PARCELS, SIZES } from "../../shared/levels/parcels.ts";
 import { ApiFailure, api } from "../api.ts";
 import { useQuest } from "../store.ts";
 
@@ -26,8 +28,10 @@ function Dialog({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** What a gesture will do, in one plain sentence, above the exact request. */
-function summarize(p: PreparedPractice | PreparedAsk, t: TFunction): string {
+function summarize(p: PreparedPractice | PreparedAsk | PreparedTeam, t: TFunction): string {
   switch (p.kind) {
+    case "team-found": case "parcels": case "label": case "duplicate": case "checklist": case "size":
+      return t(`team.summary.${p.kind}`, { repo: p.repo, ...p.args, count: p.mutations.length / 2, items: (p.args.items ?? []).length });
     case "ask": return t("practice.summary.ask", { number: p.issueNumber, repo: p.repo, comment: p.comment });
     case "found":
       return t(p.reuse ? "practice.summary.foundReuse" : "practice.summary.found", {
@@ -45,10 +49,12 @@ function summarize(p: PreparedPractice | PreparedAsk, t: TFunction): string {
 }
 
 /** The second step, shared by the gestures: what leaves for GitHub, then Send or Back. */
-function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | PreparedAsk; note?: string; onBack(): void }) {
+function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | PreparedAsk | PreparedTeam; note?: string; onBack(): void }) {
   const { t } = useTranslation();
   const canWrite = useQuest((s) => s.levels?.canWrite ?? false);
-  const close = useQuest((s) => s.openPractice);
+  const closePractice = useQuest((s) => s.openPractice);
+  const closeTeam = useQuest((s) => s.openTeam);
+  const close = (v: null) => { closePractice(v); closeTeam(v); };
   const refresh = useQuest((s) => s.refresh);
   const setLevels = useQuest((s) => s.setLevels);
   const [state, setState] = useState<"idle" | "sending">("idle");
@@ -58,7 +64,8 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
     setState("sending");
     setError(null);
     try {
-      const r = prepared.kind === "ask" ? await api.applyAsk(prepared) : await api.applyPractice(prepared);
+      const r = prepared.kind === "ask" ? await api.applyAsk(prepared)
+        : "args" in prepared ? await api.applyTeam(prepared) : await api.applyPractice(prepared);
       if (r.ok) {
         setLevels(r.levels);
         close(null);
@@ -96,7 +103,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
 }
 
 /** Asks, then shows the prepared gesture; `prepare` throws an ApiFailure the dialog explains. */
-function useTwoSteps<P extends PreparedPractice | PreparedAsk>() {
+function useTwoSteps<P extends PreparedPractice | PreparedAsk | PreparedTeam>() {
   const { t } = useTranslation();
   const [prepared, setPrepared] = useState<P | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -322,8 +329,76 @@ function AskDialog() {
 
 const DIALOGS = { ask: AskDialog, mayor: MayorDialog, found: FoundDialog, write: WriteDialog, take: TakeDialog, edit: EditDialog, pull: PullDialog, merge: MergeDialog };
 
+const NO_LABELS: string[] = [];
+
+/** The lead's gestures on the team site: one small form each, then the exact request. */
+function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
+  const { t } = useTranslation();
+  const close = useQuest((s) => s.openTeam);
+  // Select stable references from the store, then derive: a selector that builds a new list loops forever.
+  const teamLabels = useQuest((s) => s.levels?.team.labels);
+  const pallets = useQuest((s) => s.site?.pallets);
+  const labels = teamLabels ?? NO_LABELS;
+  const others = (pallets ?? []).filter((p) => p.number !== issue && !p.closed);
+  const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PRIVATE");
+  const [label, setLabel] = useState(labels[0] ?? "");
+  const [original, setOriginal] = useState<number | null>(others[0]?.number ?? null);
+  const [items, setItems] = useState("");
+  const [size, setSize] = useState<string>(SIZES[1]);
+  const step = useTwoSteps<PreparedTeam>();
+  const args: TeamArgs = kind === "team-found" ? { visibility }
+    : kind === "label" ? { issueNumber: issue, label }
+      : kind === "duplicate" ? { issueNumber: issue, original: original ?? undefined }
+        : kind === "checklist" ? { issueNumber: issue, items: items.split("\n") }
+          : kind === "size" ? { issueNumber: issue, size } : {};
+  return (
+    <Dialog title={t(`team.${kind}.title`, { number: issue })}>
+      {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
+        <>
+          <p>{t(`team.${kind}.body`, { number: issue })}</p>
+          {kind === "team-found" && (
+            <fieldset className="choice">
+              <legend>{t("practice.found.visibility")}</legend>
+              <label><input type="radio" name="tvis" checked={visibility === "PRIVATE"} onChange={() => setVisibility("PRIVATE")} /> {t("practice.found.private")}</label>
+              <label><input type="radio" name="tvis" checked={visibility === "PUBLIC"} onChange={() => setVisibility("PUBLIC")} /> {t("practice.found.public")}</label>
+            </fieldset>
+          )}
+          {kind === "parcels" && <ul className="parcel-list">{PARCELS.map((p) => <li key={p.key}>{p.title}</li>)}</ul>}
+          {kind === "label" && (
+            <label className="field">{t("team.label.field")}
+              <select value={label} onChange={(e) => setLabel(e.target.value)}>{labels.map((l) => <option key={l} value={l}>{l}</option>)}</select>
+            </label>
+          )}
+          {kind === "duplicate" && (
+            <label className="field">{t("team.duplicate.field")}
+              <select value={original ?? ""} onChange={(e) => setOriginal(Number(e.target.value))}>
+                {others.map((p) => <option key={p.number} value={p.number}>#{p.number} {p.title}</option>)}
+              </select>
+            </label>
+          )}
+          {kind === "checklist" && (
+            <label className="field">{t("team.checklist.field")}<textarea rows={4} value={items} onChange={(e) => setItems(e.target.value)} /></label>
+          )}
+          {kind === "size" && (
+            <label className="field">{t("team.size.field")}
+              <select value={size} onChange={(e) => setSize(e.target.value)}>{SIZES.map((x) => <option key={x} value={x}>{x}</option>)}</select>
+            </label>
+          )}
+          {step.error && <p className="error" role="alert">{step.error}</p>}
+          <div className="actions">
+            <button type="button" className="primary" onClick={() => void step.run(() => api.prepareTeam(kind, args))}>{t("practice.prepare")}</button>
+            <button type="button" onClick={() => close(null)}>{t("confirm.cancel")}</button>
+          </div>
+        </>
+      )}
+    </Dialog>
+  );
+}
+
 export function PracticeDialogs() {
   const d = useQuest((s) => s.practiceDialog);
+  const team = useQuest((s) => s.teamDialog);
+  if (team) return <TeamDialog key={`${team.kind}-${team.issue ?? ""}`} kind={team.kind} issue={team.issue} />;
   const Open = d ? DIALOGS[d] : null;
   return Open ? <Open /> : null;
 }
