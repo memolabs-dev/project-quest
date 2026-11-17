@@ -253,3 +253,40 @@ describe("the Project director's gestures", () => {
     for (const due of ["2026-12-01", "2026-11-30", "2026-11-16", "8/12/2026"]) expect(() => prepareMoveVisit(t, 1, due, TODAY), due).toThrow(GestureError);
   });
 });
+
+describe("the lead's gestures, edge cases", () => {
+  const TODAY = "2026-11-17";
+  it("refuses a rope that would close a longer circle", () => {
+    const t = team({ issues: [issue(1, { blockedBy: [2] }), issue(2, { blockedBy: [3] }), issue(3)] });
+    expect(() => prepareRope(t, 3, 1)).toThrow(/wait for each other/);
+  });
+  it("a split retried after a failure writes only the parts still missing, ten at most", () => {
+    const t = team({ issues: [issue(3, { subIssues: [7] }), issue(7, { title: "FICTIF New paving" })] });
+    const p = prepareSplit(t, 3, ["New paving", "New lights", "A stage"]);
+    expect(p.mutations.filter((m) => m.name === "createIssue").map((m) => m.input.title)).toEqual(["FICTIF New lights", "FICTIF A stage"]);
+    expect(() => prepareSplit(team({ issues: [issue(3)] }), 3, Array.from({ length: 11 }, (_, i) => `Part ${i}`))).toThrow(/ten/);
+  });
+  it("never adds a sprint over one already planned", () => {
+    const next = [{ id: "it1", title: "Sprint 1", startDate: "2026-11-03", duration: 7 }, { id: "it2", title: "Sprint 2", startDate: "2026-11-20", duration: 7 }];
+    const t = team({ board: { ...team().board!, fields: [sizeField, { id: "F_sprint", name: "Sprint", dataType: "ITERATION", iterations: next }] } });
+    expect(() => prepareSprintField(t, TODAY)).toThrow(/2026-11-20/);
+  });
+  it("says what to do with a Size field the game cannot use, or a board without Status", () => {
+    const textSize = team({ board: { ...team().board!, statusOptions: ["Todo"], fields: [{ id: "F_s", name: "Size", dataType: "TEXT" }] } });
+    expect(() => prepareFoundTeam(viewer, textSize, "my-first-team", "PRIVATE")).toThrow(/Size.*rename/);
+    const noStatus = team({ board: { ...team().board!, statusFieldId: "", statusOptions: [], fields: [sizeField] } });
+    expect(() => prepareFoundTeam(viewer, noStatus, "my-first-team", "PRIVATE")).toThrow(/Status/);
+  });
+  it("finishes a job by closing it even when the zones were renamed on GitHub", () => {
+    const renamed = team({ issues: [issue(2)], board: { ...team().board!, statusOptionIds: [{ id: "x", name: "Todo" }] } });
+    expect(prepareFinish(renamed, 2).mutations).toEqual([{ name: "closeIssue", input: { issueId: "I_2", stateReason: "COMPLETED" } }]);
+  });
+  it("keeps each zone's colour when the limit is written", () => {
+    const coloured = team({
+      issues: [1, 2, 3, 4, 5].map((n) => issue(n)),
+      board: { ...team().board!, statusOptionIds: ZONES.map((name, i) => ({ id: `z${i}`, name, description: "", color: i === 0 ? "PINK" : "GRAY" })) },
+    });
+    const options = prepareWipLimit(coloured, 2).mutations[0].input.singleSelectOptions as { name: string; color: string }[];
+    expect(options[0].color).toBe("PINK");
+  });
+});

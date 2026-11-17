@@ -300,8 +300,14 @@ describe("paths", () => {
 });
 
 describe("the sprint's capacity", () => {
+  it("is the lead's only", async () => {
+    const { app, deps } = make(null);
+    expect((await app.request("/api/levels/capacity", post({ points: 8 }))).status).toBe(409);
+    expect(await deps.progress.capacity(VIEWER)).toBeNull();
+  });
   it("the capacity is refused outside 1 to 100", async () => {
     const { app, deps } = make(null);
+    await deps.progress.setPath(VIEWER, "lead");
     for (const points of [0, 101, 2.5, "8"]) {
       expect((await app.request("/api/levels/capacity", post({ points }))).status, String(points)).toBe(400);
     }

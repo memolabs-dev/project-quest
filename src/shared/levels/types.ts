@@ -26,6 +26,7 @@ export interface PracticeIssue {
   status: string | null;
   closed: boolean;
   labels?: string[];
+  title?: string;
   body?: string;
   /** Why it was closed: COMPLETED, NOT_PLANNED or DUPLICATE. */
   stateReason?: string | null;
@@ -91,7 +92,7 @@ export interface PracticeSnapshot {
     /** The Status options, in order (the same as columns). */
     statusOptions?: string[];
     /** The same options with their ids: kept when the options are rewritten, so items keep their column. */
-    statusOptionIds?: { id: string; name: string; description?: string }[];
+    statusOptionIds?: { id: string; name: string; description?: string; color?: string }[];
     fields?: BoardField[];
     /** Newest first. */
     statusUpdates?: StatusUpdate[];

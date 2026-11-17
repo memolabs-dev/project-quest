@@ -30,7 +30,7 @@ export const PRACTICE_QUERY = /* GraphQL */ `
         nodes {
           id number url title
           owner { ... on User { login } ... on Organization { login } }
-          field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name description } } }
+          field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name description color } } }
           statusUpdates(first: 5) { nodes { status body createdAt } }
           fields(first: 30) {
             nodes {
@@ -50,7 +50,7 @@ export const PRACTICE_QUERY = /* GraphQL */ `
       }
       issues(first: 50, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
-          id number url closed body stateReason
+          id number url closed title body stateReason
           duplicateOf { number }
           milestone { number }
           subIssues(first: 20) { nodes { number } }
@@ -92,7 +92,7 @@ interface PracticeResponse {
     }[] };
     projectsV2: { nodes: {
       id: string; number: number; url: string; title: string; owner: { login?: string } | null;
-      field: { id?: string; options: { id: string; name: string; description?: string }[] } | null;
+      field: { id?: string; options: { id: string; name: string; description?: string; color?: string }[] } | null;
       statusUpdates?: { nodes: StatusUpdate[] };
       fields?: { nodes: {
         id?: string; name?: string; dataType?: string; options?: { id: string; name: string }[];
@@ -106,7 +106,7 @@ interface PracticeResponse {
     }[] };
     issues: {
       nodes: {
-        id: string; number: number; url: string; closed: boolean; body?: string; stateReason?: string | null;
+        id: string; number: number; url: string; closed: boolean; title?: string; body?: string; stateReason?: string | null;
         duplicateOf?: { number: number } | null;
         milestone?: { number: number } | null;
         subIssues?: { nodes: { number: number }[] };
@@ -171,6 +171,7 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
         comments: i.comments.nodes.map((c) => ({ author: login(c.author), url: c.url })),
         status: item?.status?.name ?? null,
         labels: (i.labels?.nodes ?? []).map((l) => l.name),
+        title: i.title ?? "",
         body: i.body ?? "",
         stateReason: i.stateReason ?? null,
         duplicateOf: i.duplicateOf?.number ?? null,

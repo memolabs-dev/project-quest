@@ -41,6 +41,11 @@ export function prepareFoundTeam(
     throw new GestureError(`${viewer.login}/${name} now leads to ${existing.repo.nameWithOwner}: the game founds only in your own account`);
   }
   const board = existing?.board ?? null;
+  if (board && !board.statusFieldId) throw new GestureError("Your board has no Status field: add one on GitHub, or link a new board");
+  const size = board?.fields?.find((f) => f.name === "Size");
+  if (size && (size.dataType !== "SINGLE_SELECT" || !SIZES.every((s) => size.options?.some((o) => o.name === s)))) {
+    throw new GestureError("Your board has a Size field the game cannot use: rename or delete it on GitHub, then found again");
+  }
   const mutations: PracticeMutation[] = [];
   if (!existing) {
     mutations.push({ name: "createRepository", input: { name, visibility, hasIssuesEnabled: true, description: "My team site (project-quest)" } });
@@ -149,6 +154,8 @@ export function prepareSprintField(team: PracticeSnapshot, today: string): Prepa
     } }] };
   }
   if (currentIteration(field, today)) throw new GestureError("A sprint is already running this week");
+  const planned = (field.iterations ?? []).find((i) => i.startDate > today);
+  if (planned) throw new GestureError(`A sprint is already planned from ${planned.startDate}: wait for it`);
   const past = field.iterations ?? [];
   return { kind: "sprint-field", repo, args: {}, mutations: [{ name: "updateProjectV2Field", input: {
     fieldId: field.id,
@@ -229,8 +236,13 @@ export function prepareSplit(team: PracticeSnapshot, issueNumber: number, titles
   const parent = issueOf(team, issueNumber);
   if (parent.closed) throw new GestureError(`Issue #${issueNumber} is closed`);
   if (!team.board) throw new GestureError("Found your team site first: it has no board yet");
-  const parts = titles.map((t) => t.trim()).filter(Boolean).map((t) => (t.startsWith("FICTIF ") ? t : `FICTIF ${t}`));
-  if (parts.length < 2) throw new GestureError("Splitting needs two parts at least");
+  const wanted = titles.map((t) => t.trim()).filter(Boolean).map((t) => (t.startsWith("FICTIF ") ? t : `FICTIF ${t}`));
+  if (wanted.length < 2) throw new GestureError("Splitting needs two parts at least");
+  if (wanted.length > 10) throw new GestureError("Split in ten parts at most");
+  // A split stopped half-way is completed: the parts already made are not written again.
+  const made = new Set(team.issues.filter((i) => (parent.subIssues ?? []).includes(i.number)).map((i) => i.title));
+  const parts = wanted.filter((t) => !made.has(t));
+  if (parts.length === 0) throw new GestureError(`Issue #${issueNumber} is already split in these parts`);
   const board = team.board;
   return {
     kind: "split", repo: team.repo.nameWithOwner, args: { issueNumber, titles },
@@ -242,12 +254,26 @@ export function prepareSplit(team: PracticeSnapshot, issueNumber: number, titles
   };
 }
 
+/** Whether `from` waits for `to`, directly or through other issues. */
+function waitsFor(team: PracticeSnapshot, from: number, to: number): boolean {
+  const seen = new Set<number>();
+  const walk = (n: number): boolean => {
+    if (seen.has(n)) return false;
+    seen.add(n);
+    const deps = team.issues.find((i) => i.number === n)?.blockedBy ?? [];
+    return deps.includes(to) || deps.some(walk);
+  };
+  return walk(from);
+}
+
 export function prepareRope(team: PracticeSnapshot, issueNumber: number, blockingNumber: number): PreparedTeam {
   if (issueNumber === blockingNumber) throw new GestureError("A pallet cannot wait for itself");
   const i = issueOf(team, issueNumber);
   const blocking = issueOf(team, blockingNumber);
   if ((i.blockedBy ?? []).includes(blockingNumber)) throw new GestureError(`#${issueNumber} already waits for #${blockingNumber}`);
-  if ((blocking.blockedBy ?? []).includes(issueNumber)) throw new GestureError(`#${blockingNumber} already waits for #${issueNumber}: they would wait for each other`);
+  if (waitsFor(team, blockingNumber, issueNumber)) {
+    throw new GestureError(`#${blockingNumber} already waits for #${issueNumber}, directly or through others: they would wait for each other`);
+  }
   return {
     kind: "rope", repo: team.repo.nameWithOwner, args: { issueNumber, blocking: blockingNumber },
     mutations: [{ name: "addBlockedBy", input: { issueId: i.id, blockingIssueId: blocking.id } }],
@@ -289,7 +315,7 @@ export function prepareWipLimit(team: PracticeSnapshot, limit: number): Prepared
     mutations: [{ name: "updateProjectV2Field", input: {
       fieldId: statusFieldId,
       singleSelectOptions: options.map((o) => ({
-        id: o.id, name: o.name, color: ZONE_LOOK[o.name as (typeof ZONES)[number]].color,
+        id: o.id, name: o.name, color: o.color ?? ZONE_LOOK[o.name as (typeof ZONES)[number]].color,
         description: o.name === LAYING ? `Being laid. Limit: ${limit}.` : o.description ?? ZONE_LOOK[o.name as (typeof ZONES)[number]].description,
       })),
     } }],
@@ -322,7 +348,8 @@ export function prepareFinish(team: PracticeSnapshot, issueNumber: number): Prep
   const i = issueOf(team, issueNumber);
   if (i.closed) throw new GestureError(`Issue #${issueNumber} is already closed`);
   const mutations: PracticeMutation[] = [{ name: "closeIssue", input: { issueId: i.id, stateReason: "COMPLETED" } }];
-  if (i.itemId) {
+  // Laid in Done when the board has the five zones; closing it alone is right whatever they are called.
+  if (i.itemId && JSON.stringify((team.board?.statusOptionIds ?? []).map((o) => o.name)) === JSON.stringify(ZONES)) {
     const { board, statusFieldId, idOf } = zonesOf(team);
     mutations.push({ name: "updateProjectV2ItemFieldValue", input: {
       projectId: board.id, itemId: i.itemId, fieldId: statusFieldId, value: { singleSelectOptionId: idOf("Done") },

@@ -216,7 +216,9 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
     })
     // The game's rule, not a GitHub write: kept with the player's progress (lead's path spec, section 5).
     .post("/api/levels/capacity", zValidator("json", z.object({ points: z.number().int().min(1).max(100) })), async (c) => {
-      await live.progress.setCapacity((await live.viewer()).login, c.req.valid("json").points);
+      const { login } = await live.viewer();
+      if ((await live.progress.path(login)) !== "lead") return c.json({ error: "gesture" as const, message: "The capacity belongs to the lead's path" }, 409);
+      await live.progress.setCapacity(login, c.req.valid("json").points);
       return c.json(await levels());
     })
     // "Start again" exists on the demo site only: real progress is never thrown away.
