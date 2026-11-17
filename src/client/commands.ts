@@ -40,3 +40,20 @@ export function commandsFor(
       return [];
   }
 }
+
+/**
+ * Copies a command; where the page may not reach the clipboard (no secure context, or refused), selects the line
+ * instead so the player copies it with their own keys.
+ */
+export async function copyLine(
+  line: string, clipboard: { writeText(s: string): Promise<void> } | undefined, select: () => void,
+): Promise<"copied" | "selected"> {
+  try {
+    if (!clipboard) throw new Error("no clipboard here");
+    await clipboard.writeText(line);
+    return "copied";
+  } catch {
+    select();
+    return "selected";
+  }
+}

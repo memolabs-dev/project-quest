@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { commandsFor, safeBranch } from "./commands.ts";
+import { commandsFor, copyLine, safeBranch } from "./commands.ts";
 
 const repo = { nameWithOwner: "fictif-volunteer/my-first-site", defaultBranch: "main" };
+
+describe("copyLine", () => {
+  it("copies through the clipboard when the page may", async () => {
+    let copied = "";
+    expect(await copyLine("git push", { writeText: async (s: string) => { copied = s; } }, () => {})).toBe("copied");
+    expect(copied).toBe("git push");
+  });
+  it("selects the line for the player to copy when the page may not (no secure context)", async () => {
+    let selected = false;
+    expect(await copyLine("git push", undefined, () => { selected = true; })).toBe("selected");
+    expect(selected).toBe(true);
+    expect(await copyLine("git push", { writeText: async () => { throw new Error("denied"); } }, () => { selected = true; })).toBe("selected");
+  });
+});
 
 describe("commandsFor", () => {
   it("writes the clone, branch, commit and push commands", () => {

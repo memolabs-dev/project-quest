@@ -2,7 +2,7 @@
 // GitHub confirms a level. She can be folded away so the site stays in full view.
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { commandsFor, safeBranch } from "../commands.ts";
+import { commandsFor, copyLine, safeBranch } from "../commands.ts";
 import { api } from "../api.ts";
 import { SIZE_POINTS } from "../../shared/levels/lead.ts";
 import { boardCatchingUp, capacityEditable, limitEditable, mentorAction, noOpenVisit, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
@@ -16,19 +16,21 @@ function Commands({ level }: { level: string }) {
   const { t } = useTranslation();
   const practice = useQuest((s) => s.levels?.practice);
   const repo = useQuest((s) => (s.levels ? `${s.levels.login}/${s.levels.practice.name}` : ""));
-  const [copied, setCopied] = useState<number | null>(null);
+  const [copied, setCopied] = useState<{ line: number; how: "copied" | "selected" } | null>(null);
   if (!practice) return null;
   const branch = practice.workBranch && safeBranch(practice.workBranch) ? practice.workBranch : `work-${practice.issue ?? 1}`;
   const lines = commandsFor(level, { nameWithOwner: repo, defaultBranch: practice.defaultBranch ?? "main" }, branch, (k) => t(k));
   if (lines.length === 0) return null;
-  const copy = async (i: number, line: string) => {
-    try {
-      await navigator.clipboard.writeText(line);
-      setCopied(i);
-      setTimeout(() => setCopied(null), 2000);
-    } catch {
-      setCopied(null);
-    }
+  const copy = async (i: number, line: string, code: HTMLElement | null) => {
+    const how = await copyLine(line, navigator.clipboard, () => {
+      if (!code) return;
+      const range = document.createRange();
+      range.selectNodeContents(code);
+      getSelection()?.removeAllRanges();
+      getSelection()?.addRange(range);
+    });
+    setCopied({ line: i, how });
+    setTimeout(() => setCopied(null), 3000);
   };
   return (
     <div className="mentor-commands">
@@ -39,13 +41,14 @@ function Commands({ level }: { level: string }) {
         ) : (
           <li key={i}>
             <code>{line}</code>
-            <button type="button" aria-label={`${t("mentor.copy")}: ${line}`} onClick={() => void copy(i, line)}>
-              {copied === i ? t("mentor.copied") : t("mentor.copy")}
+            <button type="button" aria-label={`${t("mentor.copy")}: ${line}`}
+              onClick={(e) => void copy(i, line, e.currentTarget.previousElementSibling as HTMLElement | null)}>
+              {copied?.line === i ? t(copied.how === "copied" ? "mentor.copied" : "mentor.selected") : t("mentor.copy")}
             </button>
           </li>
         ))}
       </ol>
-      <p className="sr-only" aria-live="polite">{copied !== null ? t("mentor.copied") : ""}</p>
+      <p className="sr-only" aria-live="polite">{copied ? t(copied.how === "copied" ? "mentor.copied" : "mentor.selected") : ""}</p>
     </div>
   );
 }

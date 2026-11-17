@@ -56,7 +56,7 @@ function Dialog({ title, children }: { title: string; children: ReactNode }) {
 }
 
 /** What a gesture will do, in one plain sentence, above the exact request. */
-function summarize(p: PreparedPractice | PreparedAsk | PreparedTeam, t: TFunction): string {
+function summarize(p: PreparedPractice | PreparedAsk | PreparedTeam, t: TFunction, milestoneTitle: (n: number) => string | undefined): string {
   switch (p.kind) {
     case "team-found": case "parcels": case "label": case "duplicate": case "checklist": case "size":
     case "sprint-field": case "load": case "unload": case "milestone": case "attach": case "split": case "rope":
@@ -64,6 +64,8 @@ function summarize(p: PreparedPractice | PreparedAsk | PreparedTeam, t: TFunctio
       return t(`team.summary.${p.kind}`, {
         repo: p.repo, ...p.args, items: (p.args.items ?? []).filter((x) => x.trim()).length,
         ...(p.args.status ? { status: t(`team.bulletin.statuses.${p.args.status}`) } : {}),
+        // A milestone is named by its title, as on GitHub, not by its number.
+        ...(p.args.milestone !== undefined ? { milestone: `"${milestoneTitle(p.args.milestone) ?? p.args.milestone}"` } : {}),
         count: p.kind === "milestone" ? (p.args.issues ?? []).length : p.kind === "split" ? p.mutations.length / 3
           : p.kind === "team-day" ? p.mutations.length : p.mutations.length / 2,
       });
@@ -119,7 +121,8 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
     }
   };
 
-  const summary = summarize(prepared, t);
+  const visits = useQuest((s) => s.levels?.team.milestones);
+  const summary = summarize(prepared, t, (n) => visits?.find((m) => m.number === n)?.title);
   return (
     <>
       <p className="move">{summary}</p>
