@@ -15,7 +15,7 @@ export interface SiteResponse {
 export type ApplyResponse =
   /** site is null when the move landed on GitHub but the site could not be rebuilt; the game reloads it. */
   | { ok: true; site: Site | null }
-  | { ok: false; reason: "stale"; current: { status: string | null; updatedAt: string } }
+  | { ok: false; reason: "stale"; current: { status: string | null; updatedAt: string; change: "moved" | "changed" | "gone" } }
   | { ok: false; reason: "github"; message: string };
 
 export interface LoggedActionView {

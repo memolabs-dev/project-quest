@@ -116,7 +116,8 @@ function ConfirmMove() {
       } else if (r.reason === "stale") {
         setPending(null);
         await refresh();
-        setNotice(t("confirm.stale", { zone: zoneLabel(r.current.status ?? "") }));
+        setNotice(r.current.change === "moved" ? t("confirm.stale", { zone: zoneLabel(r.current.status ?? "") })
+          : t(r.current.change === "gone" ? "confirm.staleGone" : "confirm.staleChanged"));
       } else {
         setNotice(t("confirm.github", { message: r.message }));
       }

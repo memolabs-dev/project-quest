@@ -91,7 +91,8 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     applyMove: async (p) => {
       const item = board.items.find((i) => i.itemId === p.itemId);
       if (!item || item.status !== p.from || item.updatedAt !== p.expectedUpdatedAt) {
-        return { ok: false, reason: "stale", current: { status: item?.status ?? null, updatedAt: item?.updatedAt ?? "" } };
+        const change = !item ? "gone" as const : item.status !== p.from ? "moved" as const : "changed" as const;
+        return { ok: false, reason: "stale", current: { status: item?.status ?? null, updatedAt: item?.updatedAt ?? "", change } };
       }
       item.status = p.to;
       item.updatedAt = new Date().toISOString();

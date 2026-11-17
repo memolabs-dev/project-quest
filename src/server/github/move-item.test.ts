@@ -30,6 +30,25 @@ const fakeGitHub = (current: { status: string; updatedAt: string }, opts: { fail
   return { gql, mutations };
 };
 
+describe("applyMove, when the pallet is no longer as it was", () => {
+  const answering = (node: unknown) => (async (query: string) => {
+    if (query.includes("query ItemState")) return { node };
+    throw new Error("nothing else expected");
+  }) as Gql;
+  it("says whether it was moved, changed or is gone", async () => {
+    expect(await applyMove(answering({ updatedAt: item.updatedAt, status: { name: "Done" } }), config, prepared))
+      .toMatchObject({ ok: false, reason: "stale", current: { status: "Done", change: "moved" } });
+    expect(await applyMove(answering({ updatedAt: "2099-01-01T00:00:00Z", status: { name: "Backlog" } }), config, prepared))
+      .toMatchObject({ ok: false, reason: "stale", current: { change: "changed" } });
+    expect(await applyMove(answering(null), config, prepared))
+      .toMatchObject({ ok: false, reason: "stale", current: { status: null, change: "gone" } });
+  });
+  it("reports a freshness check GitHub refused instead of throwing", async () => {
+    const refusing = (async () => { throw Object.assign(new Error("bad id"), { errors: [{ message: "Could not resolve to a node" }] }); }) as Gql;
+    expect(await applyMove(refusing, config, prepared)).toEqual({ ok: false, reason: "github", message: "Could not resolve to a node" });
+  });
+});
+
 describe("applyMove", () => {
   it("sends the prepared mutation once when nothing changed meanwhile", async () => {
     const { gql, mutations } = fakeGitHub({ status: "Backlog", updatedAt: item.updatedAt });

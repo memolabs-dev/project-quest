@@ -40,7 +40,9 @@
     "done": "C'est fait ! La palette est en {{to}}.",
     "stale": "Quelqu'un a déplacé cette palette entre-temps : elle est maintenant en {{zone}}. Rien n'a été envoyé.",
     "retry": "Revoir",
-    "github": "GitHub a refusé : {{message}}"
+    "github": "GitHub a refusé : {{message}}",
+    "staleGone": "Cette palette n'est plus sur le tableau. Rien n'a été envoyé.",
+    "staleChanged": "Quelqu'un a modifié cette palette entre-temps. Rien n'a été envoyé : regarde-la à nouveau."
   },
   "log": {
     "title": "Carnet de chantier",

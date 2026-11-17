@@ -8,7 +8,8 @@ import { readBoard } from "./read-board.ts";
 export type ApplyResult =
   /** board is null when the write succeeded but the board could not be re-read right after. */
   | { ok: true; board: BoardSnapshot | null }
-  | { ok: false; reason: "stale"; current: { status: string | null; updatedAt: string } }
+  /** change: moved to another column, changed otherwise, or gone from the board. */
+  | { ok: false; reason: "stale"; current: { status: string | null; updatedAt: string; change: "moved" | "changed" | "gone" } }
   | { ok: false; reason: "github"; message: string };
 
 const ITEM_STATE = /* GraphQL */ `
@@ -37,13 +38,18 @@ const githubMessage = (e: unknown) => {
 };
 
 export async function applyMove(gql: Gql, config: QuestConfig, prepared: PreparedMove): Promise<ApplyResult> {
-  const state = await gql<{ node: { updatedAt: string; status: { name: string } | null } | null }>(ITEM_STATE, {
-    id: prepared.itemId, statusField: config.fields.status,
-  });
-  const current = { status: state.node?.status?.name ?? null, updatedAt: state.node?.updatedAt ?? "" };
-  if (current.status !== prepared.from || current.updatedAt !== prepared.expectedUpdatedAt) {
-    return { ok: false, reason: "stale", current };
+  let state: { node: { updatedAt: string; status: { name: string } | null } | null };
+  try {
+    state = await gql(ITEM_STATE, { id: prepared.itemId, statusField: config.fields.status });
+  } catch (e) {
+    // Reported like any refusal, so the route logs it.
+    return { ok: false, reason: "github", message: githubMessage(e) };
   }
+  const status = state.node?.status?.name ?? null;
+  const updatedAt = state.node?.updatedAt ?? "";
+  if (!state.node) return { ok: false, reason: "stale", current: { status: null, updatedAt, change: "gone" } };
+  if (status !== prepared.from) return { ok: false, reason: "stale", current: { status, updatedAt, change: "moved" } };
+  if (updatedAt !== prepared.expectedUpdatedAt) return { ok: false, reason: "stale", current: { status, updatedAt, change: "changed" } };
   try {
     await gql(MOVE, prepared.mutation.input);
   } catch (e) {

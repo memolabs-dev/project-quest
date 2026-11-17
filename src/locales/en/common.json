@@ -40,7 +40,9 @@
     "done": "Done! The pallet is in {{to}}.",
     "stale": "Someone moved this pallet in the meantime: it is now in {{zone}}. Nothing was sent.",
     "retry": "Look again",
-    "github": "GitHub said no: {{message}}"
+    "github": "GitHub said no: {{message}}",
+    "staleGone": "This pallet is no longer on the board. Nothing was sent.",
+    "staleChanged": "Someone changed this pallet in the meantime. Nothing was sent: look at it again."
   },
   "log": {
     "title": "Site logbook",

@@ -98,7 +98,7 @@ describe("API", () => {
   it("logs every outcome of an applied move", async () => {
     const outcomes: ApplyResult[] = [
       { ok: true, board: demo },
-      { ok: false, reason: "stale", current: { status: "Done", updatedAt: "x" } },
+      { ok: false, reason: "stale", current: { status: "Done", updatedAt: "x", change: "moved" } },
       { ok: false, reason: "github", message: "nope" },
     ];
     const d = deps(async () => outcomes.shift()!);
