@@ -71,7 +71,7 @@ export function Building({ model, x, z, grow, reduceMotion }: {
       {/* The site board stands in front of the building, where the follow camera always sees it. */}
       <Html position={[0, 1.3, 2.4]} center distanceFactor={18} zIndexRange={[5, 0]}>
         <div className="building-label" style={{ borderTopColor: colors.trim }}>
-          <b>{model.epicNumber === null ? t("site.unassigned") : model.title}</b>
+          <b dir="auto">{model.epicNumber === null ? t("site.unassigned") : model.title}</b>
           <span>{t("site.floors", { done: model.floorsDone, total: model.floorsTotal })}</span>
         </div>
       </Html>

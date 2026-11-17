@@ -388,7 +388,7 @@
     },
     "team-found": {
       "title": "Fonder ton chantier d'équipe",
-      "body": "Le jeu crée my-first-team dans ton compte, avec un tableau de cinq zones et un champ Taille. Personne d'autre que toi n'y écrit."
+      "body": "Le jeu crée {{name}} dans ton compte, avec un tableau de cinq zones et un champ Taille. Personne d'autre que toi n'y écrit."
     },
     "parcels": {
       "open": "Recevoir les colis de la maire",

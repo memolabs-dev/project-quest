@@ -25,6 +25,8 @@ test("opens a pallet card and moves it after confirmation", async ({ page }) => 
   await expect(confirm.getByRole("button", { name: /Send to GitHub|Envoyer à GitHub/ })).toBeFocused();
   await confirm.getByRole("button", { name: /Send to GitHub|Envoyer à GitHub/ }).click();
   await expect(page.getByRole("status")).toContainText(/Being laid|En pose/);
+  // The notice clears by itself, so it never covers the site for good.
+  await expect(page.locator(".toast")).toBeEmpty({ timeout: 10_000 });
   await page.getByRole("button", { name: /logbook|Carnet/ }).click();
   await expect(page.getByRole("region", { name: /logbook|Carnet/ })).toContainText(/#\d+/);
 });

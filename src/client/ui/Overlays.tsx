@@ -11,6 +11,8 @@ import { Mentor } from "./Mentor.tsx";
 import { PracticeDialogs } from "./PracticeDialogs.tsx";
 import { SkillBook } from "./SkillBook.tsx";
 
+const NOTICE_MS = 6000;
+
 function PalletCard({ number }: { number: number }) {
   const { t } = useTranslation();
   const site = useQuest((s) => s.site);
@@ -43,7 +45,7 @@ function PalletCard({ number }: { number: number }) {
   return (
     <div className="card" role="dialog" aria-labelledby={titleId} style={{ borderTopColor: zoneColor(zoneIndex) }}>
       <p className="card-num">#{pallet.number}</p>
-      <h2 id={titleId}>{pallet.title}</h2>
+      <h2 id={titleId} dir="auto">{pallet.title}</h2>
       <dl>
         <dt>{t("card.zone")}</dt>
         <dd>{zoneLabel(pallet.zone)}</dd>
@@ -98,6 +100,12 @@ function ConfirmMove() {
   const refreshLevels = useQuest((s) => s.refreshLevels);
   const [state, setState] = useState<"idle" | "sending">("idle");
   const [notice, setNotice] = useState<string | null>(null);
+  // A notice clears by itself after a few seconds, so it never covers the site for good.
+  useEffect(() => {
+    if (!notice) return;
+    const clear = setTimeout(() => setNotice(null), NOTICE_MS);
+    return () => clearTimeout(clear);
+  }, [notice]);
   const sendRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (pending) sendRef.current?.focus(); }, [pending]);
 

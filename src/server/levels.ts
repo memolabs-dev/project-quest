@@ -96,6 +96,7 @@ async function view(
       visitJobs: (team?.issues ?? [])
         .filter((i) => !i.closed && i.milestone != null && (team?.milestones ?? []).some((m) => m.number === i.milestone && !m.closed))
         .map((i) => i.number).sort((a, b) => a - b),
+      name: deps.teamName,
       duplicateWrong: (team?.issues ?? []).some((i) => parcelOf(i.body)?.duplicateOf && i.closed && i.stateReason !== "DUPLICATE"),
     },
   };

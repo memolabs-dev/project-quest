@@ -9,7 +9,7 @@ const ids = LEVELS.map((l) => l.id);
 const NO_TEAM: LevelsView["team"] = {
   exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
   wip: { limit: null, count: 0 }, bulletin: null, teamDay: false,
-  visitJobs: [], duplicateWrong: false,
+  visitJobs: [], duplicateWrong: false, name: "my-first-team",
 };
 const view = (stamped: number, exists = false): LevelsView => ({
   login: "fictif-volunteer", canWrite: true, path: null, ranks: { volunteer: null, lead: null },

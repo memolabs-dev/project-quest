@@ -82,6 +82,8 @@ export interface LevelsView {
     visitJobs: number[];
     /** The mayor's duplicate parcel is closed, but not as a duplicate (level 2 then waits). */
     duplicateWrong: boolean;
+    /** The team site's repository name (QUEST_TEAM_REPO, my-first-team by default). */
+    name: string;
   };
 }
 

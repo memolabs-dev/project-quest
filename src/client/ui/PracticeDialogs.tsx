@@ -385,6 +385,7 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
   // Select stable references from the store, then derive: a selector that builds a new list loops forever.
   const teamLabels = useQuest((s) => s.levels?.team.labels);
   const teamMilestones = useQuest((s) => s.levels?.team.milestones);
+  const teamName = useQuest((s) => s.levels?.team.name ?? "my-first-team");
   const pallets = useQuest((s) => s.site?.pallets);
   const labels = teamLabels ?? NO_LABELS;
   const milestones = teamMilestones ?? NO_MILESTONES;
@@ -425,7 +426,7 @@ function TeamDialog({ kind, issue }: { kind: TeamKind; issue?: number }) {
     <Dialog title={t(`team.${kind}.title`, { number: issue })}>
       {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
         <>
-          <p>{t(`team.${kind}.body`, { number: issue })}</p>
+          <p>{t(`team.${kind}.body`, { number: issue, name: teamName })}</p>
           {kind === "team-found" && (
             <fieldset className="choice">
               <legend>{t("practice.found.visibility")}</legend>

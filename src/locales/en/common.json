@@ -388,7 +388,7 @@
     },
     "team-found": {
       "title": "Found your team site",
-      "body": "The game creates my-first-team in your account, with a board of five zones and a Size field. Only you write there."
+      "body": "The game creates {{name}} in your account, with a board of five zones and a Size field. Only you write there."
     },
     "parcels": {
       "open": "Receive the mayor's parcels",
