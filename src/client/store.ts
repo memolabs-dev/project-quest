@@ -4,7 +4,7 @@ import { create } from "zustand";
 import type { LevelsView, PreparedMove, SiteResponse } from "../shared/api.ts";
 import type { TeamKind } from "../shared/gestures/team.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
-import type { Site } from "../shared/site.ts";
+import type { Pallet, Site } from "../shared/site.ts";
 import { ApiFailure, api, pageSearch } from "./api.ts";
 import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
 import { laidBetween, momentsBetween, type Moment } from "./moments/diff.ts";
@@ -94,23 +94,27 @@ const shown = (site: Site | null) => (site === EMPTY_PLOT ? null : site);
 
 /** The pallets already offered for a thank-you, remembered in the browser (read in a try: the game works without it). */
 const OFFERED_KEY = "project-quest.thank-offered";
+// Kept by the pallet's address (owner/repo/issues/n): the demo's #12 is not the real project's #12.
 const offered = (() => {
   try {
-    return new Set<number>(JSON.parse(globalThis.localStorage?.getItem(OFFERED_KEY) ?? "[]") as number[]);
+    return new Set<string>(JSON.parse(globalThis.localStorage?.getItem(OFFERED_KEY) ?? "[]") as string[]);
   } catch {
-    return new Set<number>();
+    return new Set<string>();
   }
 })();
-const offerThanks = (waiting: number[], laid: number[]) => {
-  const fresh = laid.filter((n) => !offered.has(n) && !waiting.includes(n));
+const laidOn = (site: Site, numbers: number[]) => site.pallets.filter((p) => numbers.includes(p.number));
+/** The warm gestures belong to the configured project and the demo site: no thank-you offer on the player's own sites. */
+const offerThanks = (kind: SiteKind, waiting: number[], laid: Pallet[]) => {
+  if (kind !== "main" && kind !== "demo") return waiting;
+  const fresh = laid.filter((p) => !offered.has(p.url || `#${p.number}`) && !waiting.includes(p.number));
   if (!fresh.length) return waiting;
-  for (const n of fresh) offered.add(n);
+  for (const p of fresh) offered.add(p.url || `#${p.number}`);
   try {
     globalThis.localStorage?.setItem(OFFERED_KEY, JSON.stringify([...offered].slice(-200)));
   } catch {
     // Not remembered: the offer may come back after a reload, nothing worse.
   }
-  return [...waiting, ...fresh];
+  return [...waiting, ...fresh.map((p) => p.number)];
 };
 
 export const useQuest = create<QuestState>((set, get) => ({
@@ -173,7 +177,7 @@ export const useQuest = create<QuestState>((set, get) => ({
     try {
       const r = await api.site();
       get().announce(...momentsBetween(shown(get().site), r.site));
-      set({ toThank: offerThanks(get().toThank, laidBetween(shown(get().site), r.site)) });
+      set({ toThank: offerThanks(get().siteKind, get().toThank, laidOn(r.site, laidBetween(shown(get().site), r.site))) });
       set({ site: r.site, viewer: r.viewer, mode: r.mode, demoReason: r.demoReason, load: { status: "ready" } });
     } catch (e) {
       // Before founding, the practice site is an empty plot: the mentor offers to found it.
@@ -186,7 +190,7 @@ export const useQuest = create<QuestState>((set, get) => ({
   },
   setSite(site) {
     get().announce(...momentsBetween(shown(get().site), site));
-    set({ site, toThank: offerThanks(get().toThank, laidBetween(shown(get().site), site)) });
+    set({ site, toThank: offerThanks(get().siteKind, get().toThank, laidOn(site, laidBetween(shown(get().site), site))) });
   },
   setNear: (nearPallet) => set((s) => (s.nearPallet === nearPallet ? s : { nearPallet })),
   open(openCard) {

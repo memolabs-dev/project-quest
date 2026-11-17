@@ -79,8 +79,11 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
   // A warm gesture for the pallet they stand by: they answer it (people of the site spec, section 7).
   const greet = useQuest((s) => (s.greet?.pallet === spot.pallet ? s.greet : null));
   const [shown, setShown] = useState<{ emoji: string; at: number } | null>(null);
+  // Only answers given after they appeared: an old one is never replayed (a motion setting changed, a new place).
+  const answered = useRef(useQuest.getState().greet?.at ?? 0);
   useEffect(() => {
-    if (!greet) return;
+    if (!greet || greet.at <= answered.current) return;
+    answered.current = greet.at;
     const start = setTimeout(() => setShown({ emoji: GLYPH[greet.emoji], at: greet.at }), 0);
     const clear = setTimeout(() => setShown(null), reduceMotion ? 2000 : 1200);
     if (!reduceMotion) {

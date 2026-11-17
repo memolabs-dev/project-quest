@@ -28,22 +28,23 @@ test("a worker shows their name when the foreman comes near", async ({ page }) =
   await page.keyboard.up("KeyW");
 });
 
-// After the name test: the demo board keeps this move for the rest of the run.
+// After the name test: the demo board keeps this move for the rest of the run. jo-fictif moves, not maria-fictif:
+// the cheer spec walks up to maria, on the same demo server, at the same time.
 test("a worker follows their pallet to its new yard", async ({ page }) => {
   await ready(page);
-  const before = await workerX(page, "maria-fictif");
+  const before = await workerX(page, "jo-fictif");
   expect(before).not.toBeNull();
   await page.evaluate(async () => {
     const { useQuest } = await import("/src/client/store.ts");
-    const p = useQuest.getState().site!.pallets.find((x) => /Paint the facade/.test(x.title))!;
+    const p = useQuest.getState().site!.pallets.find((x) => /Draw the reading room/.test(x.title))!;
     useQuest.getState().open(p.number);
   });
-  await page.getByRole("dialog", { name: /Paint the facade/ }).locator(".zones button").first().click();
+  await page.getByRole("dialog", { name: /Draw the reading room/ }).locator(".zones button").first().click();
   // On a loaded machine the dev server can answer late: the clock starts once the move is applied.
   const applied = page.waitForResponse((r) => r.url().includes("/moves/apply"));
   await page.getByRole("dialog", { name: /sent to GitHub/ }).getByRole("button", { name: /Send to GitHub/ }).click();
   expect((await applied).ok()).toBe(true);
-  await expect.poll(async () => Math.abs((await workerX(page, "maria-fictif"))! - before!), { timeout: 5000 }).toBeGreaterThan(2);
+  await expect.poll(async () => Math.abs((await workerX(page, "jo-fictif"))! - before!), { timeout: 5000 }).toBeGreaterThan(2);
 });
 
 /** The clip the foreman is playing now. */

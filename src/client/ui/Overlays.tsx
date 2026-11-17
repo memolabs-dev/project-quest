@@ -231,6 +231,7 @@ function ErrorScreen() {
 
 export function Overlays() {
   const openCard = useQuest((s) => s.openCard);
+  const thanking = useQuest((s) => s.thanking);
   return (
     <>
       <div className="top-right">
@@ -243,7 +244,8 @@ export function Overlays() {
       {openCard !== null && <PalletCard key={openCard} number={openCard} />}
       <ConfirmMove />
       <ThankOffer />
-      <ThankDialog />
+      {/* A new pallet, a fresh dialog: words written for one never show up on another. */}
+      <ThankDialog key={thanking ?? "none"} />
       <ConfirmWarm />
       <Notice />
       <PracticeDialogs />

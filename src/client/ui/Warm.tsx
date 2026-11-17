@@ -2,16 +2,20 @@
 // card, and the confirmation that shows exactly what will be sent. Positive signs only; nothing is counted.
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { WARM_EMOJIS } from "../../shared/gestures/warm.ts";
+import { WARM_EMOJIS, type WarmEmoji } from "../../shared/gestures/warm.ts";
+import { Modal } from "./Modal.tsx";
 import { ApiFailure, api } from "../api.ts";
 import { useQuest } from "../store.ts";
 import { greetAfter } from "../moments/greet.ts";
 import { GLYPH, useWarmGesture } from "./warm-gesture.ts";
 
+/** One empty list for every missing pallet: a fresh [] per read would make the store re-render without end. */
+const NONE: readonly WarmEmoji[] = [];
+
 /** The four signs for one pallet; a sign already given is pressed, and clicking it offers to take it back. */
 export function WarmPicker({ pallet, login }: { pallet: number; login: string | null }) {
   const { t } = useTranslation();
-  const given = useQuest((s) => s.site?.pallets.find((p) => p.number === pallet)?.myReactions ?? []);
+  const given = useQuest((s) => s.site?.pallets.find((p) => p.number === pallet)?.myReactions ?? NONE);
   const prepare = useWarmGesture();
   const first = useRef<HTMLButtonElement>(null);
   // Above a worker the signs open at R: the first one takes the focus, so the keys go on.
@@ -43,6 +47,8 @@ export function ConfirmWarm() {
   const announce = useQuest((s) => s.announce);
   const say = useQuest((s) => s.say);
   const greetWith = useQuest((s) => s.greetWith);
+  const openThank = useQuest((s) => s.openThank);
+  const busy = useRef(false);
   const [sending, setSending] = useState(false);
   const sendRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (warm) sendRef.current?.focus(); }, [warm]);
@@ -52,6 +58,7 @@ export function ConfirmWarm() {
     // One send at a time: a second click while the first is on its way does nothing.
     if (sending) return;
     setSending(true);
+    busy.current = true;
     try {
       const r = await api.applyWarm(warm);
       const greet = greetAfter(r, warm, 0);
@@ -66,6 +73,8 @@ export function ConfirmWarm() {
         say(t(`warm.done.${warm.kind}`, { sign: GLYPH[warm.content] }));
         setWarm(null);
         openPicker(null);
+        // The thank-you is done: its words go with it.
+        if (warm.kind === "thank") openThank(null);
       } else {
         announce({ kind: "refused", pallet: warm.issueNumber });
         say(t("confirm.github", { message: r.message }));
@@ -76,11 +85,13 @@ export function ConfirmWarm() {
       setWarm(null);
     } finally {
       setSending(false);
+      busy.current = false;
     }
   };
 
   return (
-    <div className="confirm" role="dialog" aria-modal="true" aria-labelledby="warm-title">
+    // Cancel goes back: to the thank-you's words when there are some (kept), else to the site.
+    <Modal labelledBy="warm-title" busy={busy} onEscape={() => setWarm(null)}>
       <h2 id="warm-title">{t("confirm.title")}</h2>
       <p className="move">{t(`warm.what.${warm.kind}`, { sign: GLYPH[warm.content], number: warm.issueNumber })}</p>
       <p className="issue">{warm.title}</p>
@@ -94,9 +105,9 @@ export function ConfirmWarm() {
         <button ref={sendRef} type="button" className="primary" disabled={sending} onClick={() => void send()}>
           {sending ? t("confirm.sending") : t("confirm.send")}
         </button>
-        <button type="button" onClick={() => setWarm(null)}>{t("confirm.cancel")}</button>
+        <button type="button" disabled={sending} onClick={() => setWarm(null)}>{t("confirm.cancel")}</button>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -141,18 +152,16 @@ export function ThankDialog() {
   const { t } = useTranslation();
   const number = useQuest((s) => s.thanking);
   const pallet = useQuest((s) => s.site?.pallets.find((p) => p.number === s.thanking) ?? null);
+  const confirming = useQuest((s) => s.warm !== null);
   const openThank = useQuest((s) => s.openThank);
   const prepare = useWarmGesture();
   const [sign, setSign] = useState<"HOORAY" | "HEART">("HOORAY");
   const [words, setWords] = useState("");
-  if (number === null || !pallet) return null;
-  const go = async () => {
-    await prepare("thank", { issueNumber: number, content: sign, words: words.trim() ? words : null });
-    openThank(null);
-    setWords("");
-  };
+  // While the confirmation shows what leaves, the words wait here, kept: Cancel there comes back to them.
+  if (number === null || !pallet || confirming) return null;
+  const go = () => prepare("thank", { issueNumber: number, content: sign, words: words.trim() ? words : null });
   return (
-    <div className="confirm" role="dialog" aria-modal="true" aria-labelledby="thank-title">
+    <Modal labelledBy="thank-title" focus="textarea" onEscape={() => openThank(null)}>
       <h2 id="thank-title">{t("warm.thankFor", { number })}</h2>
       <p className="issue" dir="auto">{pallet.title}</p>
       <fieldset className="choice">
@@ -172,6 +181,6 @@ export function ThankDialog() {
         <button type="button" className="primary" onClick={() => void go()}>{t("warm.show")}</button>
         <button type="button" onClick={() => openThank(null)}>{t("confirm.cancel")}</button>
       </div>
-    </div>
+    </Modal>
   );
 }

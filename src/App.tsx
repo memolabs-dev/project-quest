@@ -28,9 +28,12 @@ export default function App() {
       const s = useQuest.getState();
       // A key typed in a field is the player's words, never a gesture.
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
+      // A dialog over the site has the keys: no card or signs open behind it.
+      const dialog = s.warm !== null || s.thanking !== null || s.pending !== null || s.practiceDialog !== null || s.teamDialog !== null;
+      if (dialog) return;
       if (e.code === ACTION_CODE && s.nearPallet !== null && s.openCard === null) s.open(s.nearPallet);
       // R opens the warm signs above the worker within reach (the configured site and the demo only).
-      if (e.code === CHEER_CODE && s.nearWorker && s.openCard === null && s.warm === null && (s.siteKind === "main" || s.siteKind === "demo")) {
+      if (e.code === CHEER_CODE && s.nearWorker && s.openCard === null && (s.siteKind === "main" || s.siteKind === "demo")) {
         s.openPicker(s.picker?.login === s.nearWorker.login ? null : { ...s.nearWorker });
       }
       if (e.code === "Escape" && s.picker !== null) s.openPicker(null);

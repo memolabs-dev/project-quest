@@ -74,7 +74,8 @@ for (const width of [1280, 375]) {
     await page.getByRole("button", { name: "Skills" }).click();
     const book = page.getByRole("region", { name: "Skills" });
     await expect(book.locator("li.earned")).toHaveCount(3);
-    await expect(book.locator("li.outline")).toHaveCount(13);
+    // 13 levels ahead, and the two warm gestures (cheer, thank) not stamped yet.
+    await expect(book.locator("li.outline")).toHaveCount(15);
     await page.screenshot({ path: `e2e/screenshots/levels-skillbook-${width}.png` });
   });
 }

@@ -1,5 +1,6 @@
 // The practice site's three gestures: found it, write an issue, take one. Each dialog asks, then shows exactly
 // what will be sent to GitHub, then sends only on the player's click. On the demo site nothing can be sent.
+import { Modal } from "./Modal.tsx";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -14,43 +15,17 @@ import { useQuest } from "../store.ts";
 /** Set while a gesture is being sent: Escape must not close the dialog then. */
 const Sending = createContext<(busy: boolean) => void>(() => {});
 
-const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex='0']";
-
-/** A modal dialog: the keyboard stays inside, Escape closes it (never while sending), the focus goes back to the opener. */
+/** A modal dialog for the practice and team gestures: Escape closes it, never while sending. */
 function Dialog({ title, children }: { title: string; children: ReactNode }) {
   const closePractice = useQuest((s) => s.openPractice);
   const closeTeam = useQuest((s) => s.openTeam);
-  const ref = useRef<HTMLDivElement>(null);
   const busy = useRef(false);
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    ref.current?.querySelector<HTMLElement>("input, textarea, select, button")?.focus();
-    return () => { if (opener?.isConnected) opener.focus(); };
-  }, []);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !busy.current) {
-        closePractice(null);
-        closeTeam(null);
-      }
-      if (e.key !== "Tab" || !ref.current) return;
-      const all = [...ref.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
-      if (all.length === 0) return;
-      const first = all[0];
-      const last = all[all.length - 1];
-      const inside = ref.current.contains(document.activeElement);
-      if (e.shiftKey && (document.activeElement === first || !inside)) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && (document.activeElement === last || !inside)) { e.preventDefault(); first.focus(); }
-    };
-    addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
-  }, [closePractice, closeTeam]);
   return (
     <Sending.Provider value={(b) => { busy.current = b; }}>
-      <div ref={ref} className="confirm practice" role="dialog" aria-modal="true" aria-labelledby="practice-title">
+      <Modal labelledBy="practice-title" className="confirm practice" busy={busy} onEscape={() => { closePractice(null); closeTeam(null); }}>
         <h2 id="practice-title">{title}</h2>
         {children}
-      </div>
+      </Modal>
     </Sending.Provider>
   );
 }

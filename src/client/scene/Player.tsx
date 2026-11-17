@@ -40,7 +40,9 @@ export function Player({ pallets, workers, reduceMotion, body, arrival, look }: 
   const walked = useRef({ x: NaN, z: NaN, since: 0 });
   const setNear = useQuest((s) => s.setNear);
   const setNearWorker = useQuest((s) => s.setNearWorker);
-  const cardOpen = useQuest((s) => s.openCard !== null);
+  // A card or a dialog over the site holds the keys: the foreman stands still (typed words never walk him).
+  const cardOpen = useQuest((s) => s.openCard !== null || s.warm !== null || s.thanking !== null || s.pending !== null
+    || s.practiceDialog !== null || s.teamDialog !== null);
   const sendEvent = useQuest((s) => s.sendEvent);
   // The Apprentice's first reward: their initial on the helmet.
   const helmet = useQuest((s) => (s.levels?.unlocks.helmet ? badgeInitial(s.levels.login) : null));

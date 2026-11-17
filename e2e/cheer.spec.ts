@@ -96,3 +96,59 @@ test("reduced motion keeps the emoji and the sound only", async ({ page }) => {
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("radio", { name: /Follow my system/ }).check();
 });
+
+/** Opens the thank-you dialog for "Raise the walls" (laid on the demo board; not thanked with words by earlier tests). */
+const openThank = async (page: Page) => {
+  await page.evaluate(async () => {
+    localStorage.removeItem("project-quest.thank-offered");
+    const { useQuest } = await import("/src/client/store.ts");
+    const now = useQuest.getState().site!;
+    const laid = now.pallets.find((p) => /Raise the walls/.test(p.title))!;
+    useQuest.getState().openThank(laid.number);
+  });
+  return page.getByRole("dialog", { name: /Thank for/ });
+};
+
+test("typing thanks moves nobody and opens nothing behind the dialog", async ({ page }) => {
+  await ready(page);
+  const where = () => page.evaluate(async () => ({ ...(await import("/src/client/moments/player.ts")).playerPosition }));
+  const before = await where();
+  const dialog = await openThank(page);
+  await expect(dialog.getByRole("textbox")).toBeFocused();
+  await dialog.getByRole("textbox").pressSequentially("we were all there, see you soon", { delay: 30 });
+  await page.waitForTimeout(500);
+  const after = await where();
+  expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(0.05);
+  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+});
+
+test("Cancel in the confirmation goes back to the words, kept", async ({ page }) => {
+  await ready(page);
+  const dialog = await openThank(page);
+  await dialog.getByRole("textbox").fill("Thanks @maria-fictiff");
+  await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
+  await expect(confirmation(page)).toContainText("@maria-fictiff");
+  await confirmation(page).getByRole("button", { name: /Cancel/ }).click();
+  await expect(dialog.getByRole("textbox")).toHaveValue("Thanks @maria-fictiff");
+});
+
+test("a worker never replays an old answer when the motion setting changes", async ({ page }) => {
+  await ready(page);
+  await page.keyboard.down("KeyW");
+  await expect(page.getByText(/to cheer maria-fictif/)).toBeVisible({ timeout: 8000 });
+  await page.keyboard.up("KeyW");
+  await page.keyboard.press("KeyR");
+  const picker = page.getByRole("group", { name: /Cheer maria-fictif/ });
+  const given = await picker.getByRole("button", { name: /👍/ }).getAttribute("aria-pressed");
+  await picker.getByRole("button", { name: /👍/ }).click();
+  await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
+  if (given !== "true") await expect(page.locator(".greet-emoji")).toHaveCount(1);
+  await expect(page.locator(".greet-emoji")).toHaveCount(0, { timeout: 5000 });
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /^Reduced$/ }).check();
+  await page.waitForTimeout(500);
+  await expect(page.locator(".greet-emoji")).toHaveCount(0);
+  await page.getByRole("radio", { name: /Follow my system/ }).check();
+});

@@ -75,3 +75,19 @@ describe("the thank offer", () => {
     useQuest.getState().takeMoments();
   });
 });
+
+describe("the thank offer's memory", () => {
+  it("is kept per pallet address, so another site's #41 is still offered", () => {
+    const at = (url: string, closed: boolean) => site([{ ...pallet(41, closed ? "Done" : "Backlog"), url, closed }]);
+    useQuest.setState({ toThank: [] });
+    useQuest.getState().setSite(at("https://github.com/o/a/issues/41", false));
+    useQuest.getState().setSite(at("https://github.com/o/a/issues/41", true));
+    expect(useQuest.getState().toThank).toEqual([41]);
+    useQuest.setState({ toThank: [] });
+    useQuest.getState().setSite(at("https://github.com/o/b/issues/41", false));
+    useQuest.getState().setSite(at("https://github.com/o/b/issues/41", true));
+    expect(useQuest.getState().toThank).toEqual([41]);
+    useQuest.setState({ toThank: [] });
+    useQuest.getState().takeMoments();
+  });
+});
