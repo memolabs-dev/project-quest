@@ -1,0 +1,18 @@
+{
+  "repository": {
+    "nameWithOwner": "fictif-org/fictif-site",
+    "issues": {
+      "nodes": [
+        {
+          "id": "I_gf_21", "number": 21, "title": "FICTIF The mayor's small idea: a fountain",
+          "url": "https://github.com/fictif-org/fictif-site/issues/21",
+          "assignees": { "nodes": [] },
+          "comments": { "nodes": [
+            { "author": { "login": "fictif-volunteer" }, "url": "https://github.com/fictif-org/fictif-site/issues/21#issuecomment-1" },
+            { "author": null, "url": "https://github.com/fictif-org/fictif-site/issues/21#issuecomment-2" }
+          ] }
+        }
+      ]
+    }
+  }
+}

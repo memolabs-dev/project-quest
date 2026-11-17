@@ -13,6 +13,8 @@ const schema = z.object({
     bug: z.array(z.string()),
     /** label -> trade of the worker (mason, painter...) */
     trades: z.record(z.string(), z.string()),
+    /** Labels that mark an issue for newcomers (levels, real project). */
+    goodFirst: z.array(z.string().min(1)).default(["good first issue"]),
   }),
 });
 

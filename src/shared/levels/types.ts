@@ -64,10 +64,18 @@ export interface PracticeSnapshot {
   pulls: PracticePull[];
 }
 
+/** The real project's open issues marked for newcomers, with their comments. */
+export interface RealSnapshot {
+  repo: string;
+  issues: { id: string; number: number; title: string; url: string; assignees: string[]; comments: { author: string; url: string }[] }[];
+}
+
 export interface Observed {
   viewer: string;
   events: TutorialEvent[];
   practice: PracticeSnapshot | null;
+  /** Read only once the Team leader rank is done. */
+  real?: RealSnapshot | null;
 }
 
 /** A level passed, with its proof. */

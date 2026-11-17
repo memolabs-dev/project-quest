@@ -39,6 +39,7 @@ const make = (practice: PracticeSnapshot | null, extra: Partial<Deps> & { progre
     practiceName: "my-first-site",
     readPractice: async () => practice,
     applyPractice: async (p) => { sent.push(p); return { ok: true }; },
+    readGoodFirst: async () => ({ repo: "fictif-org/fictif-site", issues: [] }),
     ...extra,
   };
   return { app: createApp(deps), deps, sent };

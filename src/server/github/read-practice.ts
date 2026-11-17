@@ -139,6 +139,6 @@ export function practiceConfig(owner: string, name: string, boardNumber: number,
     owner, repo: name, projectNumber: boardNumber,
     fields: { status: "Status", iteration: "Iteration", size: "Size" },
     zones: columns,
-    labels: { bug: ["bug"], trades: {} },
+    labels: { bug: ["bug"], trades: {}, goodFirst: [] },
   };
 }

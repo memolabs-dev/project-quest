@@ -29,6 +29,7 @@ const deps = (apply: (p: PreparedMove) => Promise<ApplyResult>, extra: Partial<D
   practiceName: "my-first-site",
   readPractice: async () => null,
   applyPractice: async () => ({ ok: true }),
+  readGoodFirst: async () => ({ repo: "fictif-org/fictif-site", issues: [] }),
   ...extra,
 });
 const post = (body: unknown) => ({ method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json" } });

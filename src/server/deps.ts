@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { loadConfig, type QuestConfig } from "../shared/config.ts";
 import type { PreparedMove } from "../shared/gestures/move.ts";
 import type { PreparedPractice } from "../shared/gestures/practice.ts";
-import type { PracticeSnapshot } from "../shared/levels/types.ts";
+import type { PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
 import { memoryProgress, pgProgress, type ProgressStore } from "./db/progress.ts";
@@ -12,6 +12,7 @@ import { applyMove, type ApplyResult } from "./github/move-item.ts";
 import { applyPractice, type PracticeResult } from "./github/practice-apply.ts";
 import { readBoard } from "./github/read-board.ts";
 import { readPractice } from "./github/read-practice.ts";
+import { readGoodFirst } from "./github/read-real.ts";
 
 export interface Deps {
   mode: "live" | "demo";
@@ -31,6 +32,8 @@ export interface Deps {
   practiceName: string;
   readPractice(owner: string, name: string): Promise<PracticeSnapshot | null>;
   applyPractice(p: PreparedPractice): Promise<PracticeResult>;
+  /** The configured (real) project's open good first issues. */
+  readGoodFirst(): Promise<RealSnapshot>;
 }
 
 const PRACTICE_NAME = process.env.QUEST_PRACTICE_REPO || "my-first-site";
@@ -60,6 +63,7 @@ export function liveDeps(config: QuestConfig): Deps {
     practiceName: PRACTICE_NAME,
     readPractice: async (owner, name) => readPractice(await client(), owner, name),
     applyPractice: async (p) => applyPractice(await client(), await restClient(), p),
+    readGoodFirst: async () => readGoodFirst(await client(), config),
   };
 }
 
@@ -91,6 +95,13 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     // Without GitHub there is no practice site to read: the tutorial still plays.
     readPractice: async () => null,
     applyPractice: noGitHub,
+    // The demo site's own good first issues, from its invented board.
+    readGoodFirst: async () => ({
+      repo: `${config.owner}/${config.repo}`,
+      issues: board.items
+        .filter((i) => i.state === "OPEN" && i.labels.some((l) => config.labels.goodFirst.includes(l)))
+        .map((i) => ({ id: i.issueId, number: i.number, title: i.title, url: i.url, assignees: i.assignees.map((a) => a.login), comments: [] })),
+    }),
   };
 }
 

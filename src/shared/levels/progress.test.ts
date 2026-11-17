@@ -33,10 +33,12 @@ describe("progress", () => {
   });
   it("reaches the Journeyman rank after the Apprentice one", () => {
     const all = LEVELS.map((l) => l.id);
-    const journeyman = LEVELS.filter((l) => l.rank !== "team-leader").map((l) => l.id);
+    const journeyman = LEVELS.filter((l) => l.rank === "apprentice" || l.rank === "journeyman").map((l) => l.id);
+    const teamLeader = LEVELS.filter((l) => l.rank !== "real-project").map((l) => l.id);
     expect(rankReached(LEVELS, new Set(ids))).toBe("apprentice");
     expect(rankReached(LEVELS, new Set(journeyman))).toBe("journeyman");
-    expect(rankReached(LEVELS, new Set(all))).toBe("team-leader");
+    expect(rankReached(LEVELS, new Set(teamLeader))).toBe("team-leader");
+    expect(rankReached(LEVELS, new Set(all))).toBe("real-project");
     expect(currentLevel(LEVELS, new Set(ids))?.id).toBe("a8-edit-file");
   });
 });

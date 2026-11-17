@@ -8,7 +8,7 @@ const config: QuestConfig = {
   projectNumber: 1,
   fields: { status: "Status", iteration: "Sprint", size: "Size" },
   zones: ["Backlog", "Ready", "In progress", "In review", "Done"],
-  labels: { bug: ["bug"], trades: { back: "mason", front: "painter" } },
+  labels: { bug: ["bug"], trades: { back: "mason", front: "painter" }, goodFirst: ["good first issue"] },
 };
 
 let n = 0;

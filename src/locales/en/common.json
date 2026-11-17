@@ -74,19 +74,23 @@
     "rankDone": {
       "apprentice": "That's the Apprentice rank. You know your way around now.",
       "journeyman": "That's the Journeyman rank. Your first contribution is in, from branch to merge. Real projects are next.",
-      "team-leader": "That's the Team leader rank. You know git from end to end. Real projects are waiting for you."
+      "team-leader": "That's the Team leader rank. You know git from end to end. Real projects are waiting for you.",
+      "real-project": "That's the whole path. You know GitHub from the first issue to a real project. Welcome to the crew."
     },
     "fold": "Fold Mémé away",
     "copy": "Copy",
     "copied": "Copied",
-    "commands": "Type these in a terminal:"
+    "commands": "Type these in a terminal:",
+    "toMain": "To the real site",
+    "noGoodFirst": "No issue is marked \"good first issue\" on this project yet. Ask its team, or come back later."
   },
   "skills": {
     "title": "Skills",
     "rank": {
       "apprentice": "Apprentice",
       "journeyman": "Journeyman",
-      "team-leader": "Team leader"
+      "team-leader": "Team leader",
+      "real-project": "Real project"
     },
     "proof": "See it on GitHub",
     "tutorial": "Done on the tutorial site",
@@ -182,6 +186,12 @@
       "goal": "Merge your pull request, then delete your branch, on GitHub and on your machine.",
       "lesson": "A merged branch is a finished job. Sweep the site: delete it, so the next person sees only work in progress.",
       "done": "Site swept. You're a team leader now."
+    },
+    "a16-ask-good-first": {
+      "skill": "Ask for a good first issue",
+      "goal": "On the real site, open a pallet marked \"good first issue\" and ask for it in a comment.",
+      "lesson": "On a real project, you don't take: you ask. Someone who runs it will say yes and assign you. That's how trust starts.",
+      "done": "You asked like a pro. Now a maintainer decides, and you'll see your badge on the site when they say yes."
     }
   },
   "practice": {
@@ -223,7 +233,8 @@
       "edit": "Write {{path}} on the branch {{branch}}, with the message \"{{message}}\".",
       "pull": "Open a pull request from {{branch}}, \"{{title}}\", which closes issue #{{number}}.",
       "merge": "Merge pull request #{{number}} into the main branch of {{repo}}.",
-      "mayor": "Add the mayor's line to PLAN.md on {{branch}} of {{repo}}."
+      "mayor": "Add the mayor's line to PLAN.md on {{branch}} of {{repo}}.",
+      "ask": "Comment on issue #{{number}} of {{repo}}: \"{{comment}}\""
     },
     "edit": {
       "open": "Use the trowel",
@@ -250,6 +261,13 @@
       "open": "Let the mayor change the plan",
       "title": "The mayor changes the plan",
       "body": "The mayor adds a line to PLAN.md on main. Your branch then has to catch up."
+    },
+    "ask": {
+      "open": "Ask for it",
+      "title": "Ask for this issue",
+      "body": "The game adds your comment to the issue. It assigns nobody: a maintainer decides.",
+      "commentLabel": "Your comment",
+      "comment": "Hello! I'd like to work on this one, if nobody has it yet. Could you assign it to me?"
     }
   },
   "inspector": {

@@ -74,19 +74,23 @@
     "rankDone": {
       "apprentice": "Te voilà apprentie ou apprenti. Tu connais le chantier, maintenant.",
       "journeyman": "Te voilà compagne ou compagnon. Ta première contribution est entrée, de la branche à la fusion. La suite : les vrais projets.",
-      "team-leader": "Te voilà cheffe ou chef d'équipe. Tu connais git de bout en bout. Les vrais projets t'attendent."
+      "team-leader": "Te voilà cheffe ou chef d'équipe. Tu connais git de bout en bout. Les vrais projets t'attendent.",
+      "real-project": "Tu as fait tout le chemin. Tu connais GitHub de la première issue à un vrai projet. Bienvenue dans l'équipe."
     },
     "fold": "Replier Mémé",
     "copy": "Copier",
     "copied": "Copié",
-    "commands": "Tape ceci dans un terminal :"
+    "commands": "Tape ceci dans un terminal :",
+    "toMain": "Vers le vrai chantier",
+    "noGoodFirst": "Aucune issue n'est marquée « good first issue » sur ce projet pour l'instant. Demande à son équipe, ou reviens plus tard."
   },
   "skills": {
     "title": "Compétences",
     "rank": {
       "apprentice": "Apprenti",
       "journeyman": "Compagnon",
-      "team-leader": "Chef d'équipe"
+      "team-leader": "Chef d'équipe",
+      "real-project": "Vrai projet"
     },
     "proof": "Voir sur GitHub",
     "tutorial": "Fait sur le chantier d'apprentissage",
@@ -182,6 +186,12 @@
       "goal": "Fusionne ta pull request, puis supprime ta branche, sur GitHub et sur ta machine.",
       "lesson": "Une branche fusionnée, c'est un travail fini. Balaie le chantier : supprime-la, pour que la personne suivante ne voie que le travail en cours.",
       "done": "Chantier balayé. Te voilà cheffe ou chef d'équipe."
+    },
+    "a16-ask-good-first": {
+      "skill": "Demander une good first issue",
+      "goal": "Sur le vrai chantier, ouvre une palette marquée « good first issue » et demande-la dans un commentaire.",
+      "lesson": "Sur un vrai projet, on ne prend pas : on demande. Quelqu'un qui le mène dira oui et t'assignera. C'est comme ça que la confiance commence.",
+      "done": "Tu as demandé comme une pro, ou un pro. Une personne qui mène le projet décide, et tu verras ton badge sur le chantier quand elle dira oui."
     }
   },
   "practice": {
@@ -223,7 +233,8 @@
       "edit": "Écrire {{path}} sur la branche {{branch}}, avec le message « {{message}} ».",
       "pull": "Ouvrir une pull request depuis {{branch}}, « {{title}} », qui ferme l'issue n°{{number}}.",
       "merge": "Fusionner la pull request n°{{number}} dans la branche principale de {{repo}}.",
-      "mayor": "Ajouter la ligne de la maire à PLAN.md sur {{branch}} de {{repo}}."
+      "mayor": "Ajouter la ligne de la maire à PLAN.md sur {{branch}} de {{repo}}.",
+      "ask": "Commenter l'issue n°{{number}} de {{repo}} : « {{comment}} »"
     },
     "edit": {
       "open": "Prendre la truelle",
@@ -250,6 +261,13 @@
       "open": "Laisser la maire changer le plan",
       "title": "La maire change le plan",
       "body": "La maire ajoute une ligne à PLAN.md sur main. Ta branche devra ensuite se mettre à jour."
+    },
+    "ask": {
+      "open": "La demander",
+      "title": "Demander cette issue",
+      "body": "Le jeu ajoute ton commentaire à l'issue. Il n'assigne personne : une personne qui mène le projet décide.",
+      "commentLabel": "Ton commentaire",
+      "comment": "Bonjour ! J'aimerais travailler sur celle-ci, si personne ne l'a encore. Pourriez-vous me l'assigner ?"
     }
   },
   "inspector": {
