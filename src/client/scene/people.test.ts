@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Pallet, Site } from "../../shared/site.ts";
-import { type ClipPlan, GESTURES, gestureAt, greeting, headYaw, livelyWorkers, nextClip, restAfter, restState, sameMembers, workerBusy } from "./people.ts";
+import { type ClipPlan, GESTURES, gestureAt, greeting, headYaw, livelyWorkers, nearestWorker, nextClip, restAfter, restState, sameMembers, workerBusy } from "./people.ts";
 
 const pallet = (number: number, zone: string, closed = false): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone, closed, discarded: false,
@@ -100,5 +100,14 @@ describe("sameMembers", () => {
     expect(sameMembers(new Set(["a", "b"]), new Set(["b", "a"]))).toBe(true);
     expect(sameMembers(new Set(["a", "b"]), new Set(["a", "c"]))).toBe(false);
     expect(sameMembers(new Set(["a"]), new Set(["a", "b"]))).toBe(false);
+  });
+});
+
+describe("nearestWorker", () => {
+  const spots = [{ login: "a", x: 0, z: 0, pallet: 1 }, { login: "b", x: 3, z: 0, pallet: 2 }];
+  it("the nearest worker within 4 m, with the pallet they stand by", () => {
+    expect(nearestWorker(spots, { x: 2.2, z: 0 })).toEqual({ login: "b", pallet: 2 });
+    expect(nearestWorker(spots, { x: 0.5, z: 1 })).toEqual({ login: "a", pallet: 1 });
+    expect(nearestWorker(spots, { x: 20, z: 0 })).toBeNull();
   });
 });

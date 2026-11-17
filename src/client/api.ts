@@ -1,12 +1,13 @@
 // The game's calls to its own server. The server alone talks to GitHub.
 import type {
-  ApiError, ApplyResponse, LevelsView, LoggedActionView, PracticeApplyResponse, PreparedMove, PreparedPractice, SiteResponse,
+  ApiError, ApplyResponse, LevelsView, LoggedActionView, PracticeApplyResponse, PreparedMove, PreparedPractice, SiteResponse, WarmApplyResponse,
 } from "../shared/api.ts";
 import type {
   PreparedEdit, PreparedFound, PreparedIssue, PreparedMayor, PreparedMerge, PreparedPull, PreparedTake,
 } from "../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { PreparedTeam, TeamArgs, TeamKind } from "../shared/gestures/team.ts";
+import type { PreparedWarm, WarmKind } from "../shared/gestures/warm.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import { siteKindFromUrl } from "./levels.ts";
 
@@ -64,4 +65,8 @@ export const api = {
   applyAsk: (p: PreparedAsk) => call<PracticeApplyResponse>("/api/real/ask/apply", p),
   prepareMerge: (pullNumber: number) => call<PreparedMerge>("/api/practice/merge/prepare", { pullNumber }),
   applyPractice: (p: PreparedPractice) => call<PracticeApplyResponse>(`/api/practice/${p.kind}/apply`, p),
+  /** The warm gestures go to the configured project (or play on the demo site). */
+  prepareWarm: (kind: WarmKind, args: { issueNumber: number; content: string; words?: string | null }) =>
+    call<PreparedWarm>(`/api/warm/${kind}/prepare`, args),
+  applyWarm: (p: PreparedWarm) => call<WarmApplyResponse>(`/api/warm/${p.kind}/apply`, p),
 };

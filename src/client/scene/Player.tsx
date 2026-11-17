@@ -10,6 +10,7 @@ import { badgeInitial } from "./show.ts";
 import { CAMERA_OFFSET as CAMERA_OFFSET_XYZ, LOOK_AHEAD as LOOK_AHEAD_XYZ, SPAWN } from "./layout.ts";
 import { cameraKick } from "../moments/camera.ts";
 import { lastInput, playerPosition } from "../moments/player.ts";
+import { nearestWorker } from "./people.ts";
 import { kickAt } from "../moments/play.ts";
 import { useGameSound } from "./useGameSound.ts";
 
@@ -21,8 +22,10 @@ const CAMERA_OFFSET = new THREE.Vector3(...CAMERA_OFFSET_XYZ);
 /** The camera looks a little ahead of the player, so the yards and buildings stay in view. */
 const LOOK_AHEAD = new THREE.Vector3(...LOOK_AHEAD_XYZ);
 
-export function Player({ pallets, reduceMotion, body, arrival, look }: {
+export function Player({ pallets, workers, reduceMotion, body, arrival, look }: {
   pallets: { number: number; x: number; z: number }[];
+  /** The workers' spots: the nearest within reach can be cheered. */
+  workers: { login: string; x: number; z: number; pallet: number }[];
   reduceMotion: boolean;
   body: RefObject<EcctrlHandle | null>;
   /** Seconds left of the arrival fly-over; the camera is the drone's until it reaches zero. */
@@ -36,6 +39,7 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
   const sound = useGameSound();
   const walked = useRef({ x: NaN, z: NaN, since: 0 });
   const setNear = useQuest((s) => s.setNear);
+  const setNearWorker = useQuest((s) => s.setNearWorker);
   const cardOpen = useQuest((s) => s.openCard !== null);
   const sendEvent = useQuest((s) => s.sendEvent);
   // The Apprentice's first reward: their initial on the helmet.
@@ -78,6 +82,7 @@ export function Player({ pallets, reduceMotion, body, arrival, look }: {
       if (d < bestD) { bestD = d; best = p.number; }
     }
     setNear(best);
+    setNearWorker(nearestWorker(workers, pos));
   });
 
   return (

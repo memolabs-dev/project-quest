@@ -247,3 +247,13 @@
 .mentor-load { font-weight: 700; }
 .mentor-capacity { display: grid; gap: 6px; width: 100%; }
 .mentor-capacity input { width: 6em; }
+
+/* The warm signs: above a worker, or on a pallet's card. */
+.warm-picker { display: flex; gap: 6px; pointer-events: auto; margin-top: 4px; }
+.warm-picker button {
+  min-width: 44px; min-height: 44px; border: var(--line); border-radius: 999px; background: var(--paper);
+  box-shadow: var(--shadow); font-size: 20px; cursor: pointer;
+}
+.warm-picker button[aria-pressed="true"] { background: var(--accent); }
+.warm-words { border-left: 4px solid var(--accent); margin: 8px 0; padding: 4px 10px; white-space: pre-wrap; }
+.warning { font-weight: 700; }

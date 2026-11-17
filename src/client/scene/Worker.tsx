@@ -9,6 +9,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { playerPosition } from "../moments/player.ts";
+import { useQuest } from "../store.ts";
+import { WarmPicker } from "../ui/Warm.tsx";
 import { headTurn } from "./head.ts";
 import { toonOf } from "./toon.ts";
 import { type ClipPlan, greeting, headYaw, nextClip } from "./people.ts";
@@ -42,6 +44,7 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
   const { scene, animations } = useGLTF(URL);
   const color = jacketColor(spot.trade);
   const [named, setNamed] = useState(false);
+  const picking = useQuest((s) => s.picker?.login === spot.login);
 
   // Each worker needs its own skeleton, and its own jacket material.
   const { body, scale } = useMemo(() => {
@@ -119,6 +122,7 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
       </group>
       <Html position={[0, HEIGHT + 0.45, 0]} center distanceFactor={14} zIndexRange={[5, 0]}>
         <Badge key={spot.avatarUrl} login={spot.login} avatarUrl={spot.avatarUrl} color={color} named={named} />
+        {picking && <WarmPicker pallet={spot.pallet} login={spot.login} />}
       </Html>
     </RigidBody>
   );

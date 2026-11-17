@@ -12,11 +12,13 @@ export const KEY_MAP = [
 
 export const MOVE_CODES = ["KeyW", "KeyA", "KeyS", "KeyD"] as const;
 export const ACTION_CODE = "KeyE";
+/** Cheer the worker within reach. */
+export const CHEER_CODE = "KeyR";
 
 type LayoutMap = { get(code: string): string | undefined };
 type KeyboardApi = { getLayoutMap(): Promise<LayoutMap> };
 
-const QWERTY: Record<string, string> = { KeyW: "W", KeyA: "A", KeyS: "S", KeyD: "D", KeyE: "E" };
+const QWERTY: Record<string, string> = { KeyW: "W", KeyA: "A", KeyS: "S", KeyD: "D", KeyE: "E", KeyR: "R" };
 
 /** The letters printed on the player's keys for the given physical codes. */
 export async function keyLetters(codes: readonly string[]): Promise<string[]> {

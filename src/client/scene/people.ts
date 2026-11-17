@@ -80,3 +80,14 @@ export const restAfter = (idleSeconds: number) => idleSeconds >= REST_SECONDS;
 
 /** Whether the foreman rests, from the last input's time and now (milliseconds): the first input wakes him. */
 export const restState = (lastInput: number, now: number): "rest" | "awake" => (restAfter((now - lastInput) / 1000) ? "rest" : "awake");
+
+/** The worker the foreman can cheer: the nearest within 4 m, with the pallet they stand by. */
+export function nearestWorker(spots: { login: string; x: number; z: number; pallet: number }[], player: { x: number; z: number }): { login: string; pallet: number } | null {
+  let best: { login: string; pallet: number } | null = null;
+  let bestD = NEAR;
+  for (const s of spots) {
+    const d = Math.hypot(s.x - player.x, s.z - player.z);
+    if (d < bestD) { bestD = d; best = { login: s.login, pallet: s.pallet }; }
+  }
+  return best;
+}

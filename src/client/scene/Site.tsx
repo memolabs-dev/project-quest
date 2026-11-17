@@ -207,7 +207,7 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
         ))}
         <GateSign x={-width / 2 + 1.5} />
         <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
-        <Player pallets={solid} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
+        <Player pallets={solid} workers={spots} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
       <Effects aoHalf={aoHalf} tiltShift={tiltShift} />

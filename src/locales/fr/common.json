@@ -555,5 +555,28 @@
       "reduce": "Réduit",
       "full": "Complet"
     }
+  },
+  "warm": {
+    "near": "{{key}} pour encourager {{login}}",
+    "cheer": "Encourager",
+    "cheerWho": "Encourager {{login}}",
+    "takeBack": "la retirer",
+    "signs": {
+      "HOORAY": "bravo",
+      "HEART": "avec cœur",
+      "ROCKET": "fonce",
+      "THUMBS_UP": "bien joué"
+    },
+    "what": {
+      "cheer": "Donner {{sign}} à #{{number}}",
+      "uncheer": "Retirer {{sign}} de #{{number}}",
+      "thank": "Remercier pour #{{number}} avec {{sign}}"
+    },
+    "done": {
+      "cheer": "Encouragé {{sign}}",
+      "uncheer": "Retiré {{sign}}",
+      "thank": "Remercié {{sign}}"
+    },
+    "mentions": "Ces mots préviendront {{logins}}."
   }
 }

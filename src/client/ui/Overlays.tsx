@@ -12,8 +12,7 @@ import { Mentor } from "./Mentor.tsx";
 import { PracticeDialogs } from "./PracticeDialogs.tsx";
 import { Settings } from "./Settings.tsx";
 import { SkillBook } from "./SkillBook.tsx";
-
-const NOTICE_MS = 6000;
+import { ConfirmWarm, Notice, WarmPicker } from "./Warm.tsx";
 
 function PalletCard({ number }: { number: number }) {
   const { t } = useTranslation();
@@ -26,6 +25,8 @@ function PalletCard({ number }: { number: number }) {
   const leading = useQuest((s) => (s.siteKind === "team" && s.levels?.path === "lead" ? s.levels : null));
   const openTeam = useQuest((s) => s.openTeam);
   const ask = useQuest((s) => s.ask);
+  // The warm gestures go to the configured project only (and play on the demo site).
+  const warmSite = useQuest((s) => s.siteKind === "main" || s.siteKind === "demo");
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { closeRef.current?.focus(); sendEvent("card-opened"); }, [sendEvent]);
@@ -71,6 +72,12 @@ function PalletCard({ number }: { number: number }) {
           </div>
         </>
       )}
+      {warmSite && !pallet.discarded && (
+        <div className="warm-row">
+          <p className="move-label">{t("warm.cheer")}</p>
+          <WarmPicker pallet={pallet.number} login={null} />
+        </div>
+      )}
       {error && <p className="error" role="alert">{error}</p>}
       {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
       {gestures.length > 0 && !pallet.closed && (
@@ -102,13 +109,8 @@ function ConfirmMove() {
   const refreshLevels = useQuest((s) => s.refreshLevels);
   const announce = useQuest((s) => s.announce);
   const [state, setState] = useState<"idle" | "sending">("idle");
-  const [notice, setNotice] = useState<string | null>(null);
-  // A notice clears by itself after a few seconds, so it never covers the site for good.
-  useEffect(() => {
-    if (!notice) return;
-    const clear = setTimeout(() => setNotice(null), NOTICE_MS);
-    return () => clearTimeout(clear);
-  }, [notice]);
+  // The notice is the site's one notice (Notice), shared with the warm gestures; it clears by itself.
+  const setNotice = useQuest((s) => s.say);
   const sendRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (pending) sendRef.current?.focus(); }, [pending]);
 
@@ -158,7 +160,6 @@ function ConfirmMove() {
           </div>
         </div>
       )}
-      <div className="toast" role="status" aria-live="polite">{notice}</div>
     </>
   );
 }
@@ -237,6 +238,8 @@ export function Overlays() {
       <Mentor />
       {openCard !== null && <PalletCard key={openCard} number={openCard} />}
       <ConfirmMove />
+      <ConfirmWarm />
+      <Notice />
       <PracticeDialogs />
       <ErrorScreen />
     </>

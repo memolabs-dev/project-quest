@@ -25,6 +25,8 @@ export interface WorkerSpot {
   login: string; avatarUrl: string; trade: string | null; x: number; z: number;
   /** At work: an open pallet they carry stands in a middle zone (people.ts). */
   busy: boolean;
+  /** The pallet they stand by: the one a cheer goes to. */
+  pallet: number;
 }
 
 /**
@@ -47,7 +49,7 @@ export function workerSpots(site: Site, pallets: { number: number; x: number; z:
     standing.set(first, k + 1);
     spots.push({
       login: w.login, avatarUrl: w.avatarUrl, trade: byNumber.get(first)?.trade ?? null, x: p.x + 0.7 - k * 0.6, z: p.z - 0.8,
-      busy: workerBusy(site, w.carrying),
+      busy: workerBusy(site, w.carrying), pallet: first,
     });
   }
   return spots;

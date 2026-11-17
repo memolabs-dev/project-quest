@@ -89,6 +89,11 @@ export interface LevelsView {
   };
 }
 
+/** A warm gesture's answer: the site with the player's signs ticked, and the levels (a stamp may have fallen). */
+export type WarmApplyResponse =
+  | { ok: true; site: Site | null; levels: LevelsView | null }
+  | { ok: false; reason: "github"; message: string; applied: string[] };
+
 export type PracticeApplyResponse =
   /** levels is null when GitHub accepted the gesture but the levels could not be read again right after. */
   | { ok: true; levels: LevelsView | null }

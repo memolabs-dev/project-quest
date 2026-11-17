@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ACTION_CODE } from "./client/keys.ts";
+import { ACTION_CODE, CHEER_CODE } from "./client/keys.ts";
 import { useReducedMotion } from "./client/scene/motion.ts";
 import { useQuest } from "./client/store.ts";
 import { Hud } from "./client/ui/Hud.tsx";
@@ -26,7 +26,14 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const s = useQuest.getState();
+      // A key typed in a field is the player's words, never a gesture.
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
       if (e.code === ACTION_CODE && s.nearPallet !== null && s.openCard === null) s.open(s.nearPallet);
+      // R opens the warm signs above the worker within reach (the configured site and the demo only).
+      if (e.code === CHEER_CODE && s.nearWorker && s.openCard === null && s.warm === null && (s.siteKind === "main" || s.siteKind === "demo")) {
+        s.openPicker(s.picker?.login === s.nearWorker.login ? null : { ...s.nearWorker });
+      }
+      if (e.code === "Escape" && s.picker !== null) s.openPicker(null);
       if (e.code === "Escape" && s.openCard !== null) s.open(null);
     };
     addEventListener("keydown", onKey);

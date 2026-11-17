@@ -555,5 +555,28 @@
       "reduce": "Reduced",
       "full": "Full"
     }
+  },
+  "warm": {
+    "near": "{{key}} to cheer {{login}}",
+    "cheer": "Cheer",
+    "cheerWho": "Cheer {{login}}",
+    "takeBack": "take it back",
+    "signs": {
+      "HOORAY": "hooray",
+      "HEART": "with love",
+      "ROCKET": "go for it",
+      "THUMBS_UP": "well done"
+    },
+    "what": {
+      "cheer": "Give {{sign}} to #{{number}}",
+      "uncheer": "Take back {{sign}} from #{{number}}",
+      "thank": "Thank for #{{number}} with {{sign}}"
+    },
+    "done": {
+      "cheer": "Cheered {{sign}}",
+      "uncheer": "Taken back {{sign}}",
+      "thank": "Thanked {{sign}}"
+    },
+    "mentions": "These words will notify {{logins}}."
   }
 }

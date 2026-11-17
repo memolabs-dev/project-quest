@@ -1,4 +1,5 @@
 // Game state: the site, what the player is near, the open card and the move waiting for confirmation.
+import type { PreparedWarm } from "../shared/gestures/warm.ts";
 import { create } from "zustand";
 import type { LevelsView, PreparedMove, SiteResponse } from "../shared/api.ts";
 import type { TeamKind } from "../shared/gestures/team.ts";
@@ -56,6 +57,18 @@ interface QuestState {
   /** The foreman's latest reaction to a moment; `at` changes each time, so the same reaction can repeat. */
   reaction: { kind: "cheer" | "lean"; at: number } | null;
   react(kind: "cheer" | "lean"): void;
+  /** The worker within reach of a cheer, and the pallet they stand by. */
+  nearWorker: { login: string; pallet: number } | null;
+  setNearWorker(w: { login: string; pallet: number } | null): void;
+  /** The four warm signs, open above a worker (login) or on a card (login null). */
+  picker: { login: string | null; pallet: number } | null;
+  openPicker(p: { login: string | null; pallet: number } | null): void;
+  /** A warm gesture waiting for the player's confirmation. */
+  warm: PreparedWarm | null;
+  setWarm(p: PreparedWarm | null): void;
+  /** The one notice over the site (a gesture's outcome); it clears by itself. */
+  notice: string | null;
+  say(text: string | null): void;
 }
 
 export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor" | "ask";
@@ -151,4 +164,14 @@ export const useQuest = create<QuestState>((set, get) => ({
     set({ openCard, pending: null });
   },
   setPending: (pending) => set({ pending }),
+  nearWorker: null,
+  // Walking away from a worker closes the signs open above them.
+  setNearWorker: (w) => set((s) => (s.nearWorker?.login === w?.login && s.nearWorker?.pallet === w?.pallet ? s
+    : { nearWorker: w, picker: s.picker?.login && s.picker.login !== w?.login ? null : s.picker })),
+  picker: null,
+  openPicker: (picker) => set({ picker }),
+  warm: null,
+  setWarm: (warm) => set({ warm }),
+  notice: null,
+  say: (notice) => set({ notice }),
 }));
