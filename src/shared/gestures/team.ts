@@ -281,6 +281,9 @@ const zonesOf = (team: PracticeSnapshot) => {
 export function prepareWipLimit(team: PracticeSnapshot, limit: number): PreparedTeam {
   if (!Number.isInteger(limit) || limit < 1 || limit > 10) throw new GestureError("A limit is a whole number from 1 to 10");
   const { statusFieldId, options } = zonesOf(team);
+  // The team's day must be able to push Being laid two over it with the jobs the site has.
+  const most = movable(team).length + inProgress(team) - 2;
+  if (limit > most) throw new GestureError(`Your site has jobs enough for a limit of at most ${Math.max(most, 0)}`);
   return {
     kind: "wip-limit", repo: team.repo.nameWithOwner, args: { limit },
     mutations: [{ name: "updateProjectV2Field", input: {
@@ -293,16 +296,19 @@ export function prepareWipLimit(team: PracticeSnapshot, limit: number): Prepared
   };
 }
 
+/** The open jobs on the board the team could start: never a job split into parts, it is a building. */
+const movable = (team: PracticeSnapshot) => team.issues
+  .filter((i) => !i.closed && i.itemId && i.status !== LAYING && (i.subIssues ?? []).length === 0)
+  .sort((a, b) => a.number - b.number);
+
 /** The fictitious team's day: it starts jobs until "Being laid" is two over its limit (lead's path spec, section 4). */
 export function prepareTeamDay(team: PracticeSnapshot): PreparedTeam {
   const limit = wipLimit(team);
   if (limit === null) throw new GestureError("Set a limit on Being laid first");
   const { board, statusFieldId, idOf } = zonesOf(team);
   const need = limit + 2 - inProgress(team);
-  if (need <= 0) throw new GestureError("Being laid is already over its limit");
-  const idle = team.issues
-    .filter((i) => !i.closed && i.itemId && i.status !== LAYING && (i.subIssues ?? []).length === 0)
-    .sort((a, b) => a.number - b.number);
+  if (need <= 0) throw new GestureError("Being laid is already two over its limit: move some out first, then the team's day can begin");
+  const idle = movable(team);
   if (idle.length < need) throw new GestureError(`The team needs ${need} open jobs to start, your site has ${idle.length}`);
   return {
     kind: "team-day", repo: team.repo.nameWithOwner, args: {},

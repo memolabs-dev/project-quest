@@ -11,7 +11,7 @@ export const TUTORIAL_EVENTS = ["walked", "card-opened", "card-read", "pallet-mo
 export type TutorialEvent = (typeof TUTORIAL_EVENTS)[number];
 
 /** What the lead did that GitHub cannot show afterwards; recorded by the server only, once GitHub accepted the gesture. */
-export const LEAD_EVENTS = ["team-day", "visit-moved"] as const;
+export const LEAD_EVENTS = ["team-day", "wip-over", "visit-moved"] as const;
 export type LeadEvent = (typeof LEAD_EVENTS)[number];
 export type GameEvent = TutorialEvent | LeadEvent;
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 import {
-  boardCatchingUp, canFollow, capacityEditable, cardGestures, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
+  boardCatchingUp, canFollow, capacityEditable, cardGestures, limitEditable, noOpenVisit, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
 } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
@@ -164,6 +164,16 @@ describe("the lead's path", () => {
     const limited = lead("l10-wip", { exists: true, wip: { limit: 2, count: 0 } });
     expect(mentorAction(limited, "team")).toBe("team-day");
     expect(mentorAction(lead("l10-wip", { exists: true, wip: { limit: 2, count: 4 }, teamDay: true }), "team")).toBeNull();
+  });
+  it("the limit can be changed until the team's day", () => {
+    expect(limitEditable(lead("l10-wip", { exists: true, wip: { limit: 6, count: 0 } }))).toBe(true);
+    expect(limitEditable(lead("l10-wip", { exists: true, wip: { limit: 2, count: 4 }, teamDay: true }))).toBe(false);
+    expect(limitEditable(lead("l10-wip", { exists: true }))).toBe(false);
+  });
+  it("with no open visit, the mayor asks to reopen or set one, never an empty choice", () => {
+    expect(mentorAction(lead("l11-visit", { exists: true }), "team")).toBeNull();
+    expect(noOpenVisit(lead("l11-visit", { exists: true }))).toBe(true);
+    expect(noOpenVisit(lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: null, openIssues: 0 }] }))).toBe(false);
   });
   it("the mayor's visit ends", () => {
     const v = lead("l11-visit", { exists: true, milestones: [{ number: 1, title: "FICTIF Visit", dueOn: "2026-12-01T00:00:00Z", openIssues: 1 }] });

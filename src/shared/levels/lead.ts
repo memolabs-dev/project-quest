@@ -130,7 +130,9 @@ export const PROJECT_DIRECTOR: Level[] = [
   }),
   director("l10-wip", (o) => {
     const limit = wipLimit(o.team);
-    const back = limit !== null && o.events.includes("team-day") && inProgress(o.team) <= limit;
+    // "wip-over": the server saw Being laid over its limit after the team's day, so a read GitHub has not caught up
+    // with can never stamp the level.
+    const back = limit !== null && o.events.includes("team-day") && o.events.includes("wip-over") && inProgress(o.team) <= limit;
     return back && o.team?.board ? { done: true, proof: o.team.board.url } : NOT_YET;
   }),
   director("l11-visit", (o) => {

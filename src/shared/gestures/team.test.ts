@@ -207,7 +207,7 @@ describe("the Project director's gestures", () => {
     expect(() => prepareBulletin(site(), "SUNNY", "words")).toThrow(GestureError);
   });
   it("writes the limit and keeps every option's id", () => {
-    const p = prepareWipLimit(site({}, "Being laid"), 3);
+    const p = prepareWipLimit(site({ issues: [1, 2, 3, 4, 5].map((n) => issue(n)) }, "Being laid"), 3);
     const options = p.mutations[0].input.singleSelectOptions as { id: string; name: string; description: string; color: string }[];
     expect(p.mutations[0]).toMatchObject({ name: "updateProjectV2Field", input: { fieldId: "F_status" } });
     expect(options.map((o) => o.id)).toEqual(["z0", "z1", "z2", "z3", "z4"]);
@@ -215,6 +215,14 @@ describe("the Project director's gestures", () => {
     expect(options.find((o) => o.name === "Backlog")?.description).toBe("Backlog here");
     expect(options.every((o) => o.color)).toBe(true);
     for (const bad of [0, 11, 2.5]) expect(() => prepareWipLimit(site(), bad), String(bad)).toThrow(GestureError);
+  });
+  it("caps the limit so the team's day can still push it over", () => {
+    const jobs = site({ issues: [1, 2, 3, 4, 5, 6].map((n) => issue(n)) });
+    expect(prepareWipLimit(jobs, 4).mutations).toHaveLength(1);
+    expect(() => prepareWipLimit(jobs, 5)).toThrow(/at most 4/);
+  });
+  it("tells the player to move jobs out when Being laid is already two over", () => {
+    expect(() => prepareTeamDay(site({ issues: [1, 2, 3, 4].map((n) => issue(n, { status: "In progress" })) }))).toThrow(/move some out/);
   });
   it("the team's day pushes \"Being laid\" two over its limit", () => {
     const t = site({ issues: [issue(1, { status: "In progress" }), issue(2), issue(3, { subIssues: [7, 8] }), issue(4, { closed: true }), issue(5), issue(6), issue(7)] });

@@ -209,9 +209,13 @@ describe("the Project director levels", () => {
       expect(inProgress(team({ issues: [...laying(2), parcel("square", { status: "In progress", closed: true })] }))).toBe(2);
     });
     it("passes once the team's day happened and Being laid is back under its limit, proof the board", () => {
-      const o: Observed = { ...seen(team({ board: withLimit("Being laid. Limit: 3."), issues: laying(3) })), events: ["team-day"] };
+      const o: Observed = { ...seen(team({ board: withLimit("Being laid. Limit: 3."), issues: laying(3) })), events: ["team-day", "wip-over"] };
       expect(d("l10-wip").check(o)).toEqual({ done: true, proof: board().url });
       expect(d("l10-wip").check({ ...o, team: team({ board: withLimit("Being laid. Limit: 3."), issues: laying(4) }) }).done).toBe(false);
+    });
+    it("l10 needs Being laid seen over its limit, not only the team's day sent", () => {
+      const o: Observed = { ...seen(team({ board: withLimit("Being laid. Limit: 3."), issues: laying(3) })), events: ["team-day"] };
+      expect(d("l10-wip").check(o).done).toBe(false);
     });
     it("l10 needs the team's day first", () => {
       expect(d("l10-wip").check(seen(team({ board: withLimit("Being laid. Limit: 3."), issues: laying(1) }))).done).toBe(false);

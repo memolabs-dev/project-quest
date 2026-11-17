@@ -103,7 +103,9 @@
       "unsized": "Sans taille : {{numbers}}.",
       "change": "Changer la capacité"
     },
-    "wip": "En pose : {{count}} sur {{limit}}."
+    "wip": "En pose : {{count}} sur {{limit}}.",
+    "changeLimit": "Changer la limite",
+    "noVisit": "Aucune visite ouverte : rouvre le jalon sur GitHub, ou demande une nouvelle visite à la maire."
   },
   "skills": {
     "title": "Compétences",

@@ -229,6 +229,25 @@ describe("the team site", () => {
     expect(await deps.progress.events(VIEWER)).toEqual(["team-day"]);
   });
 
+  it("stamps l10 only once Being laid was seen over its limit, never from a read GitHub has not caught up", async () => {
+    const progress = memoryProgress();
+    await progress.setPath(VIEWER, "lead");
+    for (const id of ["l1-found-team", "l2-sort-parcels", "l3-ready", "l4-size", "l5-sprint", "l6-milestone", "l7-split", "l8-rope", "l9-bulletin"]) {
+      await progress.stamp(VIEWER, id, "u");
+    }
+    await progress.addEvent(VIEWER, "team-day");
+    const zones = ["Backlog", "Ready", "In progress", "In review", "Done"].map((name, i) => ({ id: `z${i}`, name, description: name === "In progress" ? "Being laid. Limit: 1." : "" }));
+    const at = (n: number) => ({ ...team, board: { ...team.board!, statusOptionIds: zones }, issues: Array.from({ length: n }, (_, i) => issue({ number: i + 1, status: "In progress" })) });
+    let read = at(1);
+    const { app } = make(null, { progress, readPractice: async (_o: string, name: string) => (name === "my-first-team" ? read : null) });
+    expect((await view(await app.request("/api/levels/check", post({})))).current).toBe("l10-wip");
+    read = at(3);
+    expect((await view(await app.request("/api/levels/check", post({})))).current).toBe("l10-wip");
+    expect(await progress.events(VIEWER)).toContain("wip-over");
+    read = at(1);
+    expect((await view(await app.request("/api/levels/check", post({})))).current).toBe("l11-visit");
+  });
+
   it("the view tells \"Being laid\" against its limit and the last bulletin", async () => {
     const progress = memoryProgress();
     await progress.setPath(VIEWER, "lead");

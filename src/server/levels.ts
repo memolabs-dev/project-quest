@@ -34,6 +34,12 @@ const PATHS: Path[] = ["volunteer", "lead"];
 /** Runs the checks in order, stamps every newly passing level, stops at the first that does not pass. */
 export async function checkLevels(deps: Deps, login: string, seen?: Observed): Promise<LevelsView> {
   const o = seen ?? (await observe(deps, login));
+  // The team's day happened and GitHub now shows Being laid over its limit: remember it was seen (level 10).
+  const limit = wipLimit(o.team);
+  if (o.events.includes("team-day") && !o.events.includes("wip-over") && limit !== null && inProgress(o.team) > limit) {
+    await deps.progress.addEvent(login, "wip-over");
+    o.events = [...o.events, "wip-over"];
+  }
   const stamped = new Set((await deps.progress.stamps(login)).map((s) => s.levelId));
   // Each path runs on its own: a level not passed on one never holds back the other.
   for (const path of PATHS) {

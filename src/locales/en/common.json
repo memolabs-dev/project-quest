@@ -103,7 +103,9 @@
       "unsized": "Without a size: {{numbers}}.",
       "change": "Change the capacity"
     },
-    "wip": "Being laid: {{count}} of {{limit}}."
+    "wip": "Being laid: {{count}} of {{limit}}.",
+    "changeLimit": "Change the limit",
+    "noVisit": "No visit is open: reopen the milestone on GitHub, or ask the mayor for a new one."
   },
   "skills": {
     "title": "Skills",

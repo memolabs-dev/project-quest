@@ -37,7 +37,7 @@ export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | n
     if (level.id === "l9-bulletin") return "bulletin";
     // The limit first, then the team's day pushes it over; bringing it back under is done on the cards' moves.
     if (level.id === "l10-wip") return view.team.wip.limit === null ? "wip-limit" : !view.team.teamDay ? "team-day" : null;
-    if (level.id === "l11-visit") return "visit";
+    if (level.id === "l11-visit") return view.team.milestones.length > 0 ? "visit" : null;
     return null;
   }
   if (level.where === "tutorial") return kind === "demo" ? null : "to-tutorial";
@@ -121,3 +121,9 @@ export function teamRewards(view: LevelsView, kind: SiteKind) {
 
 /** While the sprint is planned, the lead can change the capacity they declared: a mistaken 1 must never lock the level. */
 export const capacityEditable = (view: LevelsView) => view.current === "l5-sprint" && view.team.sprint.current !== null;
+
+/** Until the team's day, the lead can change the limit they wrote: one too high would leave the team's day impossible. */
+export const limitEditable = (view: LevelsView) => view.current === "l10-wip" && view.team.wip.limit !== null && !view.team.teamDay;
+
+/** At the mayor's visit with no open milestone (closed on GitHub, jobs still open): the mayor says what to do. */
+export const noOpenVisit = (view: LevelsView) => view.current === "l11-visit" && view.team.milestones.length === 0;
