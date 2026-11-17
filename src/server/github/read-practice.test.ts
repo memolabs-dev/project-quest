@@ -97,10 +97,19 @@ describe("what the lead's levels need", () => {
     });
     expect(p?.milestones).toEqual([{
       id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z",
-      url: "https://github.com/fictif-volunteer/my-first-site/milestone/1", closed: false,
+      url: "https://github.com/fictif-volunteer/my-first-site/milestone/1", closed: false, openIssues: 1, closedIssues: 2,
     }]);
     expect(p?.issues[0]).toMatchObject({ iteration: "it2", milestone: 1, subIssues: [2, 5], blockedBy: [] });
     expect(p?.issues[1]).toMatchObject({ iteration: null, milestone: null, subIssues: [], blockedBy: [1] });
+  });
+  it("maps the board's status updates, the zones' descriptions and each visit's progress", async () => {
+    const p = await readPractice(gqlReturning(fixture), "fictif-volunteer", "my-first-site");
+    expect(p?.board?.statusOptionIds?.find((o) => o.name === "In Progress")).toEqual({ id: "o2", name: "In Progress", description: "Being laid. Limit: 3." });
+    expect(p?.board?.statusUpdates).toEqual([
+      { status: "AT_RISK", body: "FICTIF Sprint 1: 2 of 3 points.", createdAt: "2026-11-17T18:00:00Z" },
+      { status: "ON_TRACK", body: "FICTIF earlier", createdAt: "2026-11-16T18:00:00Z" },
+    ]);
+    expect(p?.milestones?.[0]).toMatchObject({ openIssues: 1, closedIssues: 2 });
   });
 });
 

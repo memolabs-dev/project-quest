@@ -13,15 +13,18 @@
             "options": [
               {
                 "id": "o1",
-                "name": "Todo"
+                "name": "Todo",
+                "description": ""
               },
               {
                 "id": "o2",
-                "name": "In Progress"
+                "name": "In Progress",
+                "description": "Being laid. Limit: 3."
               },
               {
                 "id": "o3",
-                "name": "Done"
+                "name": "Done",
+                "description": ""
               }
             ],
             "id": "PVTSSF_status"
@@ -93,6 +96,20 @@
                     }
                   ]
                 }
+              }
+            ]
+          },
+          "statusUpdates": {
+            "nodes": [
+              {
+                "status": "AT_RISK",
+                "body": "FICTIF Sprint 1: 2 of 3 points.",
+                "createdAt": "2026-11-17T18:00:00Z"
+              },
+              {
+                "status": "ON_TRACK",
+                "body": "FICTIF earlier",
+                "createdAt": "2026-11-16T18:00:00Z"
               }
             ]
           }
@@ -418,7 +435,9 @@
           "title": "FICTIF The mayor visits",
           "dueOn": "2026-11-29T12:00:00Z",
           "url": "https://github.com/fictif-volunteer/my-first-site/milestone/1",
-          "closed": false
+          "closed": false,
+          "openIssueCount": 1,
+          "closedIssueCount": 2
         }
       ]
     }

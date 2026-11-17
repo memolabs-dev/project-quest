@@ -41,7 +41,14 @@ export interface PracticeIssue {
 export interface Iteration { id: string; title: string; startDate: string; duration: number }
 
 /** A milestone of the repository: the mayor's visit. */
-export interface Milestone { id: string; number: number; title: string; dueOn: string | null; url: string; closed: boolean }
+export interface Milestone {
+  id: string; number: number; title: string; dueOn: string | null; url: string; closed: boolean;
+  /** Its issues still open, and those closed: the visit is ready when none is open. */
+  openIssues: number; closedIssues: number;
+}
+
+/** A board's status update: the evening bulletin. */
+export interface StatusUpdate { status: string | null; body: string; createdAt: string }
 
 /** A field of a board; single selects carry their options. */
 export interface BoardField {
@@ -79,8 +86,10 @@ export interface PracticeSnapshot {
     /** The Status options, in order (the same as columns). */
     statusOptions?: string[];
     /** The same options with their ids: kept when the options are rewritten, so items keep their column. */
-    statusOptionIds?: { id: string; name: string }[];
+    statusOptionIds?: { id: string; name: string; description?: string }[];
     fields?: BoardField[];
+    /** Newest first. */
+    statusUpdates?: StatusUpdate[];
   } | null;
   /** The repository's labels, with their ids (for labelling). */
   labels?: { id: string; name: string }[];

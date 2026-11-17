@@ -144,7 +144,7 @@ describe("the Site manager levels", () => {
   });
 
   describe("l6-milestone", () => {
-    const visit = { id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "u-visit", closed: false };
+    const visit = { id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "u-visit", closed: false, openIssues: 0, closedIssues: 0 };
     it("passes on an open milestone with a due date and an issue under it, proof the milestone", () => {
       expect(m("l6-milestone").check(seen(team({ milestones: [visit], issues: [parcel("bench", { milestone: 1 })] })))).toEqual({ done: true, proof: "u-visit" });
     });

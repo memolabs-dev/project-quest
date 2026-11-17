@@ -204,7 +204,7 @@ describe("the team site", () => {
     const loaded = {
       ...team,
       board: { ...team.board!, fields: [{ id: "F_sprint", name: "Sprint", dataType: "ITERATION", iterations: [{ id: "it1", title: "Sprint 1", startDate: "2026-11-17", duration: 7 }] }] },
-      milestones: [{ id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "m", closed: false }],
+      milestones: [{ id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "m", closed: false, openIssues: 0, closedIssues: 0 }],
       issues: [issue({ number: 2, iteration: "it1", size: "M" }), issue({ number: 3, iteration: "it1" }), issue({ number: 4, iteration: "it1", size: "XL", closed: true })],
     };
     const { app } = make(null, { progress, readPractice: reading(loaded), today: () => "2026-11-18" });

@@ -146,11 +146,11 @@ describe("the Site manager's gestures", () => {
       { name: "updateIssue", input: { id: "I_2", milestoneId: "$milestoneId" } },
       { name: "updateIssue", input: { id: "I_3", milestoneId: "$milestoneId" } },
     ]);
-    const visit = { id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "m", closed: false };
+    const visit = { id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "m", closed: false, openIssues: 0, closedIssues: 0 };
     expect(prepareAttach(team({ issues: [issue(4)], milestones: [visit] }), 4, 1).mutations).toEqual([{ name: "updateIssue", input: { id: "I_4", milestoneId: "MI_1" } }]);
   });
   it("refuses a past or malformed due date, and a title in use", () => {
-    const t = team({ issues: [issue(2)], milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: false }] });
+    const t = team({ issues: [issue(2)], milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: false, openIssues: 0, closedIssues: 0 }] });
     for (const due of ["2026-11-16", "29/11/2026", "2026-02-30", ""]) {
       expect(() => prepareMilestone(t, "FICTIF Other", due, [2], TODAY), due).toThrow(GestureError);
     }
@@ -160,7 +160,7 @@ describe("the Site manager's gestures", () => {
     expect(prepareMilestone(t, "FICTIF Other", TODAY, [2], TODAY).mutations).toHaveLength(2);
   });
   it("refuses a title a closed milestone already holds: GitHub keeps titles unique", () => {
-    const t = team({ issues: [issue(2)], milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: true }] });
+    const t = team({ issues: [issue(2)], milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: true, openIssues: 0, closedIssues: 0 }] });
     expect(() => prepareMilestone(t, "FICTIF Visit", "2026-11-29", [2], TODAY)).toThrow(/already/);
   });
   it("splits into FICTIF parts, each a sub-issue on the board", () => {

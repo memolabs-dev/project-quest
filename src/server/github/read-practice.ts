@@ -1,7 +1,7 @@
 // Reads the player's practice repository: its board (the viewer's own linked project) and its newest issues,
 // with each issue's column on that board. Null when the repository does not exist yet.
 import type { QuestConfig } from "../../shared/config.ts";
-import type { Iteration, Milestone, PracticeSnapshot } from "../../shared/levels/types.ts";
+import type { Iteration, PracticeSnapshot, StatusUpdate } from "../../shared/levels/types.ts";
 import type { Gql } from "./client.ts";
 import { BoardNotFoundError } from "./errors.ts";
 
@@ -30,7 +30,8 @@ export const PRACTICE_QUERY = /* GraphQL */ `
         nodes {
           id number url title
           owner { ... on User { login } ... on Organization { login } }
-          field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name } } }
+          field(name: "Status") { ... on ProjectV2SingleSelectField { id options { id name description } } }
+          statusUpdates(first: 5) { nodes { status body createdAt } }
           fields(first: 30) {
             nodes {
               ... on ProjectV2FieldCommon { id name dataType }
@@ -45,7 +46,7 @@ export const PRACTICE_QUERY = /* GraphQL */ `
       }
       labels(first: 50) { nodes { id name } }
       milestones(first: 20, states: [OPEN, CLOSED], orderBy: { field: CREATED_AT, direction: DESC }) {
-        nodes { id number title dueOn url closed }
+        nodes { id number title dueOn url closed openIssueCount closedIssueCount }
       }
       issues(first: 50, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
@@ -91,14 +92,18 @@ interface PracticeResponse {
     }[] };
     projectsV2: { nodes: {
       id: string; number: number; url: string; title: string; owner: { login?: string } | null;
-      field: { id?: string; options: { id: string; name: string }[] } | null;
+      field: { id?: string; options: { id: string; name: string; description?: string }[] } | null;
+      statusUpdates?: { nodes: StatusUpdate[] };
       fields?: { nodes: {
         id?: string; name?: string; dataType?: string; options?: { id: string; name: string }[];
         configuration?: { iterations: Iteration[]; completedIterations: Iteration[] };
       }[] };
     }[] };
     labels?: { nodes: { id: string; name: string }[] };
-    milestones?: { nodes: Milestone[] };
+    milestones?: { nodes: {
+      id: string; number: number; title: string; dueOn: string | null; url: string; closed: boolean;
+      openIssueCount?: number; closedIssueCount?: number;
+    }[] };
     issues: {
       nodes: {
         id: string; number: number; url: string; closed: boolean; body?: string; stateReason?: string | null;
@@ -148,12 +153,16 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
       ...(f.configuration ? { iterations: [...f.configuration.completedIterations, ...f.configuration.iterations]
         .sort((a, b) => a.startDate.localeCompare(b.startDate)) } : {}),
     })),
+    statusUpdates: (p.statusUpdates?.nodes ?? []).map((u) => ({ status: u.status ?? null, body: u.body ?? "", createdAt: u.createdAt })),
   } : null;
   return {
     repo: { id: r.id, nameWithOwner: r.nameWithOwner, url: r.url },
     board,
     labels: r.labels?.nodes ?? [],
-    milestones: r.milestones?.nodes ?? [],
+    milestones: (r.milestones?.nodes ?? []).map((m) => ({
+      id: m.id, number: m.number, title: m.title, dueOn: m.dueOn, url: m.url, closed: m.closed,
+      openIssues: m.openIssueCount ?? 0, closedIssues: m.closedIssueCount ?? 0,
+    })),
     issues: r.issues.nodes.map((i) => {
       const item = board ? i.projectItems.nodes.find((n) => n.project.id === board.id) : undefined;
       return {
