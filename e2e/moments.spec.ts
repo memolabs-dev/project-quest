@@ -31,7 +31,10 @@ const movePallet = async (page: Page) => {
   });
   const card = page.getByRole("dialog", { name: /Build the shelves/ });
   await card.locator(".zones button").first().click();
+  // On a loaded machine the dev server can answer late: the clock starts once the move is applied.
+  const applied = page.waitForResponse((r) => r.url().includes("/moves/apply"));
   await page.getByRole("dialog", { name: /sent to GitHub/ }).getByRole("button", { name: /Send to GitHub/ }).click();
+  expect((await applied).ok()).toBe(true);
   await expect(page.getByRole("status")).not.toBeEmpty();
 };
 
