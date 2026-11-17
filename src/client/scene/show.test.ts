@@ -41,8 +41,8 @@ describe("workerSpots", () => {
     zones: [{ name: "Backlog", index: 0 }],
     buildings: [],
     pallets: [
-      { number: 7, itemId: "a", title: "FICTIF", url: "", zone: "Backlog", closed: false, building: null, isBug: false, goodFirst: false, trade: "painter", size: null },
-      { number: 3, itemId: "b", title: "FICTIF", url: "", zone: "Backlog", closed: false, building: null, isBug: false, goodFirst: false, trade: "mason", size: null },
+      { number: 7, itemId: "a", title: "FICTIF", url: "", zone: "Backlog", closed: false, discarded: false, building: null, isBug: false, goodFirst: false, trade: "painter", size: null },
+      { number: 3, itemId: "b", title: "FICTIF", url: "", zone: "Backlog", closed: false, discarded: false, building: null, isBug: false, goodFirst: false, trade: "mason", size: null },
     ],
     workers: [{ login: "fictif-maria", avatarUrl: "https://example.org/a.png", carrying: [7, 3] }],
   };
@@ -57,7 +57,7 @@ describe("workerSpots", () => {
 
   const zones = [{ name: "Backlog", index: 0 }, { name: "Done", index: 1 }];
   const p = (number: number, zone: string, closed = false) =>
-    ({ number, itemId: `i${number}`, title: "FICTIF", url: "", zone, closed, building: null, isBug: false, goodFirst: false, trade: null, size: null });
+    ({ number, itemId: `i${number}`, title: "FICTIF", url: "", zone, closed, discarded: false, building: null, isBug: false, goodFirst: false, trade: null, size: null });
 
   it("stands a worker by their current work, not a finished issue", () => {
     const s: Site = { zones, buildings: [], pallets: [p(1, "Done", true), p(5, "Backlog")], workers: [{ login: "a", avatarUrl: "", carrying: [1, 5] }] };
@@ -109,7 +109,7 @@ describe("idleOffset", () => {
 
 describe("termiteSpots", () => {
   const pallet = (number: number, isBug: boolean, closed = false, size: string | null = null) => ({
-    number, itemId: `i${number}`, title: "FICTIF", url: "", zone: "Backlog", closed, building: null, isBug, goodFirst: false, trade: null, size,
+    number, itemId: `i${number}`, title: "FICTIF", url: "", zone: "Backlog", closed, discarded: false, building: null, isBug, goodFirst: false, trade: null, size,
   });
   it("puts termites on open bug pallets only, sized to the crate", () => {
     const site: Site = { zones: [], buildings: [], workers: [], pallets: [pallet(1, true), pallet(2, false), pallet(3, true, true), pallet(4, true, false, "XL")] };

@@ -23,7 +23,7 @@ export const BOARD_QUERY = /* GraphQL */ `
               content {
                 __typename
                 ... on Issue {
-                  id number title url state
+                  id number title url state stateReason
                   repository { nameWithOwner }
                   issueType { name }
                   parent { number }
@@ -42,7 +42,7 @@ export const BOARD_QUERY = /* GraphQL */ `
 
 interface IssueNode {
   __typename: "Issue";
-  id: string; number: number; title: string; url: string; state: "OPEN" | "CLOSED";
+  id: string; number: number; title: string; url: string; state: "OPEN" | "CLOSED"; stateReason: string | null;
   repository: { nameWithOwner: string };
   issueType: { name: string } | null;
   parent: { number: number } | null;
@@ -88,7 +88,7 @@ export async function readBoard(gql: Gql, config: QuestConfig): Promise<BoardSna
       const c = n.content;
       if (!isIssue(c) || c.repository.nameWithOwner.toLowerCase() !== repo) continue;
       items.push({
-        itemId: n.id, issueId: c.id, number: c.number, title: c.title, url: c.url, state: c.state,
+        itemId: n.id, issueId: c.id, number: c.number, title: c.title, url: c.url, state: c.state, stateReason: c.stateReason ?? null,
         status: n.status?.name ?? null, size: n.size?.name ?? null, parent: c.parent?.number ?? null,
         isEpic: c.issueType?.name === "Epic" || c.subIssuesSummary.total > 0,
         labels: c.labels.nodes.map((l) => l.name), assignees: c.assignees.nodes, updatedAt: n.updatedAt,

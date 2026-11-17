@@ -8,6 +8,8 @@ export interface BoardItem {
   title: string;
   url: string;
   state: "OPEN" | "CLOSED";
+  /** Why it was closed: COMPLETED, NOT_PLANNED or DUPLICATE. */
+  stateReason?: string | null;
   status: string | null;
   size: string | null;
   parent: number | null;
@@ -35,6 +37,8 @@ export interface Pallet {
   zone: string;
   /** Closed issues stand in the last zone and cannot be moved until reopened. */
   closed: boolean;
+  /** Closed as a duplicate or as not planned: cleared away, never a floor. */
+  discarded: boolean;
   building: number | null;
   isBug: boolean;
   /** Marked for newcomers (config.labels.goodFirst). */
@@ -68,7 +72,8 @@ export function buildSite(board: BoardSnapshot, config: QuestConfig): Site {
     }
     const trade = i.labels.map((l) => config.labels.trades[l]).find(Boolean) ?? null;
     return {
-      number: i.number, itemId: i.itemId, title: i.title, url: i.url, zone, closed: i.state === "CLOSED", building: epicOf(i)?.number ?? null,
+      number: i.number, itemId: i.itemId, title: i.title, url: i.url, zone, closed: i.state === "CLOSED",
+      discarded: i.state === "CLOSED" && (i.stateReason === "DUPLICATE" || i.stateReason === "NOT_PLANNED"), building: epicOf(i)?.number ?? null,
       isBug: i.labels.some((l) => config.labels.bug.includes(l)), goodFirst: i.labels.some((l) => config.labels.goodFirst.includes(l)),
       trade, size: i.size,
     };
@@ -76,7 +81,7 @@ export function buildSite(board: BoardSnapshot, config: QuestConfig): Site {
 
   const buildings: Building[] = [];
   const floorsOf = (epic: number | null) => {
-    const own = pallets.filter((p) => p.building === epic);
+    const own = pallets.filter((p) => p.building === epic && !p.discarded);
     return { floorsDone: own.filter((p) => p.zone === lastZone).length, floorsTotal: own.length };
   };
   for (const e of board.items.filter((i) => i.isEpic)) buildings.push({ epicNumber: e.number, title: e.title, ...floorsOf(e.number) });

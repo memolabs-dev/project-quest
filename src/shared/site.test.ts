@@ -50,6 +50,19 @@ describe("buildSite", () => {
     expect(site.pallets.some((p) => p.number === epic.number)).toBe(false);
   });
 
+  it("a duplicate or a parcel not planned is no floor, done or to do", () => {
+    const epic = item({ isEpic: true });
+    const site = buildSite(board([
+      epic,
+      item({ parent: epic.number, state: "CLOSED", stateReason: "COMPLETED" }),
+      item({ parent: epic.number, state: "CLOSED", stateReason: "DUPLICATE" }),
+      item({ parent: epic.number, state: "CLOSED", stateReason: "NOT_PLANNED" }),
+      item({ parent: epic.number }),
+    ]), config);
+    expect(site.buildings.find((b) => b.epicNumber === epic.number)).toMatchObject({ floorsDone: 1, floorsTotal: 2 });
+    expect(site.pallets.filter((p) => p.discarded).map((p) => p.number)).toHaveLength(2);
+  });
+
   it("puts issues without a parent epic in the unassigned building", () => {
     const loose = item();
     const site = buildSite(board([loose]), config);
