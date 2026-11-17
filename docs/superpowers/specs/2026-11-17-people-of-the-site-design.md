@@ -36,7 +36,7 @@ The player can be warm to the real people of the GitHub project: cheer them on, 
 - **When**: a pallet has just been laid (issue closed as completed), by the player or by someone else. After the floor-laid moment, the game offers "Thank maria?" (with several assignees, their logins; with none, "Thank the team?"). The same gesture stays on the card of any laid pallet.
 - **What is sent**: by default a reaction (🎉 or ❤️, the player picks), no notification. If the player wishes, words they write themselves: `addComment` on the issue, read back before it is sent.
 - **@mentions**: the game never adds one. If the player's own text holds one, the confirmation says so plainly: "These words will notify @x."
-- **One comment per pallet per player**: the game remembers it in the action log; the words field is gone once they are sent. Reactions stay possible.
+- **One comment per pallet per player**: GitHub is the memory: a comment by the player after the issue was closed means they already thanked with words, and the words field is gone. Reactions stay possible.
 
 ## 6. Reads, writes and failures
 
