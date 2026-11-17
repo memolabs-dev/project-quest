@@ -111,3 +111,13 @@ describe("nearestWorker", () => {
     expect(nearestWorker(spots, { x: 20, z: 0 })).toBeNull();
   });
 });
+
+describe("nextClip answers a warm gesture", () => {
+  it("plays the answer once, then goes back to what the worker was doing", () => {
+    const p: ClipPlan = { step: 0, left: 5, gesture: "PickUp", wave: 0, answer: { clip: "Cheer", left: 1 } };
+    const at = { busy: true, lively: true, login: "a", delta: 0.6 };
+    expect(nextClip(p, at)).toBe("Cheer");
+    expect(nextClip(p, at)).toBe("Cheer");
+    expect(nextClip(p, at)).toBe("Use_Item");
+  });
+});

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { WARM_EMOJIS } from "../../shared/gestures/warm.ts";
 import { ApiFailure, api } from "../api.ts";
 import { useQuest } from "../store.ts";
+import { greetAfter } from "../moments/greet.ts";
 import { GLYPH, useWarmGesture } from "./warm-gesture.ts";
 
 /** The four signs for one pallet; a sign already given is pressed, and clicking it offers to take it back. */
@@ -41,6 +42,7 @@ export function ConfirmWarm() {
   const setLevels = useQuest((s) => s.setLevels);
   const announce = useQuest((s) => s.announce);
   const say = useQuest((s) => s.say);
+  const greetWith = useQuest((s) => s.greetWith);
   const [sending, setSending] = useState(false);
   const sendRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (warm) sendRef.current?.focus(); }, [warm]);
@@ -52,6 +54,12 @@ export function ConfirmWarm() {
     setSending(true);
     try {
       const r = await api.applyWarm(warm);
+      const greet = greetAfter(r, warm, 0);
+      if (greet) {
+        // The moment follows the fact: GitHub accepted it. The worker answers, the foreman raises a hand.
+        announce({ kind: greet.kind, pallet: greet.pallet });
+        greetWith({ pallet: greet.pallet, emoji: greet.emoji, kind: greet.kind });
+      }
       if (r.ok) {
         if (r.site) setSite(r.site);
         if (r.levels) setLevels(r.levels);

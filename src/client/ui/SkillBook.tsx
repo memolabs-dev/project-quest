@@ -78,6 +78,29 @@ export function SkillBook() {
               </ol>
             </section>
           ))}
+          {/* The warm gestures belong to every path: stamped the first time each really leaves, never counted. */}
+          <section className="skill-page">
+            <h2>{t("skills.warm.title")}</h2>
+            <ol>
+              {(["warm-cheer", "warm-thank"] as const).map((id) => {
+                const s = stamps.get(id);
+                return (
+                  <li key={id} className={s ? "earned" : "outline"}>
+                    <span className="stamp" aria-hidden="true">{s ? "✓" : ""}</span>
+                    <span className="skill-text">
+                      <b>{t(`skills.warm.${id}`)}</b>
+                      {s ? (
+                        <small>
+                          <time dateTime={s.stampedAt}>{new Date(s.stampedAt).toLocaleDateString(i18n.resolvedLanguage)}</time>
+                          {" · "}<a href={s.proof} target="_blank" rel="noreferrer">{t("skills.proof")}</a>
+                        </small>
+                      ) : <small>{t("skills.notYet")}</small>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
           </div>
         </section>
       )}

@@ -131,7 +131,12 @@
       "volunteer": "Donner un coup de main",
       "lead": "Mener le chantier"
     },
-    "follow": "Suivre ce chemin"
+    "follow": "Suivre ce chemin",
+    "warm": {
+      "title": "Gestes chaleureux",
+      "warm-cheer": "Encourager quelqu'un",
+      "warm-thank": "Remercier quelqu'un pour son travail"
+    }
   },
   "levels": {
     "a1-walk": {

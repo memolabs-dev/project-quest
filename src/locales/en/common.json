@@ -131,7 +131,12 @@
       "volunteer": "Lend a hand",
       "lead": "Run the site"
     },
-    "follow": "Follow this path"
+    "follow": "Follow this path",
+    "warm": {
+      "title": "Warm gestures",
+      "warm-cheer": "Cheer someone on",
+      "warm-thank": "Thank someone for their work"
+    }
   },
   "levels": {
     "a1-walk": {

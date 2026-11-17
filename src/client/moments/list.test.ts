@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MOMENTS, type MomentKind } from "./list.ts";
 
-const KINDS: MomentKind[] = ["pallet-moved", "floor-laid", "parcel", "cleared", "stamp", "refused", "card-open", "card-close", "loaded", "overloaded"];
+const KINDS: MomentKind[] = ["pallet-moved", "floor-laid", "parcel", "cleared", "stamp", "refused", "card-open", "card-close", "loaded", "overloaded", "cheered", "thanked"];
 
 describe("the moments", () => {
   it("every moment has its reduced version", () => {
@@ -25,5 +25,11 @@ describe("the moments", () => {
     expect(big).toEqual(["floor-laid"]);
     expect(MOMENTS["floor-laid"]).toMatchObject({ sound: "chime", dust: "ring" });
     expect(MOMENTS["floor-laid"].reduced.text).toBe("site.newFloor");
+  });
+  it("cheered and thanked have their sound and their reduced version", () => {
+    for (const k of ["cheered", "thanked"] as const) {
+      expect(MOMENTS[k]).toMatchObject({ sound: "cheer", dust: null, kick: 0, react: "lean" });
+      expect(MOMENTS[k].reduced).toEqual({ sound: "cheer", text: null });
+    }
   });
 });

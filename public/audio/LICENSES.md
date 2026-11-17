@@ -13,5 +13,6 @@ Downloaded on 2026-11-17 from kenney.nl, with the owner's approval.
 | `poof.ogg` | Impact Sounds 1.0 | `impactSoft_medium_000.ogg` |
 | `step1.ogg` to `step4.ogg` | Impact Sounds 1.0 | `footstep_concrete_000.ogg` to `footstep_concrete_003.ogg` |
 | `bonk.ogg` | Interface Sounds (https://kenney.nl/assets/interface-sounds) | `bong_001.ogg` |
+| `cheer.ogg` | Interface Sounds | `confirmation_001.ogg` |
 | `rustle.ogg` | RPG Audio (https://kenney.nl/assets/rpg-audio) | `bookFlip1.ogg` |
 | `creak.ogg` | RPG Audio | `creak1.ogg` |

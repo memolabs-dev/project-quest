@@ -11,6 +11,7 @@ import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { playerPosition } from "../moments/player.ts";
 import { useQuest } from "../store.ts";
 import { WarmPicker } from "../ui/Warm.tsx";
+import { GLYPH } from "../ui/warm-gesture.ts";
 import { headTurn } from "./head.ts";
 import { toonOf } from "./toon.ts";
 import { type ClipPlan, greeting, headYaw, nextClip } from "./people.ts";
@@ -75,6 +76,19 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
   }, [body]);
   const clips = useRef<ClipPlan>({ step: 0, left: idleOffset(spot.login) * 4, gesture: null, wave: 0 });
   const plan = useRef({ clip: "" as string, nameLeft: 0, yaw: 0 });
+  // A warm gesture for the pallet they stand by: they answer it (people of the site spec, section 7).
+  const greet = useQuest((s) => (s.greet?.pallet === spot.pallet ? s.greet : null));
+  const [shown, setShown] = useState<{ emoji: string; at: number } | null>(null);
+  useEffect(() => {
+    if (!greet) return;
+    const start = setTimeout(() => setShown({ emoji: GLYPH[greet.emoji], at: greet.at }), 0);
+    const clear = setTimeout(() => setShown(null), reduceMotion ? 2000 : 1200);
+    if (!reduceMotion) {
+      const clip = greet.kind === "thanked" ? "Cheer" : "Interact";
+      if (actions[clip]) clips.current.answer = { clip, left: actions[clip]!.getClip().duration };
+    }
+    return () => { clearTimeout(start); clearTimeout(clear); };
+  }, [greet, reduceMotion, actions]);
 
   const play = (clip: string) => {
     const p = plan.current;
@@ -123,6 +137,7 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
       <Html position={[0, HEIGHT + 0.45, 0]} center distanceFactor={14} zIndexRange={[5, 0]}>
         <Badge key={spot.avatarUrl} login={spot.login} avatarUrl={spot.avatarUrl} color={color} named={named} />
         {picking && <WarmPicker pallet={spot.pallet} login={spot.login} />}
+        {shown && <span key={shown.at} className={reduceMotion ? "greet-emoji" : "greet-emoji rising"} aria-hidden="true">{shown.emoji}</span>}
       </Html>
     </RigidBody>
   );

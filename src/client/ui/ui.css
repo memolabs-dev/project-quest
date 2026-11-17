@@ -262,3 +262,6 @@
   background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: 6px 6px 0 var(--ink); padding: 12px 16px;
 }
 .thank-offer .actions button { min-height: 44px; }
+.greet-emoji { display: block; text-align: center; font-size: 28px; line-height: 1; }
+.greet-emoji.rising { animation: greet-rise 1.2s ease-out forwards; }
+@keyframes greet-rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-48px); opacity: 0; } }

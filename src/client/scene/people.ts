@@ -27,10 +27,18 @@ export function gestureAt(login: string, n: number): { clip: Gesture; seconds: n
 }
 
 /** What a worker is doing between frames: their gesture, its time left, and a wave's time left. */
-export interface ClipPlan { step: number; left: number; gesture: Gesture | null; wave: number }
+export interface ClipPlan {
+  step: number; left: number; gesture: Gesture | null; wave: number;
+  /** The answer to a warm gesture (Interact for a cheer, Cheer for a thank-you), played once before anything else. */
+  answer?: { clip: string; left: number } | null;
+}
 
 /** The clip a worker plays this frame: a wave first, then work, then a plain idle beyond the twelve, else their gesture. */
 export function nextClip(p: ClipPlan, o: { busy: boolean; lively: boolean; login: string; delta: number }): string {
+  if (p.answer && p.answer.left > 0) {
+    p.answer.left -= o.delta;
+    return p.answer.clip;
+  }
   if (p.wave > 0) {
     p.wave -= o.delta;
     return "Interact";

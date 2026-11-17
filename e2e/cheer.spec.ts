@@ -78,3 +78,21 @@ test("after a pallet is laid, Thank is offered and sends a reaction with words",
   await expect(page.getByRole("status")).toContainText(/Thanked/);
   await expect(offer).toHaveCount(0);
 });
+
+test("reduced motion keeps the emoji and the sound only", async ({ page }) => {
+  await ready(page);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /^Reduced$/ }).check();
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.keyboard.down("KeyW");
+  await expect(page.getByText(/to cheer maria-fictif/)).toBeVisible({ timeout: 8000 });
+  await page.keyboard.up("KeyW");
+  await page.keyboard.press("KeyR");
+  await page.getByRole("group", { name: /Cheer maria-fictif/ }).getByRole("button", { name: /🚀/ }).click();
+  await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
+  const greet = page.locator(".greet-emoji");
+  await expect(greet).toHaveText("🚀");
+  await expect(greet).not.toHaveClass(/rising/);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /Follow my system/ }).check();
+});
