@@ -79,7 +79,7 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
     next.reset().fadeIn(FADE).play();
     if (p.clip && p.clip !== clip) actions[p.clip]?.fadeOut(FADE);
     p.clip = clip;
-    body.userData.clip = clip;
+    if (group.current) group.current.userData.clip = clip;
   };
 
   // Before the mixer: the head back to the animation's pose, without last frame's turn.
