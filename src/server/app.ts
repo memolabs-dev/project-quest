@@ -193,6 +193,11 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       await live.progress.setPath((await live.viewer()).login, c.req.valid("json").path);
       return c.json(await levels());
     })
+    // The game's rule, not a GitHub write: kept with the player's progress (lead's path spec, section 5).
+    .post("/api/levels/capacity", zValidator("json", z.object({ points: z.number().int().min(1).max(100) })), async (c) => {
+      await live.progress.setCapacity((await live.viewer()).login, c.req.valid("json").points);
+      return c.json(await levels());
+    })
     // "Start again" exists on the demo site only: real progress is never thrown away.
     .post("/api/levels/reset", async (c) => {
       if (live.mode !== "demo") return c.json({ error: "gesture" as const, message: "Only the demo site starts again" }, 404);

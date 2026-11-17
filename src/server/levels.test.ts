@@ -6,6 +6,7 @@ import { prepareIssue, type PreparedPractice } from "../shared/gestures/practice
 import type { PracticeIssue, PracticeSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { createApp } from "./app.ts";
+import { observe } from "./levels.ts";
 import { memoryActionLog } from "./db/log.ts";
 import { memoryProgress, type ProgressStore } from "./db/progress.ts";
 import type { Deps } from "./deps.ts";
@@ -206,6 +207,25 @@ describe("paths", () => {
   });
   it("refuses an unknown path", async () => {
     expect((await make(null).app.request("/api/levels/path", post({ path: "pirate" }))).status).toBe(400);
+  });
+});
+
+describe("the sprint's capacity", () => {
+  it("the capacity is refused outside 1 to 100", async () => {
+    const { app, deps } = make(null);
+    for (const points of [0, 101, 2.5, "8"]) {
+      expect((await app.request("/api/levels/capacity", post({ points }))).status, String(points)).toBe(400);
+    }
+    expect((await app.request("/api/levels/capacity", post({ points: 8 }))).status).toBe(200);
+    expect(await deps.progress.capacity(VIEWER)).toBe(8);
+  });
+  it("is observed with the server's date for a lead", async () => {
+    const progress = memoryProgress();
+    await progress.setPath(VIEWER, "lead");
+    await progress.setCapacity(VIEWER, 5);
+    const { deps } = make(null, { progress, today: () => "2026-11-17" });
+    const o = await observe(deps, VIEWER);
+    expect(o).toMatchObject({ capacity: 5, today: "2026-11-17" });
   });
 });
 

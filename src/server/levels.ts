@@ -9,6 +9,8 @@ import type { Deps } from "./deps.ts";
 
 export const practiceNameOf = async (deps: Deps, login: string) => (await deps.progress.practiceRepo(login)) ?? deps.practiceName;
 
+export const todayOf = (deps: Deps) => deps.today?.() ?? new Date().toISOString().slice(0, 10);
+
 export async function observe(deps: Deps, login: string): Promise<Observed> {
   // The real project is read only while the last level is being played: no extra query before, nor after.
   const stamps = await deps.progress.stamps(login);
@@ -16,13 +18,14 @@ export async function observe(deps: Deps, login: string): Promise<Observed> {
   const ready = since !== null && !stamps.some((s) => s.levelId === "a16-ask-good-first");
   // The team site is read only for a player on the lead's path.
   const lead = (await deps.progress.path(login)) === "lead";
-  const [events, practice, real, team] = await Promise.all([
+  const [events, practice, real, team, capacity] = await Promise.all([
     deps.progress.events(login),
     practiceNameOf(deps, login).then((name) => deps.readPractice(login, name)),
     ready ? deps.readGoodFirst() : Promise.resolve(null),
     lead ? deps.readPractice(login, deps.teamName) : Promise.resolve(null),
+    lead ? deps.progress.capacity(login) : Promise.resolve(null),
   ]);
-  return { viewer: login, events, practice, real, realSince: since, team };
+  return { viewer: login, events, practice, real, realSince: since, team, capacity, today: todayOf(deps) };
 }
 
 const PATHS: Path[] = ["volunteer", "lead"];

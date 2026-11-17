@@ -38,6 +38,8 @@ export interface Deps {
   readGoodFirst(number?: number): Promise<RealSnapshot>;
   /** The lead's team site's name (QUEST_TEAM_REPO, else my-first-team). */
   teamName: string;
+  /** Today's date on the server, YYYY-MM-DD in UTC: sprints and due dates are judged by it. Tests set it. */
+  today?: () => string;
   applyTeam(p: PreparedTeam): Promise<PracticeResult>;
   /** Sends a prepared ask (one comment) on the real project. */
   applyAsk(p: PreparedAsk): Promise<PracticeResult>;

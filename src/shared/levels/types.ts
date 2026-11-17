@@ -120,6 +120,10 @@ export interface Observed {
   real?: RealSnapshot | null;
   /** The lead's team site, as read on GitHub. */
   team?: PracticeSnapshot | null;
+  /** The points the lead declared their sprint can carry: the game's rule, not GitHub's. */
+  capacity?: number | null;
+  /** Today on the server, YYYY-MM-DD (UTC): which sprint is the current one. */
+  today?: string;
   /** When the last level began (the Team leader rank's last stamp): older comments never count. */
   realSince?: string | null;
 }

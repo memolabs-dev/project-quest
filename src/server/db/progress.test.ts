@@ -61,6 +61,15 @@ const behaves = (name: string, make: () => ProgressStore, cleanup?: () => Promis
       await cleanup?.();
     });
 
+    it("remembers the declared capacity", async () => {
+      const p = make();
+      expect(await p.capacity("fictif-a")).toBeNull();
+      await p.setCapacity("Fictif-A", 8);
+      expect(await p.capacity("fictif-a")).toBe(8);
+      await p.setCapacity("fictif-a", 13);
+      expect(await p.capacity("FICTIF-A")).toBe(13);
+      await cleanup?.();
+    });
     it("remembers the practice repository's name", async () => {
       const p = make();
       expect(await p.practiceRepo("fictif-a")).toBeNull();

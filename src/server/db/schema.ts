@@ -1,5 +1,5 @@
 // What the game keeps that GitHub does not. GitHub stays the truth about the project.
-import { jsonb, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const players = pgTable("players", {
   id: serial("id").primaryKey(),
@@ -9,6 +9,8 @@ export const players = pgTable("players", {
   practiceRepo: text("practice_repo"),
   /** The path the player chose: "volunteer" or "lead". */
   path: text("path"),
+  /** The points a sprint can carry, declared by the lead: the game's rule, GitHub has none. */
+  capacity: integer("capacity"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
