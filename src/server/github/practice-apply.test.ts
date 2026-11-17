@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { prepareEdit, prepareFound, prepareIssue } from "../../shared/gestures/practice.ts";
-import { prepareCloseVisit, prepareMilestone, prepareRope, prepareSplit } from "../../shared/gestures/team.ts";
+import { prepareCloseVisit, prepareMilestone, prepareParcels, prepareRope, prepareSplit } from "../../shared/gestures/team.ts";
 import type { PracticeSnapshot } from "../../shared/levels/types.ts";
 import type { Gql } from "./client.ts";
 
@@ -163,6 +163,22 @@ describe("the lead's REST step", () => {
     await applyPractice(gql, noRest, prepareSplit(team, 2, ["a", "b"]));
     expect(calls.map((c) => c.query.match(/\{ (\w+)\(input/)?.[1])).toEqual(["addBlockedBy", "createIssue", "addProjectV2ItemById", "addSubIssue", "createIssue", "addProjectV2ItemById", "addSubIssue"]);
     expect(calls[3].input).toEqual({ issueId: "I_2", subIssueId: "I_new" });
+  });
+});
+
+describe("the mayor's parcels", () => {
+  it("puts each new parcel on the board with its own id, never the one before", async () => {
+    let n = 0;
+    const calls: { query: string; input: Record<string, unknown> }[] = [];
+    const gql = (async (query: string, variables: Record<string, unknown>) => {
+      calls.push({ query, input: variables.input as Record<string, unknown> });
+      if (query.includes("createIssue")) return { createIssue: { issue: { id: `I_new${++n}` } } };
+      return {};
+    }) as Gql;
+    const team: PracticeSnapshot = { ...site, repo: { id: "R_team", nameWithOwner: "fictif-lead/my-first-team", url: "u" } };
+    await applyPractice(gql, noRest, prepareParcels(team));
+    const added = calls.filter((c) => c.query.includes("addProjectV2ItemById")).map((c) => c.input.contentId);
+    expect(added).toEqual(["I_new1", "I_new2", "I_new3", "I_new4", "I_new5", "I_new6"]);
   });
 });
 

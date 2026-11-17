@@ -53,8 +53,10 @@ for (const width of [1280, 375]) {
 
     // Level 1: walk, then open a pallet.
     await page.keyboard.press("Escape");
+    // Walk until the game records the walk, however slow the machine's physics run.
+    const walked = page.waitForRequest((r) => r.url().includes("/api/levels/event") && (r.postData() ?? "").includes("walked"));
     await page.keyboard.down("KeyW");
-    await page.waitForTimeout(700);
+    await walked;
     await page.keyboard.up("KeyW");
     await openPallet(page, /Hang the clock/);
     const card = page.getByRole("dialog", { name: /Hang the clock/ });

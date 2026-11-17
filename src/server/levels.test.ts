@@ -284,6 +284,15 @@ describe("the team site", () => {
     expect(v.team.duplicateWrong).toBe(true);
   });
 
+  it("refuses a lead claim sent to another gesture's address, or with its inputs changed after prepare", async () => {
+    const sorted = { ...team, labels: [{ id: "LA_bug", name: "bug" }, { id: "LA_enh", name: "enhancement" }], issues: [issue({ number: 1 })] };
+    const { app, sent } = make(null, { readPractice: reading(sorted) });
+    const claim = (await (await app.request("/api/team/label/prepare", post({ issueNumber: 1, label: "bug" }))).json()) as { args: Record<string, unknown> };
+    expect((await app.request("/api/team/duplicate/apply", post(claim))).status).toBe(409);
+    expect((await app.request("/api/team/label/apply", post({ ...claim, args: { ...claim.args, label: "enhancement" } }))).status).toBe(409);
+    expect(sent).toEqual([]);
+  });
+
   it("refuses a lead gesture that does not match a fresh read, or from a page marked demo", async () => {
     const { app, sent } = make(null, { readPractice: reading(team) });
     const parcels = (await (await app.request("/api/team/parcels/prepare", post({}))).json()) as { mutations: unknown[] };
@@ -549,6 +558,30 @@ describe("practice gestures", () => {
     const merge = { kind: "merge", repo: "FICTIF-OTHER/my-first-site", pullNumber: 2, mutations: [] };
     expect((await app.request("/api/practice/merge/apply", post(merge))).status).toBe(409);
     expect(sent).toEqual([]);
+  });
+
+  it("refuses an edit when the branch moved between prepare and apply", async () => {
+    const mine = issue({ assignees: [VIEWER] });
+    const at = (oid: string) => site({
+      issues: [mine], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" },
+      branches: [{ name: "practice-1", oid, author: VIEWER, url: "c", readme: "# my-first-site\n", viaWeb: true, history: [] }],
+    });
+    let read = at("b1");
+    const { app, sent } = make(null, { readPractice: async () => read });
+    const edit = await (await app.request("/api/practice/edit/prepare", post({ issueNumber: 1, content: "# FICTIF\n", message: "Paint" }))).json();
+    read = at("b2");
+    expect((await app.request("/api/practice/edit/apply", post(edit))).status).toBe(409);
+    expect(sent).toEqual([]);
+  });
+
+  it("merges a pull request through the route, rebuilt and logged", async () => {
+    const pr = { id: "PR_2", number: 2, url: "p2", author: VIEWER, state: "OPEN" as const, createdAt: "2026-11-17T10:00:00Z",
+      headRefName: "practice-1", headRefOid: "b1", commits: [], closes: [1], closesElsewhere: [] };
+    const { app, sent, deps } = make(site({ pulls: [pr] }));
+    const merge = await (await app.request("/api/practice/merge/prepare", post({ pullNumber: 2 }))).json();
+    expect((await app.request("/api/practice/merge/apply", post(merge))).status).toBe(200);
+    expect(sent).toHaveLength(1);
+    expect((await deps.log.latest(1))[0]).toMatchObject({ gesture: "merge", result: "applied" });
   });
 
   it("sends an edit the server rebuilt", async () => {

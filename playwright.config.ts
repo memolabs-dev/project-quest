@@ -6,10 +6,11 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 30_000 },
   use: { baseURL: "http://localhost:5199", channel: "chrome", viewport: { width: 1280, height: 800 } },
-  // The load-time test runs alone, after the others: parallel WebGL pages share one GPU and slow each other down.
+  // The load-time test runs alone, after the others (npm run test:e2e runs the two projects one after the other):
+  // parallel WebGL pages share one GPU and slow each other down. No dependency: a failing main test never skips it.
   projects: [
     { name: "main", testIgnore: /load\.spec\.ts/ },
-    { name: "load", testMatch: /load\.spec\.ts/, dependencies: ["main"] },
+    { name: "load", testMatch: /load\.spec\.ts/ },
   ],
   webServer: [
     { command: "QUEST_MODE=demo npx vite --port 5199 --strictPort", url: "http://localhost:5199", reuseExistingServer: false, timeout: 60_000 },

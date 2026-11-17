@@ -7,7 +7,9 @@ const ready = async (page: Page) => {
   await page.goto("/");
   await expect(page.locator(".sign-label").first()).toBeVisible();
   await page.keyboard.press("Escape"); // skips the arrival fly-over when there is one
-  await page.waitForTimeout(4000);
+  // The models are in and two frames drawn: the views are steady without a fixed wait.
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 };
 const walk = async (page: Page, key: string, ms: number) => {
   await page.keyboard.down(key);
