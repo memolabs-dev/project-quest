@@ -2,36 +2,47 @@
 // GitHub confirms a level. She can be folded away so the site stays in full view.
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { commandsFor } from "../commands.ts";
+import { commandsFor, safeBranch } from "../commands.ts";
 import { mentorAction, newStamps } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
 
-/** The commands to type on the player's machine, with a Copy button. The game never runs them. */
+/** The commands to type on the player's machine, one Copy button each. The game never runs them. */
 function Commands({ level }: { level: string }) {
   const { t } = useTranslation();
   const practice = useQuest((s) => s.levels?.practice);
   const repo = useQuest((s) => (s.levels ? `${s.levels.login}/${s.levels.practice.name}` : ""));
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<number | null>(null);
   if (!practice) return null;
-  const branch = practice.workBranch ?? `work-${practice.issue ?? 1}`;
+  const branch = practice.workBranch && safeBranch(practice.workBranch) ? practice.workBranch : `work-${practice.issue ?? 1}`;
   const lines = commandsFor(level, { nameWithOwner: repo, defaultBranch: practice.defaultBranch ?? "main" }, branch);
   if (lines.length === 0) return null;
-  const copy = async () => {
+  const copy = async (i: number, line: string) => {
     try {
-      await navigator.clipboard.writeText(lines.filter((l) => !l.startsWith("#")).join("\n"));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(line);
+      setCopied(i);
+      setTimeout(() => setCopied(null), 2000);
     } catch {
-      setCopied(false);
+      setCopied(null);
     }
   };
   return (
     <div className="mentor-commands">
       <p>{t("mentor.commands")}</p>
-      <pre tabIndex={0}>{lines.join("\n")}</pre>
-      <button type="button" onClick={() => void copy()}>{copied ? t("mentor.copied") : t("mentor.copy")}</button>
+      <ol>
+        {lines.map((line, i) => line.startsWith("#") ? (
+          <li key={i} className="command-step">{line.slice(2)}</li>
+        ) : (
+          <li key={i}>
+            <code>{line}</code>
+            <button type="button" aria-label={`${t("mentor.copy")}: ${line}`} onClick={() => void copy(i, line)}>
+              {copied === i ? t("mentor.copied") : t("mentor.copy")}
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p className="sr-only" aria-live="polite">{copied !== null ? t("mentor.copied") : ""}</p>
     </div>
   );
 }

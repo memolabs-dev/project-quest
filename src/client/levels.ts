@@ -26,11 +26,12 @@ export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | n
   if (kind !== "practice") return "to-practice";
   if (!view.practice.exists) return "found";
   const p = view.practice;
+  const needIssue: MentorAction = p.unassigned === null ? "write" : "take";
   // The Team leader works on their machine: the game offers what it does itself first, then the commands.
   switch (level.id) {
-    case "a12-push-branch": return p.issue === null ? (p.unassigned === null ? "write" : "take") : "commands";
+    case "a12-push-branch": return p.issue === null ? needIssue : "commands";
     case "a13-bring-main": return p.mainMoved ? "commands" : "mayor";
-    case "a14-fix-from-machine": return p.pull === null ? "pull" : "commands";
+    case "a14-fix-from-machine": return p.pull !== null ? "commands" : p.issue === null ? needIssue : "pull";
     case "a15-clean-up": return p.pull === null ? "commands" : "merge";
     default: return GESTURES[level.id] ?? null;
   }

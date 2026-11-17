@@ -122,13 +122,16 @@
   margin: 0 0 10px; padding: 10px; background: #fff; border: var(--line); border-radius: 8px;
   font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto;
 }
-.mentor-commands pre {
-  margin: 4px 0 8px; padding: 8px 10px; background: #1c1c1c; color: #f3e3b6; border-radius: 8px;
-  font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 180px; overflow: auto;
+.mentor-commands ol { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; max-height: 40vh; overflow: auto; }
+.mentor-commands li { display: flex; gap: 8px; align-items: center; }
+.mentor-commands code {
+  flex: 1; min-width: 0; padding: 6px 8px; background: #1c1c1c; color: #f3e3b6; border-radius: 8px;
+  font-size: 13px; overflow-wrap: anywhere;
 }
 .mentor-commands button {
-  min-height: 44px; padding: 0 14px; border: var(--line); border-radius: 10px; background: #fff; font-weight: 800; cursor: pointer;
+  flex: none; min-height: 44px; padding: 0 12px; border: var(--line); border-radius: 10px; background: #fff; font-weight: 800; cursor: pointer;
 }
+.command-step { font-weight: 700; font-style: italic; }
 .mentor-inspector { border-left: 4px solid var(--accent-ink); padding-left: 8px; }
 .practice-note { font-weight: 700; }
 .field { display: grid; gap: 4px; margin: 0 0 10px; font-weight: 800; }

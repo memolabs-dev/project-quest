@@ -75,6 +75,16 @@ describe("a13 and main's own past", () => {
   });
 });
 
+describe("what a12 must not take for a push", () => {
+  it("a12 refuses a branch whose head is an old commit of main", () => {
+    const o = seen(snapshot({ branches: [branch({ oid: "f0" })], mainHistory: ["m1", "f0"] }));
+    expect(level("a12-push-branch").check(o).done).toBe(false);
+  });
+  it("an unlinked git email still counts: it is the player's own repository", () => {
+    expect(level("a12-push-branch").check(seen(snapshot({ branches: [branch({ author: "ghost" })] }))).done).toBe(true);
+  });
+});
+
 describe("a14-fix-from-machine", () => {
   const fix = { oid: "w3", url: "c-w3", committedDate: "2026-11-17T10:30:00Z", viaWeb: false };
   it("passes on a commit pushed from the machine after the pull request opened", () => {

@@ -47,6 +47,11 @@ describe("mentorAction", () => {
     expect(mentorAction(at13, "practice")).toBe("mayor");
     expect(mentorAction({ ...at13, practice: { ...at13.practice, mainMoved: true } }, "practice")).toBe("commands");
   });
+  it("at a14 with no open issue left, asks for one first instead of a dead pull request", () => {
+    const at14 = view(13, true);
+    expect(mentorAction({ ...at14, practice: { ...at14.practice, issue: null } }, "practice")).toBe("write");
+    expect(mentorAction({ ...at14, practice: { ...at14.practice, issue: null, unassigned: 5 } }, "practice")).toBe("take");
+  });
   it("opens the pull request, then the commands; merges, then the commands", () => {
     const at14 = view(13, true);
     expect(mentorAction(at14, "practice")).toBe("pull");

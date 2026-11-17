@@ -9,11 +9,16 @@ const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 const isWork = (name: string, practice: PracticeSnapshot) =>
   name !== practice.defaultBranch?.name && !/^practice-\d+$/.test(name);
 
-/** Work branches whose head the viewer committed on their machine, beyond the default head. */
+/**
+ * Work branches whose head was committed on a machine, beyond main: not main's head, nor any commit of main's past
+ * (a branch made on github.com from an old commit). The author is not checked: it is the player's own repository,
+ * and a git email not linked to GitHub must not make a real push invisible.
+ */
 const pushed = (o: Observed) => {
   const p = o.practice;
   if (!p) return [];
-  return p.branches.filter((b) => isWork(b.name, p) && !b.viaWeb && same(b.author, o.viewer) && b.oid !== p.defaultBranch?.oid);
+  const inMain = new Set(p.mainHistory);
+  return p.branches.filter((b) => isWork(b.name, p) && !b.viaWeb && b.oid !== p.defaultBranch?.oid && !inMain.has(b.oid));
 };
 
 /** The viewer's pull requests from a work branch that close an issue. */

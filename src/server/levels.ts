@@ -56,9 +56,10 @@ function forGestures(practice: PracticeSnapshot | null, login: string) {
   const branch = issue ? practice?.branches.find((b) => b.name === `practice-${issue.number}`) : undefined;
   const unassigned = practice?.issues.filter((i) => !i.closed && i.assignees.length === 0).sort((a, b) => a.number - b.number)[0];
   const main = practice?.defaultBranch ?? null;
-  const work = practice?.branches.find((b) =>
-    b.name !== main?.name && !/^practice-\d+$/.test(b.name) && !b.viaWeb && same(b.author, login));
   const inMain = new Set(practice?.mainHistory ?? []);
+  // The same rule as level 12: a branch pushed from a machine, beyond main.
+  const work = practice?.branches.find((b) =>
+    b.name !== main?.name && !/^practice-\d+$/.test(b.name) && !b.viaWeb && b.oid !== main?.oid && !inMain.has(b.oid));
   const firstOwn = work?.history.filter((h) => !h.viaWeb && !inMain.has(h.oid)).map((h) => h.committedDate).sort()[0];
   return {
     readme: branch?.readme ?? practice?.readme ?? null,
