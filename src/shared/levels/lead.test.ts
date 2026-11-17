@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PROJECT_DIRECTOR, SITE_FOREMAN, SITE_MANAGER, SIZE_POINTS, currentIteration, inProgress, wipLimit } from "./lead.ts";
+import { PROJECT_DIRECTOR, SITE_FOREMAN, SITE_MANAGER, SIZE_POINTS, currentIteration, inProgress, radioRecap, wipLimit } from "./lead.ts";
 import { PARCELS, ZONES, SIZES, parcelBody } from "./parcels.ts";
 import type { Observed, PracticeIssue, PracticeSnapshot } from "./types.ts";
 
@@ -217,6 +217,24 @@ describe("the Project director levels", () => {
       expect(d("l10-wip").check(seen(team({ board: withLimit("Being laid. Limit: 3."), issues: laying(1) }))).done).toBe(false);
       expect(d("l10-wip").check({ ...seen(team({ board: withLimit(null), issues: laying(1) })), events: ["team-day"] }).done).toBe(false);
     });
+  });
+
+  it("the radio drafts the bulletin from the board", () => {
+    const t = team({
+      board: withLimit("Being laid. Limit: 3.", { fields: [...board().fields!, { id: "F_sprint", name: "Sprint", dataType: "ITERATION", iterations: [{ id: "it1", title: "Sprint 1", startDate: "2026-11-17", duration: 7 }] }] }),
+      issues: [parcel("bench", { status: "In progress", iteration: "it1", size: "S" }), parcel("square", { subIssues: [7, 8], status: "In progress" })],
+      milestones: [visit],
+    });
+    expect(radioRecap(t, "2026-11-17", 3)).toBe([
+      "FICTIF Evening bulletin, 2026-11-17.",
+      "Sprint 1: 2 of 3 points loaded.",
+      "Being laid: 1 (limit 3).",
+      "FICTIF Visit, 2026-12-01: 2 of 2 jobs done.",
+    ].join("\n"));
+    expect(radioRecap(team(), "2026-11-17", null)).toBe("FICTIF Evening bulletin, 2026-11-17.");
+  });
+  it("never counts a job split into parts as being laid: its parts are", () => {
+    expect(inProgress(team({ issues: [parcel("square", { subIssues: [7, 8], status: "In progress" })] }))).toBe(0);
   });
 
   describe("l11-visit", () => {

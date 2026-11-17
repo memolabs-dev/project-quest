@@ -12,8 +12,9 @@ export type PracticeMutationName =
   /** The lead's team site. */
   | "updateProjectV2Field" | "createProjectV2Field" | "addLabelsToLabelable" | "closeIssue" | "updateIssue" | "updateProjectV2ItemFieldValue"
   | "clearProjectV2ItemFieldValue" | "addSubIssue" | "addBlockedBy"
+  | "createProjectV2StatusUpdate"
   /** REST: GraphQL has no milestone mutation. */
-  | "createMilestone";
+  | "createMilestone" | "updateMilestone";
 export interface PracticeMutation { name: PracticeMutationName; input: Record<string, unknown> }
 
 export interface PreparedFound {

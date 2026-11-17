@@ -424,7 +424,13 @@
       "milestone": "Créer le jalon « {{title}} » dans {{repo}}, pour le {{dueOn}}, et y mettre {{count}} boulots.",
       "attach": "Mettre l'issue n°{{issueNumber}} sous le jalon {{milestone}}.",
       "split": "Couper l'issue n°{{issueNumber}} en {{count}} parties FICTIF, chacune son issue sur le tableau.",
-      "rope": "Marquer l'issue n°{{issueNumber}} comme bloquée par le n°{{blocking}}."
+      "rope": "Marquer l'issue n°{{issueNumber}} comme bloquée par le n°{{blocking}}.",
+      "bulletin": "Publier le bulletin du soir sur le tableau de {{repo}}, statut {{status}}.",
+      "wip-limit": "Écrire la limite {{limit}} sur la zone En pose du tableau de {{repo}}.",
+      "team-day": "La journée de l'équipe : commencer {{count}} boulots, passés En pose.",
+      "finish": "Fermer l'issue n°{{issueNumber}} comme finie, et la poser dans la dernière zone.",
+      "close-visit": "Fermer le jalon {{milestone}} : la visite de la maire est prête.",
+      "move-visit": "Déplacer le jalon {{milestone}} au {{dueOn}}."
     },
     "sprint-field": {
       "open": "Lancer le sprint de la semaine",

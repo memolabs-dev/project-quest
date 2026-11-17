@@ -107,7 +107,19 @@ export function wipLimit(t: PracticeSnapshot | null | undefined): number | null 
 
 /** The open issues being laid. */
 export const inProgress = (t: PracticeSnapshot | null | undefined) =>
-  (t?.issues ?? []).filter((i) => !i.closed && i.status === LAYING).length;
+  (t?.issues ?? []).filter((i) => !i.closed && i.status === LAYING && (i.subIssues ?? []).length === 0).length;
+
+/** The site radio's draft of the evening bulletin, read from the board; the lead edits it before posting. */
+export function radioRecap(t: PracticeSnapshot | null | undefined, today: string, capacity: number | null): string {
+  const lines = [`FICTIF Evening bulletin, ${today}.`];
+  const load = sprintLoad(t, today);
+  if (load.iteration) lines.push(`${load.iteration.title}: ${load.points} of ${capacity ?? "?"} points loaded.`);
+  const limit = wipLimit(t);
+  if (limit !== null) lines.push(`Being laid: ${inProgress(t)} (limit ${limit}).`);
+  const visit = (t?.milestones ?? []).filter((m) => !m.closed && m.dueOn).sort((a, b) => a.dueOn!.localeCompare(b.dueOn!))[0];
+  if (visit) lines.push(`${visit.title}, ${visit.dueOn!.slice(0, 10)}: ${visit.closedIssues} of ${visit.openIssues + visit.closedIssues} jobs done.`);
+  return lines.join("\n");
+}
 
 const director = levelOf("project-director");
 

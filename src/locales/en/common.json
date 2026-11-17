@@ -424,7 +424,13 @@
       "milestone": "Create the milestone \"{{title}}\" in {{repo}}, due {{dueOn}}, and put {{count}} jobs under it.",
       "attach": "Put issue #{{issueNumber}} under milestone {{milestone}}.",
       "split": "Cut issue #{{issueNumber}} into {{count}} FICTIF parts, each its own issue on the board.",
-      "rope": "Mark issue #{{issueNumber}} as blocked by #{{blocking}}."
+      "rope": "Mark issue #{{issueNumber}} as blocked by #{{blocking}}.",
+      "bulletin": "Post the evening bulletin on the board of {{repo}}, status {{status}}.",
+      "wip-limit": "Write the limit {{limit}} on the zone Being laid of {{repo}}'s board.",
+      "team-day": "The team's day: start {{count}} jobs, moved to Being laid.",
+      "finish": "Close issue #{{issueNumber}} as done, and lay it in the last zone.",
+      "close-visit": "Close milestone {{milestone}}: the mayor's visit is ready.",
+      "move-visit": "Move milestone {{milestone}} to {{dueOn}}."
     },
     "sprint-field": {
       "open": "Start the week's sprint",

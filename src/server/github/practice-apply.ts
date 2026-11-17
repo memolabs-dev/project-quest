@@ -9,7 +9,7 @@ export type { Rest };
 
 export type PracticeResult = { ok: true } | { ok: false; reason: "github"; message: string; applied: PracticeMutationName[] };
 
-const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContents" | "createMilestone">, { inputType: string; returns: string }> = {
+const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContents" | "createMilestone" | "updateMilestone">, { inputType: string; returns: string }> = {
   createRepository: { inputType: "CreateRepositoryInput", returns: "repository { id }" },
   createProjectV2: { inputType: "CreateProjectV2Input", returns: 'projectV2 { id field(name: "Status") { ... on ProjectV2SingleSelectField { id } } }' },
   createIssue: { inputType: "CreateIssueInput", returns: "issue { id }" },
@@ -29,6 +29,7 @@ const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContent
   clearProjectV2ItemFieldValue: { inputType: "ClearProjectV2ItemFieldValueInput", returns: "clientMutationId" },
   addSubIssue: { inputType: "AddSubIssueInput", returns: "clientMutationId" },
   addBlockedBy: { inputType: "AddBlockedByInput", returns: "clientMutationId" },
+  createProjectV2StatusUpdate: { inputType: "CreateProjectV2StatusUpdateInput", returns: "statusUpdate { id }" },
 };
 
 const githubMessage = (e: unknown) =>
@@ -56,6 +57,13 @@ export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPrac
         // GraphQL has no milestone mutation: REST creates it, its node id goes to the issues put under it.
         const r = (await rest("POST", `/repos/${"repo" in prepared ? prepared.repo : ""}/milestones`, m.input)) as { node_id?: string };
         if (r.node_id) ids.milestoneId = r.node_id;
+        applied.push(m.name);
+        continue;
+      }
+      if (m.name === "updateMilestone") {
+        // Close the visit or move its date: REST only too.
+        const { number, ...body } = m.input as { number: number };
+        await rest("PATCH", `/repos/${"repo" in prepared ? prepared.repo : ""}/milestones/${number}`, body);
         applied.push(m.name);
         continue;
       }

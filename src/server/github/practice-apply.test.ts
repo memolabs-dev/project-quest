@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { prepareEdit, prepareFound, prepareIssue } from "../../shared/gestures/practice.ts";
-import { prepareMilestone, prepareRope, prepareSplit } from "../../shared/gestures/team.ts";
+import { prepareCloseVisit, prepareMilestone, prepareRope, prepareSplit } from "../../shared/gestures/team.ts";
 import type { PracticeSnapshot } from "../../shared/levels/types.ts";
 import type { Gql } from "./client.ts";
 
@@ -132,6 +132,16 @@ describe("the lead's REST step", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0].query).toContain("updateIssue");
     expect(calls[0].input).toEqual({ id: "I_2", milestoneId: "MI_new" });
+  });
+  it("updates the milestone over REST", async () => {
+    const { gql, calls } = recording();
+    const sent: { method: string; path: string; body: unknown }[] = [];
+    const rest = (async (method: string, path: string, body: unknown) => { sent.push({ method, path, body }); return {}; }) as Rest;
+    const team: PracticeSnapshot = { ...site, repo: { id: "R_team", nameWithOwner: "fictif-lead/my-first-team", url: "u" },
+      milestones: [{ id: "MI_1", number: 1, title: "FICTIF Visit", dueOn: null, url: "m", closed: false, openIssues: 0, closedIssues: 1 }] };
+    expect(await applyPractice(gql, rest, prepareCloseVisit(team, 1))).toEqual({ ok: true });
+    expect(sent).toEqual([{ method: "PATCH", path: "/repos/fictif-lead/my-first-team/milestones/1", body: { state: "closed" } }]);
+    expect(calls).toEqual([]);
   });
   it("knows the Site manager's mutations", async () => {
     const { gql, calls } = recording();

@@ -1,7 +1,7 @@
 // The lead's gestures on their team site (lead's path spec). Each prepare builds exactly what the confirmation shows;
 // the server rebuilds it from a fresh read before sending. Ids a mutation only learns from the one before it are shown
 // as "$repositoryId", "$projectId", "$statusFieldId" or "$issueId" and filled in when sent.
-import { SPRINT_FIELD, currentIteration, sprintFieldOf } from "../levels/lead.ts";
+import { LAYING, SPRINT_FIELD, currentIteration, inProgress, sprintFieldOf, wipLimit } from "../levels/lead.ts";
 import { PARCELS, PRACTICE_LINE, SIZES, ZONES, parcelBody, parcelOf } from "../levels/parcels.ts";
 import type { PracticeSnapshot } from "../levels/types.ts";
 import { GestureError } from "./move.ts";
@@ -9,11 +9,13 @@ import type { PracticeMutation } from "./practice.ts";
 
 export type TeamKind =
   | "team-found" | "parcels" | "label" | "duplicate" | "checklist" | "size"
-  | "sprint-field" | "load" | "unload" | "milestone" | "attach" | "split" | "rope";
+  | "sprint-field" | "load" | "unload" | "milestone" | "attach" | "split" | "rope"
+  | "bulletin" | "wip-limit" | "team-day" | "finish" | "close-visit" | "move-visit";
 /** The inputs the player gave: what the server rebuilds the gesture from. */
 export type TeamArgs = {
   visibility?: "PUBLIC" | "PRIVATE"; issueNumber?: number; label?: string; original?: number; items?: string[]; size?: string;
   title?: string; dueOn?: string; issues?: number[]; milestone?: number; titles?: string[]; blocking?: number;
+  status?: string; body?: string; limit?: number;
 };
 export interface PreparedTeam { kind: TeamKind; repo: string; args: TeamArgs; mutations: PracticeMutation[] }
 
@@ -252,6 +254,107 @@ export function prepareRope(team: PracticeSnapshot, issueNumber: number, blockin
   };
 }
 
+export const BULLETIN_STATUSES = ["ON_TRACK", "AT_RISK", "OFF_TRACK", "COMPLETE", "INACTIVE"] as const;
+
+export function prepareBulletin(team: PracticeSnapshot, status: string, body: string): PreparedTeam {
+  if (!team.board) throw new GestureError("Found your team site first: it has no board yet");
+  if (!(BULLETIN_STATUSES as readonly string[]).includes(status)) throw new GestureError(`No such status: ${status}`);
+  const words = body.trim();
+  if (!words) throw new GestureError("The bulletin needs a few words");
+  return {
+    kind: "bulletin", repo: team.repo.nameWithOwner, args: { status, body },
+    mutations: [{ name: "createProjectV2StatusUpdate", input: { projectId: team.board.id, status, body: words } }],
+  };
+}
+
+/** The zones with their ids, in order: refused unless the board has exactly the five zones (founded at L1). */
+const zonesOf = (team: PracticeSnapshot) => {
+  const board = team.board;
+  const options = board?.statusOptionIds ?? [];
+  if (!board?.statusFieldId || JSON.stringify(options.map((o) => o.name)) !== JSON.stringify(ZONES)) {
+    throw new GestureError("Your board's zones are not the five zones of the site");
+  }
+  return { board, statusFieldId: board.statusFieldId, options, idOf: (zone: string) => options.find((o) => o.name === zone)!.id };
+};
+
+/** The limit is written in the "Being laid" zone's description, where GitHub shows it; every option keeps its id. */
+export function prepareWipLimit(team: PracticeSnapshot, limit: number): PreparedTeam {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 10) throw new GestureError("A limit is a whole number from 1 to 10");
+  const { statusFieldId, options } = zonesOf(team);
+  return {
+    kind: "wip-limit", repo: team.repo.nameWithOwner, args: { limit },
+    mutations: [{ name: "updateProjectV2Field", input: {
+      fieldId: statusFieldId,
+      singleSelectOptions: options.map((o) => ({
+        id: o.id, name: o.name, color: ZONE_LOOK[o.name as (typeof ZONES)[number]].color,
+        description: o.name === LAYING ? `Being laid. Limit: ${limit}.` : o.description ?? ZONE_LOOK[o.name as (typeof ZONES)[number]].description,
+      })),
+    } }],
+  };
+}
+
+/** The fictitious team's day: it starts jobs until "Being laid" is two over its limit (lead's path spec, section 4). */
+export function prepareTeamDay(team: PracticeSnapshot): PreparedTeam {
+  const limit = wipLimit(team);
+  if (limit === null) throw new GestureError("Set a limit on Being laid first");
+  const { board, statusFieldId, idOf } = zonesOf(team);
+  const need = limit + 2 - inProgress(team);
+  if (need <= 0) throw new GestureError("Being laid is already over its limit");
+  const idle = team.issues
+    .filter((i) => !i.closed && i.itemId && i.status !== LAYING && (i.subIssues ?? []).length === 0)
+    .sort((a, b) => a.number - b.number);
+  if (idle.length < need) throw new GestureError(`The team needs ${need} open jobs to start, your site has ${idle.length}`);
+  return {
+    kind: "team-day", repo: team.repo.nameWithOwner, args: {},
+    mutations: idle.slice(0, need).map((i) => ({ name: "updateProjectV2ItemFieldValue" as const, input: {
+      projectId: board.id, itemId: i.itemId!, fieldId: statusFieldId, value: { singleSelectOptionId: idOf(LAYING) },
+    } })),
+  };
+}
+
+export function prepareFinish(team: PracticeSnapshot, issueNumber: number): PreparedTeam {
+  const i = issueOf(team, issueNumber);
+  if (i.closed) throw new GestureError(`Issue #${issueNumber} is already closed`);
+  const mutations: PracticeMutation[] = [{ name: "closeIssue", input: { issueId: i.id, stateReason: "COMPLETED" } }];
+  if (i.itemId) {
+    const { board, statusFieldId, idOf } = zonesOf(team);
+    mutations.push({ name: "updateProjectV2ItemFieldValue", input: {
+      projectId: board.id, itemId: i.itemId, fieldId: statusFieldId, value: { singleSelectOptionId: idOf("Done") },
+    } });
+  }
+  return { kind: "finish", repo: team.repo.nameWithOwner, args: { issueNumber }, mutations };
+}
+
+const openVisit = (team: PracticeSnapshot, number: number) => {
+  const m = (team.milestones ?? []).find((x) => x.number === number && !x.closed);
+  if (!m) throw new GestureError(`No open milestone number ${number}`);
+  return m;
+};
+
+export function prepareCloseVisit(team: PracticeSnapshot, milestoneNumber: number): PreparedTeam {
+  const m = openVisit(team, milestoneNumber);
+  if (m.openIssues > 0) {
+    const left = team.issues.filter((i) => i.milestone === milestoneNumber && !i.closed).map((i) => `#${i.number}`);
+    throw new GestureError(`The mayor's visit still has jobs open: ${left.join(", ") || m.openIssues}`);
+  }
+  if (m.closedIssues === 0) throw new GestureError("Nothing was done for this visit yet");
+  return {
+    kind: "close-visit", repo: team.repo.nameWithOwner, args: { milestone: milestoneNumber },
+    mutations: [{ name: "updateMilestone", input: { number: milestoneNumber, state: "closed" } }],
+  };
+}
+
+export function prepareMoveVisit(team: PracticeSnapshot, milestoneNumber: number, dueOn: string, today: string): PreparedTeam {
+  const m = openVisit(team, milestoneNumber);
+  if (!isDate(dueOn)) throw new GestureError("The new date must be a day, written YYYY-MM-DD");
+  if (dueOn < today) throw new GestureError("The new date is already past");
+  if (m.dueOn && dueOn <= m.dueOn.slice(0, 10)) throw new GestureError("Move the visit to a later day");
+  return {
+    kind: "move-visit", repo: team.repo.nameWithOwner, args: { milestone: milestoneNumber, dueOn },
+    mutations: [{ name: "updateMilestone", input: { number: milestoneNumber, due_on: `${dueOn}T12:00:00Z` } }],
+  };
+}
+
 /** The server's own copy of a lead's gesture, from the player's inputs and a fresh read of the team site. */
 export function rebuildTeam(
   kind: TeamKind, args: TeamArgs, viewer: { login: string; id: string }, name: string, team: PracticeSnapshot | null, today: string,
@@ -272,5 +375,11 @@ export function rebuildTeam(
     case "attach": return prepareAttach(team, n, args.milestone ?? NaN);
     case "split": return prepareSplit(team, n, args.titles ?? []);
     case "rope": return prepareRope(team, n, args.blocking ?? NaN);
+    case "bulletin": return prepareBulletin(team, args.status ?? "", args.body ?? "");
+    case "wip-limit": return prepareWipLimit(team, args.limit ?? NaN);
+    case "team-day": return prepareTeamDay(team);
+    case "finish": return prepareFinish(team, n);
+    case "close-visit": return prepareCloseVisit(team, args.milestone ?? NaN);
+    case "move-visit": return prepareMoveVisit(team, args.milestone ?? NaN, args.dueOn ?? "", today);
   }
 }

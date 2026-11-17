@@ -32,9 +32,11 @@ function summarize(p: PreparedPractice | PreparedAsk | PreparedTeam, t: TFunctio
   switch (p.kind) {
     case "team-found": case "parcels": case "label": case "duplicate": case "checklist": case "size":
     case "sprint-field": case "load": case "unload": case "milestone": case "attach": case "split": case "rope":
+    case "bulletin": case "wip-limit": case "team-day": case "finish": case "close-visit": case "move-visit":
       return t(`team.summary.${p.kind}`, {
         repo: p.repo, ...p.args, items: (p.args.items ?? []).length,
-        count: p.kind === "milestone" ? (p.args.issues ?? []).length : p.kind === "split" ? p.mutations.length / 3 : p.mutations.length / 2,
+        count: p.kind === "milestone" ? (p.args.issues ?? []).length : p.kind === "split" ? p.mutations.length / 3
+          : p.kind === "team-day" ? p.mutations.length : p.mutations.length / 2,
       });
     case "ask": return t("practice.summary.ask", { number: p.issueNumber, repo: p.repo, comment: p.comment });
     case "found":
