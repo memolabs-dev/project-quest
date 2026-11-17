@@ -13,6 +13,7 @@ import {
 import type { PracticeSnapshot } from "../shared/levels/types.ts";
 import { prepareAsk, type PreparedAsk } from "../shared/gestures/real.ts";
 import { rebuildTeam, type PreparedTeam, type TeamArgs, type TeamKind } from "../shared/gestures/team.ts";
+import { prepareCheer, prepareThank, prepareUncheer, type PreparedWarm, type WarmKind } from "../shared/gestures/warm.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
 import { SiteError, buildSite, type BoardSnapshot } from "../shared/site.ts";
 import type { Deps } from "./deps.ts";
@@ -71,6 +72,18 @@ const teamArgs = z.object({
   milestone: z.number().int().optional(), titles: z.array(z.string()).optional(), blocking: z.number().int().optional(),
   status: z.string().optional(), body: z.string().optional(), limit: z.number().optional(),
 }) satisfies z.ZodType<TeamArgs>;
+
+const warmArgs = z.object({ issueNumber: z.number().int(), content: z.string(), words: z.string().max(65_536).nullable().optional() });
+
+/** Builds a warm gesture from a fresh read of the configured board (and, for words, of the issue's comments). */
+async function rebuildWarm(deps: Deps, kind: WarmKind, args: { issueNumber: number; content: string; words?: string | null }): Promise<PreparedWarm> {
+  const repo = `${deps.config.owner}/${deps.config.repo}`;
+  const board = await deps.readBoard();
+  if (kind === "cheer") return prepareCheer(board, repo, args.issueNumber, args.content);
+  if (kind === "uncheer") return prepareUncheer(board, repo, args.issueNumber, args.content);
+  const words = args.words ?? null;
+  return prepareThank(board, repo, args.issueNumber, args.content, words, words === null ? false : await deps.readThanked(args.issueNumber));
+}
 
 const MAYOR_NOT_NOW = "The mayor changes the plan only at level 13, once: nothing was sent";
 const NOT_YOURS = "Levels write only to your own practice site: nothing was sent";
@@ -316,6 +329,56 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
         view = await levelsAfterWrite();
       }
       return c.json({ ok: true as const, levels: view });
+    })
+    // ---------- The warm gestures on the configured project: cheer, take back, thank (people of the site) ----------
+    .post("/api/warm/:kind{cheer|uncheer|thank}/prepare", zValidator("json", warmArgs), async (c) => {
+      const deps = pick(c);
+      return c.json(await rebuildWarm(deps, c.req.param("kind") as WarmKind, c.req.valid("json")));
+    })
+    .post("/api/warm/:kind{cheer|uncheer|thank}/apply", zValidator("json", z.looseObject({
+      kind: z.enum(["cheer", "uncheer", "thank"]), repo: z.string(), issueNumber: z.number().int(), content: z.string(),
+      words: z.string().max(65_536).nullable(), mutations,
+    })), async (c) => {
+      const deps = pick(c);
+      const claim = c.req.valid("json") as unknown as PreparedWarm;
+      const home = `${deps.config.owner}/${deps.config.repo}`;
+      // The guard: a warm gesture goes only to the project the game is configured on.
+      if (claim.kind !== c.req.param("kind") || claim.repo.toLowerCase() !== home.toLowerCase()) {
+        return c.json({ error: "gesture" as const, message: "A warm gesture goes only to the project the game is set up for: nothing was sent" }, 409);
+      }
+      const rebuilt = await rebuildWarm(deps, claim.kind, { issueNumber: claim.issueNumber, content: claim.content, words: claim.words });
+      if (!isDeepStrictEqual(rebuilt, claim)) {
+        return c.json({ error: "gesture" as const, message: "This gesture does not match the site: nothing was sent" }, 409);
+      }
+      const { login } = await deps.viewer();
+      const entry = { playerLogin: login, gesture: rebuilt.kind, target: `${home}#${rebuilt.issueNumber}`, payload: rebuilt.mutations };
+      let result: Awaited<ReturnType<Deps["applyWarm"]>>;
+      try {
+        result = await deps.applyWarm(rebuilt);
+      } catch (e) {
+        await record(deps, { ...entry, result: "failed", githubResponse: { message: e instanceof Error ? e.message : String(e) } });
+        throw e;
+      }
+      await record(deps, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
+      if (!result.ok) return c.json(result);
+      // The first real cheer and the first real thank-you stamp the skill book; the demo site sends nothing, stamps nothing.
+      if (deps.mode === "live" && rebuilt.kind !== "uncheer") {
+        const id = rebuilt.kind === "cheer" ? "warm-cheer" : "warm-thank";
+        try {
+          const board = await deps.readBoard();
+          const url = board.items.find((i) => i.number === rebuilt.issueNumber)?.url ?? `https://github.com/${home}/issues/${rebuilt.issueNumber}`;
+          await deps.progress.stamp(login, id, url);
+        } catch (err) {
+          console.error("[project-quest] the stamp could not be written", err);
+        }
+      }
+      let site: ReturnType<typeof buildSite> | null = null;
+      try {
+        site = buildSite(await deps.readBoard(), deps.config);
+      } catch {
+        site = null;
+      }
+      return c.json({ ok: true as const, site, levels: deps.mode === "live" ? await levelsAfterWrite() : null });
     })
     // ---------- The real project: ask for a good first issue (one comment, nothing else) ----------
     .post("/api/real/ask/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), comment: z.string() })), async (c) => {

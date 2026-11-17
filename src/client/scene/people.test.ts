@@ -4,7 +4,7 @@ import { type ClipPlan, GESTURES, gestureAt, greeting, headYaw, livelyWorkers, n
 
 const pallet = (number: number, zone: string, closed = false): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone, closed, discarded: false,
-  building: null, isBug: false, goodFirst: false, trade: null, size: null,
+  building: null, isBug: false, goodFirst: false, trade: null, size: null, myReactions: [],
 });
 const site = (pallets: Pallet[]): Site => ({
   zones: ["Backlog", "Ready", "In progress", "In review", "Done"].map((name, index) => ({ name, index })),

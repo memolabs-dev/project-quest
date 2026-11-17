@@ -5,6 +5,7 @@ import type { PreparedMove } from "../shared/gestures/move.ts";
 import type { PreparedPractice } from "../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { PreparedTeam } from "../shared/gestures/team.ts";
+import type { PreparedWarm } from "../shared/gestures/warm.ts";
 import type { PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
@@ -15,6 +16,7 @@ import { applyPractice, type PracticeResult } from "./github/practice-apply.ts";
 import { readBoard } from "./github/read-board.ts";
 import { readPractice } from "./github/read-practice.ts";
 import { readGoodFirst } from "./github/read-real.ts";
+import { readThanked } from "./github/read-thanked.ts";
 
 export interface Deps {
   mode: "live" | "demo";
@@ -43,6 +45,10 @@ export interface Deps {
   applyTeam(p: PreparedTeam): Promise<PracticeResult>;
   /** Sends a prepared ask (one comment) on the real project. */
   applyAsk(p: PreparedAsk): Promise<PracticeResult>;
+  /** Sends a warm gesture (a reaction, its removal, or a thank-you) on the configured project. */
+  applyWarm(p: PreparedWarm): Promise<PracticeResult>;
+  /** Whether the player already left words on this laid pallet (a comment of theirs since it was closed). */
+  readThanked(issueNumber: number): Promise<boolean>;
 }
 
 const PRACTICE_NAME = process.env.QUEST_PRACTICE_REPO || "my-first-site";
@@ -77,12 +83,16 @@ export function liveDeps(config: QuestConfig): Deps {
     applyAsk: async (p) => applyPractice(await client(), await restClient(), p),
     teamName: TEAM_NAME,
     applyTeam: async (p) => applyPractice(await client(), await restClient(), p),
+    applyWarm: async (p) => applyPractice(await client(), await restClient(), p),
+    readThanked: async (n) => readThanked(await client(), config, n),
   };
 }
 
 export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps {
   const board = structuredClone(json("src/shared/demo/demo-board.json")) as BoardSnapshot;
   const noGitHub = async (): Promise<never> => { throw new GitHubAuthError("The demo site has no GitHub access: run `gh auth login`"); };
+  // The warm gestures play in memory: the player's reactions on the board, the pallets they thanked with words.
+  const thanked = new Set<number>();
   return {
     mode: "demo",
     demoReason: reason,
@@ -119,6 +129,19 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
         .filter((i) => i.state === "OPEN" && i.labels.some((l) => config.labels.goodFirst.includes(l)) && (n === undefined || i.number === n))
         .map((i) => ({ id: i.issueId, number: i.number, title: i.title, url: i.url, assignees: i.assignees.map((a) => a.login), comments: [] })),
     }),
+    applyWarm: async (p) => {
+      const item = board.items.find((i) => i.number === p.issueNumber);
+      if (!item) return { ok: false, reason: "github", message: `Issue #${p.issueNumber} is not on the demo site`, applied: [] };
+      const given = new Set(item.myReactions ?? []);
+      for (const m of p.mutations) {
+        if (m.name === "addReaction") given.add(String(m.input.content));
+        if (m.name === "removeReaction") given.delete(String(m.input.content));
+        if (m.name === "addComment") thanked.add(p.issueNumber);
+      }
+      item.myReactions = [...given];
+      return { ok: true };
+    },
+    readThanked: async (n) => thanked.has(n),
   };
 }
 

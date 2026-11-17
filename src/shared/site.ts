@@ -1,5 +1,6 @@
 // From a Projects board to a building site: zones, buildings, pallets, workers. Pure functions.
 import type { QuestConfig } from "./config.ts";
+import { WARM_EMOJIS, type WarmEmoji } from "./gestures/warm.ts";
 
 export interface BoardItem {
   itemId: string;
@@ -17,6 +18,8 @@ export interface BoardItem {
   labels: string[];
   assignees: { login: string; avatarUrl: string }[];
   updatedAt: string;
+  /** The reactions the player gave this issue (GitHub's content names); absent in older snapshots. */
+  myReactions?: string[];
 }
 
 export interface BoardSnapshot {
@@ -44,6 +47,8 @@ export interface Pallet {
   /** Marked for newcomers (config.labels.goodFirst). */
   goodFirst: boolean;
   trade: string | null;
+  /** The warm signs the player already gave this pallet (only the four positive ones). */
+  myReactions: WarmEmoji[];
   size: string | null;
 }
 export interface Worker { login: string; avatarUrl: string; carrying: number[] }
@@ -76,6 +81,7 @@ export function buildSite(board: BoardSnapshot, config: QuestConfig): Site {
       discarded: i.state === "CLOSED" && (i.stateReason === "DUPLICATE" || i.stateReason === "NOT_PLANNED"), building: epicOf(i)?.number ?? null,
       isBug: i.labels.some((l) => config.labels.bug.includes(l)), goodFirst: i.labels.some((l) => config.labels.goodFirst.includes(l)),
       trade, size: i.size,
+      myReactions: (i.myReactions ?? []).filter((r): r is WarmEmoji => (WARM_EMOJIS as readonly string[]).includes(r)),
     };
   });
 

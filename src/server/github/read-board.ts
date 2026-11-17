@@ -30,6 +30,7 @@ export const BOARD_QUERY = /* GraphQL */ `
                   subIssuesSummary { total }
                   labels(first: 20) { nodes { name } }
                   assignees(first: 10) { nodes { login avatarUrl } }
+                  reactionGroups { content viewerHasReacted }
                 }
               }
             }
@@ -49,6 +50,8 @@ interface IssueNode {
   subIssuesSummary: { total: number };
   labels: { nodes: { name: string }[] };
   assignees: { nodes: { login: string; avatarUrl: string }[] };
+  /** Only the viewer's own reactions are kept: the game never counts anyone's. */
+  reactionGroups?: { content: string; viewerHasReacted: boolean }[] | null;
 }
 interface ItemNode {
   id: string;
@@ -92,6 +95,7 @@ export async function readBoard(gql: Gql, config: QuestConfig): Promise<BoardSna
         status: n.status?.name ?? null, size: n.size?.name ?? null, parent: c.parent?.number ?? null,
         isEpic: c.issueType?.name === "Epic" || c.subIssuesSummary.total > 0,
         labels: c.labels.nodes.map((l) => l.name), assignees: c.assignees.nodes, updatedAt: n.updatedAt,
+        myReactions: (c.reactionGroups ?? []).filter((g) => g.viewerHasReacted).map((g) => g.content),
       });
     }
     after = p.items.pageInfo.hasNextPage ? p.items.pageInfo.endCursor : null;

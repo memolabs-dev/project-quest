@@ -11,6 +11,8 @@ export type PracticeMutationName =
   | "createRef" | "createCommitOnBranch" | "createPullRequest" | "mergePullRequest"
   /** The lead's team site. */
   | "updateProjectV2Field" | "createProjectV2Field" | "addLabelsToLabelable" | "closeIssue" | "updateIssue" | "updateProjectV2ItemFieldValue"
+  /** The warm gestures on the configured project. */
+  | "addReaction" | "removeReaction"
   | "clearProjectV2ItemFieldValue" | "addSubIssue" | "addBlockedBy"
   | "createProjectV2StatusUpdate"
   /** REST: GraphQL has no milestone mutation. */

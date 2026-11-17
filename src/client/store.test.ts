@@ -4,7 +4,7 @@ import { useQuest } from "./store.ts";
 
 const pallet = (number: number, zone = "Backlog"): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone, closed: false, discarded: false,
-  building: null, isBug: false, goodFirst: false, trade: null, size: null,
+  building: null, isBug: false, goodFirst: false, trade: null, size: null, myReactions: [],
 });
 const site = (pallets: Pallet[]): Site => ({ zones: [], pallets, buildings: [], workers: [] });
 

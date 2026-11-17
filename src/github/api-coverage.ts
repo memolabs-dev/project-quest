@@ -41,7 +41,7 @@ export const OPERATIONS: Record<string, Decision> = {
   ...all(m(["closeIssue"]), gesture("Lay the last floor: close as completed (the magic moment); or send a duplicate or a not-planned pallet back")),
   ...all(m(["reopenIssue"]), gesture("A crack in a floor: reopen a closed pallet")),
   ...all(m(["setIssueStatus"]), out("Same effect as closeIssue and reopenIssue, which the game uses")),
-  ...all(m(["addComment"]), gesture("Talk to a worker (wake the one in the hammock, answer a question): a comment, read back before it is sent")),
+  ...all(m(["addComment"]), gesture("A comment, read back before it is sent: ask for a good first issue, thank a worker in the player's own words, answer a question")),
   ...all(m(["updateIssueComment"]), gesture("Fix what you said: edit your own comment")),
   ...all(m(["deleteIssueComment"]), out("Deleting a comment loses history; the game never deletes what people wrote")),
   ...all(m(["addAssigneesToAssignable"]), gesture("Hand a pallet to the worker who asked for it (\"je prends\"), or take it yourself")),
@@ -118,7 +118,7 @@ export const OPERATIONS: Record<string, Decision> = {
   ...all(m(["deleteDiscussion", "deleteDiscussionComment"]), out("Deleting what people wrote loses history")),
 
   // ---------- GraphQL: reactions, activity, users ----------
-  ...all(m(["addReaction", "removeReaction"]), gesture("Cheer a worker: a reaction on an issue or comment")),
+  ...all(m(["addReaction", "removeReaction"]), gesture("Cheer a worker, or thank them when their pallet is laid: one of four positive reactions on the issue, taken back the same way")),
   ...all(m(["updateSubscription"]), gesture("Keep an eye on a pallet: subscribe to its notifications")),
   ...all(m(["addStar", "removeStar", "updateNotificationRestrictionSetting"]), out(NOT_A_BOARD_THING)),
   ...all(m(["changeUserStatus"]), later("idea", "The lead's status (\"in a meeting\") shown on their helmet")),

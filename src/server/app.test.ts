@@ -33,6 +33,8 @@ const deps = (apply: (p: PreparedMove) => Promise<ApplyResult>, extra: Partial<D
   applyAsk: async () => ({ ok: true }),
   teamName: "my-first-team",
   applyTeam: async () => ({ ok: true }),
+  applyWarm: async () => ({ ok: true }),
+  readThanked: async () => false,
   ...extra,
 });
 const post = (body: unknown) => ({ method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json" } });

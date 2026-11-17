@@ -3,6 +3,7 @@
 import type { PracticeMutationName, PreparedPractice } from "../../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../../shared/gestures/real.ts";
 import type { PreparedTeam } from "../../shared/gestures/team.ts";
+import type { PreparedWarm } from "../../shared/gestures/warm.ts";
 import type { Gql, Rest } from "./client.ts";
 
 export type { Rest };
@@ -16,6 +17,8 @@ const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContent
   addProjectV2ItemById: { inputType: "AddProjectV2ItemByIdInput", returns: "item { id }" },
   addAssigneesToAssignable: { inputType: "AddAssigneesToAssignableInput", returns: "clientMutationId" },
   addComment: { inputType: "AddCommentInput", returns: "clientMutationId" },
+  addReaction: { inputType: "AddReactionInput", returns: "clientMutationId" },
+  removeReaction: { inputType: "RemoveReactionInput", returns: "clientMutationId" },
   createRef: { inputType: "CreateRefInput", returns: "ref { id }" },
   createCommitOnBranch: { inputType: "CreateCommitOnBranchInput", returns: "commit { oid url }" },
   createPullRequest: { inputType: "CreatePullRequestInput", returns: "pullRequest { id url }" },
@@ -47,7 +50,7 @@ const fill = (input: Record<string, unknown>, ids: Record<string, string>) =>
     return [k, id];
   }));
 
-export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPractice | PreparedAsk | PreparedTeam): Promise<PracticeResult> {
+export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPractice | PreparedAsk | PreparedTeam | PreparedWarm): Promise<PracticeResult> {
   const ids: Record<string, string> = {};
   const applied: PracticeMutationName[] = [];
   for (const m of prepared.mutations) {

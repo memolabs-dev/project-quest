@@ -4,7 +4,7 @@ import { momentsAfterMove, momentsBetween } from "./diff.ts";
 
 const pallet = (number: number, o: Partial<Pallet> = {}): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone: "Backlog", closed: false, discarded: false,
-  building: null, isBug: false, goodFirst: false, trade: null, size: null, ...o,
+  building: null, isBug: false, goodFirst: false, trade: null, size: null, myReactions: [], ...o,
 });
 const building = (epicNumber: number | null, floorsDone: number): Building => ({ epicNumber, title: "FICTIF", floorsDone, floorsTotal: 6 });
 const site = (pallets: Pallet[], buildings: Building[] = []): Site => ({ zones: [], pallets, buildings, workers: [] });

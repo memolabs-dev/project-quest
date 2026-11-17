@@ -44,6 +44,22 @@ describe("readBoard", () => {
     expect(board.items.length).toBeGreaterThan(0);
   });
 
+  it("the viewer's own reactions are read, nobody else's", async () => {
+    const project = structuredClone(fixture.repositoryOwner.projectV2) as { items: { nodes: { content: Record<string, unknown> | null }[] } };
+    const first = project.items.nodes.find((n) => n.content?.__typename === "Issue")!;
+    first.content!.reactionGroups = [
+      { content: "HOORAY", viewerHasReacted: true },
+      { content: "HEART", viewerHasReacted: false },
+      { content: "EYES", viewerHasReacted: true },
+    ];
+    const { gql } = fakeGql([{ repositoryOwner: { projectV2: project } }]);
+    const board = await readBoard(gql, config);
+    const item = board.items.find((i) => i.number === first.content!.number)!;
+    expect(item.myReactions).toEqual(["HOORAY", "EYES"]);
+    // The site keeps only the four warm signs.
+    expect(buildSite(board, config).pallets.find((p) => p.number === item.number)?.myReactions ?? ["HOORAY"]).toEqual(["HOORAY"]);
+  });
+
   it("follows pagination, passing the cursor back", async () => {
     const project = fixture.repositoryOwner.projectV2;
     const page = (nodes: unknown[], hasNextPage: boolean, endCursor: string | null) => ({
