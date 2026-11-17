@@ -26,6 +26,29 @@ export function gestureAt(login: string, n: number): { clip: Gesture; seconds: n
   return { clip: GESTURES[i], seconds: 4 + seeded(login, n + 1000) * 5 };
 }
 
+/** What a worker is doing between frames: their gesture, its time left, and a wave's time left. */
+export interface ClipPlan { step: number; left: number; gesture: Gesture | null; wave: number }
+
+/** The clip a worker plays this frame: a wave first, then work, then a plain idle beyond the twelve, else their gesture. */
+export function nextClip(p: ClipPlan, o: { busy: boolean; lively: boolean; login: string; delta: number }): string {
+  if (p.wave > 0) {
+    p.wave -= o.delta;
+    return "Interact";
+  }
+  if (o.busy) return "Use_Item";
+  if (!o.lively) return "Unarmed_Idle";
+  p.left -= o.delta;
+  if (p.left <= 0 || !p.gesture) {
+    const g = gestureAt(o.login, p.step++);
+    p.gesture = g.clip;
+    p.left = g.seconds;
+  }
+  return p.gesture;
+}
+
+/** Whether two sets hold the same logins: the scene re-renders only when the twelve change. */
+export const sameMembers = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every((x) => b.has(x));
+
 /** How far a worker's head turns toward the player: within 4 m, clamped to 60°, none with reduced motion. */
 export function headYaw(worker: { x: number; z: number; facing: number }, player: { x: number; z: number }, reduced: boolean): number {
   const dx = player.x - worker.x;

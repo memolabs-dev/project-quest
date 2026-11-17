@@ -9,7 +9,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { playerPosition } from "../moments/player.ts";
-import { gestureAt, greeting, headYaw } from "./people.ts";
+import { headTurn } from "./head.ts";
+import { type ClipPlan, greeting, headYaw, nextClip } from "./people.ts";
 import { badgeInitial, idleOffset, jacketColor, type WorkerSpot } from "./show.ts";
 
 const URL = "/models/foreman.glb";
@@ -59,11 +60,16 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
     return { body, scale: h > 0 ? HEIGHT / h : 1 };
   }, [scene, color]);
 
-  const { actions } = useAnimations(animations, group);
-  // The head bone, turned each frame after the mixer has posed the skeleton.
-  const head = useRef<THREE.Object3D | null>(null);
-  useEffect(() => { head.current = body.getObjectByName("head") ?? null; }, [body]);
-  const plan = useRef({ step: 0, left: idleOffset(spot.login) * 4, clip: "" as string, wave: 0, nameLeft: 0, yaw: 0 });
+  // The mixer's root is the body, which lives as long as the worker: the group is remade when their crate moves.
+  const { actions } = useAnimations(animations, body);
+  // The head bone, turned each frame on top of the pose the mixer gave it.
+  const head = useRef<ReturnType<typeof headTurn> | null>(null);
+  useEffect(() => {
+    const bone = body.getObjectByName("head");
+    head.current = bone ? headTurn(bone) : null;
+  }, [body]);
+  const clips = useRef<ClipPlan>({ step: 0, left: idleOffset(spot.login) * 4, gesture: null, wave: 0 });
+  const plan = useRef({ clip: "" as string, nameLeft: 0, yaw: 0 });
 
   const play = (clip: string) => {
     const p = plan.current;
@@ -73,31 +79,21 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
     next.reset().fadeIn(FADE).play();
     if (p.clip && p.clip !== clip) actions[p.clip]?.fadeOut(FADE);
     p.clip = clip;
+    body.userData.clip = clip;
   };
+
+  // Before the mixer: the head back to the animation's pose, without last frame's turn.
+  useFrame(() => head.current?.restore(), -1);
 
   useFrame((_, delta) => {
     if (!group.current) return;
     const p = plan.current;
     // A wave plays once, then the worker goes back to what they were doing.
-    if (p.wave > 0) {
-      p.wave -= delta;
-      play("Interact");
-    } else if (spot.busy) {
-      play("Use_Item");
-    } else if (!lively) {
-      play("Unarmed_Idle");
-    } else {
-      p.left -= delta;
-      if (p.left <= 0 || !p.clip) {
-        const g = gestureAt(spot.login, p.step++);
-        p.left = g.seconds;
-        play(g.clip);
-      }
-    }
+    play(nextClip(clips.current, { busy: spot.busy, lively, login: spot.login, delta }));
     // Near the foreman: the name (and once per visit a wave), the head turned toward him.
     const distance = Math.hypot(playerPosition.x - spot.x, playerPosition.z - spot.z);
     const greet = lively ? greeting(visit, spot.login, distance, reduceMotion) : null;
-    if (greet === "wave" && actions.Interact) p.wave = actions.Interact.getClip().duration;
+    if (greet === "wave" && actions.Interact) clips.current.wave = actions.Interact.getClip().duration;
     if (greet) p.nameLeft = NAME_SECONDS;
     else p.nameLeft = Math.max(0, p.nameLeft - delta);
     const show = p.nameLeft > 0;
@@ -109,7 +105,7 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
     if (!head.current) return;
     const target = lively ? headYaw({ x: spot.x, z: spot.z, facing: FACING }, playerPosition, reduceMotion) : 0;
     easing.damp(plan.current, "yaw", target, 0.25, delta);
-    head.current.rotation.y += plan.current.yaw;
+    head.current.apply(plan.current.yaw);
   });
 
   return (

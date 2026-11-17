@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Pallet, Site } from "../../shared/site.ts";
-import { GESTURES, gestureAt, greeting, headYaw, livelyWorkers, restAfter, restState, workerBusy } from "./people.ts";
+import { type ClipPlan, GESTURES, gestureAt, greeting, headYaw, livelyWorkers, nextClip, restAfter, restState, sameMembers, workerBusy } from "./people.ts";
 
 const pallet = (number: number, zone: string, closed = false): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone, closed, discarded: false,
@@ -64,5 +64,41 @@ describe("the people of the site", () => {
   it("the first input ends the rest", () => {
     expect(restState(0, 20_000)).toBe("rest");
     expect(restState(19_000, 20_000)).toBe("awake");
+  });
+});
+
+describe("nextClip", () => {
+  const plan = (o: Partial<ClipPlan> = {}): ClipPlan => ({ step: 0, left: 5, gesture: "PickUp", wave: 0, ...o });
+  const at = { busy: false, lively: true, login: "a" };
+
+  it("goes back to the gesture once the wave is over", () => {
+    const p = plan({ wave: 1 });
+    expect(nextClip(p, { ...at, delta: 0.5 })).toBe("Interact");
+    expect(nextClip(p, { ...at, delta: 0.5 })).toBe("Interact");
+    expect(nextClip(p, { ...at, delta: 0.5 })).toBe("PickUp");
+  });
+
+  it("goes back to the gesture when work ends or the worker is one of the twelve again", () => {
+    const p = plan();
+    expect(nextClip(p, { ...at, busy: true, delta: 0.1 })).toBe("Use_Item");
+    expect(nextClip(p, { ...at, delta: 0.1 })).toBe("PickUp");
+    expect(nextClip(p, { ...at, lively: false, delta: 0.1 })).toBe("Unarmed_Idle");
+    expect(nextClip(p, { ...at, delta: 0.1 })).toBe("PickUp");
+  });
+
+  it("changes gesture when its time is up", () => {
+    const p = plan({ gesture: null, left: 0 });
+    const first = nextClip(p, { ...at, delta: 0.1 });
+    expect(first).toBe(gestureAt("a", 0).clip);
+    p.left = 0;
+    expect(nextClip(p, { ...at, delta: 0.1 })).toBe(gestureAt("a", 1).clip);
+  });
+});
+
+describe("sameMembers", () => {
+  it("tells when the twelve have not changed", () => {
+    expect(sameMembers(new Set(["a", "b"]), new Set(["b", "a"]))).toBe(true);
+    expect(sameMembers(new Set(["a", "b"]), new Set(["a", "c"]))).toBe(false);
+    expect(sameMembers(new Set(["a"]), new Set(["a", "b"]))).toBe(false);
   });
 });

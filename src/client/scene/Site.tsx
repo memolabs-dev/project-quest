@@ -22,7 +22,7 @@ import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane } from "./Life.tsx";
 import { jacketColor, solidPallets, termiteSpots, workerSpots } from "./show.ts";
-import { livelyWorkers } from "./people.ts";
+import { livelyWorkers, sameMembers } from "./people.ts";
 import { playerPosition } from "../moments/player.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
@@ -122,7 +122,10 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
   // The twelve workers nearest the foreman live fully; refreshed every second, not every frame.
   const [lively, setLively] = useState(() => livelyWorkers(spots, playerPosition));
   useEffect(() => {
-    const update = () => setLively(livelyWorkers(spots, playerPosition));
+    const update = () => setLively((was) => {
+      const now = livelyWorkers(spots, playerPosition);
+      return sameMembers(was, now) ? was : now;
+    });
     update();
     const every = setInterval(update, 1000);
     return () => clearInterval(every);
