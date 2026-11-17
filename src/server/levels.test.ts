@@ -62,7 +62,7 @@ describe("levels", () => {
     expect(v.unlocks).toEqual({ helmet: true, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false });
     expect(v.practice).toEqual({
       name: "my-first-site", exists: false, readme: null, issue: null, pull: null,
-      unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false,
+      unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false, closedPull: null,
     });
     expect(v.team).toEqual({ exists: false, parcels: false, labels: [], milestones: [],
       sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },
@@ -360,6 +360,39 @@ describe("the branch pushed from the machine", () => {
   });
 });
 
+describe("the Team leader's site, read by ancestry", () => {
+  const branch = (history: { oid: string; parents: string[]; viaWeb?: boolean }[]) => ({
+    name: "work-3", oid: history[0].oid, author: VIEWER, url: "u", readme: null, viaWeb: false,
+    history: history.map((h) => ({ oid: h.oid, committedDate: "2026-11-17T23:00:00Z", viaWeb: h.viaWeb ?? false, parents: h.parents })),
+  });
+  it("main moved after the branch began, whatever the machine's clock says", async () => {
+    const practice = site({
+      defaultBranch: { name: "main", oid: "m2", committedDate: "2026-11-17T08:00:00Z" }, mainHistory: ["m2", "m1"],
+      branches: [branch([{ oid: "w1", parents: ["m1"] }, { oid: "m1", parents: [], viaWeb: true }])],
+    });
+    const v = await view(await make(practice).app.request("/api/levels/check", post({})));
+    expect(v.practice.mainMoved).toBe(true);
+  });
+  it("tells a pull request closed without merging, so the game never offers to delete its branch", async () => {
+    const practice = site({ pulls: [{
+      id: "PR_4", number: 4, url: "p4", author: VIEWER, state: "CLOSED", createdAt: "2026-11-17T10:00:00Z",
+      headRefName: "work-3", headRefOid: "w1", closes: [3], closesElsewhere: [], commits: [],
+    }] });
+    const v = await view(await make(practice).app.request("/api/levels/check", post({})));
+    expect(v.practice.closedPull).toBe(4);
+  });
+});
+
+describe("the mayor's change", () => {
+  it("is sent only at level 13, before main moved", async () => {
+    const practice = site({ defaultBranch: { name: "main", oid: "m1", committedDate: "2026-11-17T08:00:00Z" }, plan: "FICTIF plan" });
+    const { app, sent } = make(practice);
+    const res = await app.request("/api/practice/mayor/prepare", post({}));
+    expect(res.status).toBe(409);
+    expect(sent).toEqual([]);
+  });
+});
+
 describe("after a write GitHub accepted", () => {
   it("answers ok even when reading the levels again fails, so the player never sees an error for a done gesture", async () => {
     let reads = 0;
@@ -556,7 +589,13 @@ describe("practice gestures", () => {
   });
 
   it("sends the mayor's change the server rebuilt", async () => {
-    const { app, sent } = make(site({ defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" } }));
+    // At level 13: the earlier levels stamped, the work branch begun on main's head.
+    const progress = memoryProgress();
+    for (const id of ["a1-walk", "a2-read-issue", "a3-read-board", "a4-found-site", "a5-write-issue", "a6-take-issue", "a7-move-issue",
+      "a8-edit-file", "a9-open-pull", "a10-answer-review", "a11-merge", "a12-push-branch"]) await progress.stamp(VIEWER, id, "u");
+    const work = { name: "work-3", oid: "w1", author: VIEWER, url: "u", readme: null, viaWeb: false,
+      history: [{ oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false, parents: ["a1"] }] };
+    const { app, sent } = make(site({ defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" }, mainHistory: ["a1"], branches: [work] }), { progress });
     const mayor = (await (await app.request("/api/practice/mayor/prepare", post({}))).json()) as Record<string, unknown>;
     expect((await app.request("/api/practice/mayor/apply", post(mayor))).status).toBe(200);
     expect((await app.request("/api/practice/mayor/apply", post({ ...mayor, repo: "fictif-org/real-repo" }))).status).toBe(409);

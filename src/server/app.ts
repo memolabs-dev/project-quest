@@ -72,6 +72,7 @@ const teamArgs = z.object({
   status: z.string().optional(), body: z.string().optional(), limit: z.number().optional(),
 }) satisfies z.ZodType<TeamArgs>;
 
+const MAYOR_NOT_NOW = "The mayor changes the plan only at level 13, once: nothing was sent";
 const NOT_YOURS = "Levels write only to your own practice site: nothing was sent";
 
 /** Rebuilds a claimed move from the board and sends it if nothing changed meanwhile. */
@@ -157,6 +158,11 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
   const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") !== undefined ? demo : live);
   // Levels always belong to the real player, even while they play the tutorial on the demo site.
   const levels = async () => checkLevels(live, (await live.viewer()).login);
+  // The mayor changes main once, for level 13, while the branch has not seen main move yet.
+  const mayorsTurn = async () => {
+    const v = await levels();
+    return v.current === "a13-bring-main" && !v.practice.mainMoved;
+  };
   // After a write GitHub accepted, a failed re-read must never turn the done gesture into an error: the client reads again.
   const levelsAfterWrite = async () => {
     try {
@@ -268,6 +274,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
     .post("/api/practice/mayor/prepare", async (c) => {
       const { practice } = await practiceContext(live);
       if (!practice) return c.json(PRACTICE_MISSING, 404);
+      if (!(await mayorsTurn())) return c.json({ error: "gesture" as const, message: MAYOR_NOT_NOW }, 409);
       return c.json(prepareMayor(practice));
     })
     .post("/api/practice/merge/prepare", zValidator("json", z.object({ pullNumber: z.number().int() })), async (c) => {
@@ -285,6 +292,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       const target = claim.kind === "found" ? `${claim.owner}/${claim.name}` : claim.repo;
       if (target.toLowerCase() !== `${login}/${name}`.toLowerCase()) return c.json({ error: "gesture" as const, message: NOT_YOURS }, 409);
       if (claim.kind !== "found" && !practice) return c.json(PRACTICE_MISSING, 404);
+      if (claim.kind === "mayor" && !(await mayorsTurn())) return c.json({ error: "gesture" as const, message: MAYOR_NOT_NOW }, 409);
       const viewer = { login, id: claim.kind === "found" || claim.kind === "take" ? await live.viewerId() : "" };
       const rebuilt = rebuild(claim, viewer, name, practice);
       if (!isDeepStrictEqual(rebuilt, claim)) {

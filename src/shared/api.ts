@@ -62,6 +62,8 @@ export interface LevelsView {
     workBranch: string | null;
     /** Main moved after the work branch's first commit from the machine (the mayor's change landed). */
     mainMoved: boolean;
+    /** The viewer's latest pull request from a work branch was closed without merging (null otherwise). */
+    closedPull: number | null;
   };
   /** The real project's good first issues, once read (after the Team leader rank). */
   real: { issues: number } | null;

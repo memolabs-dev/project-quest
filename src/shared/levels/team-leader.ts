@@ -28,6 +28,22 @@ const workPulls = (o: Observed) => {
   return p.pulls.filter((x) => same(x.author, o.viewer) && x.closes.length > 0 && isWork(x.headRefName, p));
 };
 
+/** The commits a commit is made of, within the history read (newest first, up to 30). */
+export const ancestorsOf = (history: { oid: string; parents?: string[] }[]) => {
+  const parents = new Map(history.map((h) => [h.oid, h.parents ?? []]));
+  return (oid: string) => {
+    const seen = new Set<string>();
+    const stack = [...(parents.get(oid) ?? [])];
+    while (stack.length) {
+      const next = stack.pop()!;
+      if (seen.has(next)) continue;
+      seen.add(next);
+      stack.push(...(parents.get(next) ?? []));
+    }
+    return seen;
+  };
+};
+
 const level = (id: string, check: (o: Observed) => Check): Level => ({ id, rank: "team-leader", path: "volunteer", where: "practice", check });
 
 export const TEAM_LEADER: Level[] = [
@@ -38,12 +54,17 @@ export const TEAM_LEADER: Level[] = [
   level("a13-bring-main", (o) => {
     const main = o.practice?.defaultBranch;
     if (!main) return NOT_YET;
-    // Main moved after the branch's first own commit from the machine, and its head is now inside the branch.
-    // "Own": not in main's history, so main's past (the REST foundation stone reads like a machine commit) never counts.
+    // By ancestry, never by the machine's clock: the branch began before main's head (its first own commit does not
+    // contain it), and main's head is now inside the branch. "Own": not in main's history, so main's past (the REST
+    // foundation stone reads like a machine commit) never counts. A rebase rewrites the branch on the new main: it
+    // reads as a branch begun there (level 13 teaches the merge).
     const inMain = new Set(o.practice?.mainHistory ?? []);
     const b = pushed(o).find((x) => {
-      const firstOwn = x.history.filter((h) => !h.viaWeb && !inMain.has(h.oid)).map((h) => h.committedDate).sort()[0];
-      return firstOwn !== undefined && main.committedDate > firstOwn && x.history.some((h) => h.oid === main.oid);
+      const own = x.history.filter((h) => !h.viaWeb && !inMain.has(h.oid));
+      const firstOwn = own[own.length - 1];
+      if (!firstOwn) return false;
+      const ancestors = ancestorsOf(x.history);
+      return !ancestors(firstOwn.oid).has(main.oid) && ancestors(x.oid).has(main.oid);
     });
     return b ? { done: true, proof: b.url } : NOT_YET;
   }),
@@ -56,7 +77,8 @@ export const TEAM_LEADER: Level[] = [
   }),
   level("a15-clean-up", (o) => {
     const names = new Set((o.practice?.branches ?? []).map((b) => b.name));
-    const p = workPulls(o).find((x) => x.state === "MERGED" && !names.has(x.headRefName));
+    // GitHub's word on the pull request itself when it has it; else the branch is not among those read.
+    const p = workPulls(o).find((x) => x.state === "MERGED" && (x.branchGone ?? !names.has(x.headRefName)));
     return p ? { done: true, proof: p.url } : NOT_YET;
   }),
 ];

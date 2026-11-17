@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { LevelsView } from "../shared/api.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 import {
-  boardCatchingUp, canFollow, capacityEditable, cardGestures, limitEditable, noOpenVisit, radioDraft, requestsOf, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
+  boardCatchingUp, canFollow, pullClosedUnmerged, capacityEditable, cardGestures, limitEditable, noOpenVisit, radioDraft, requestsOf, laterView, mentorAction, needsPath, newStamps, noGoodFirst, siteKindFromUrl, speakerOf, teamRewards,
 } from "./levels.ts";
 
 const ids = LEVELS.map((l) => l.id);
@@ -17,7 +17,7 @@ const view = (stamped: number, exists = false): LevelsView => ({
   current: ids[stamped] ?? null,
   rank: stamped === ids.length ? "apprentice" : null,
   unlocks: { helmet: stamped > 0, skillBook: stamped > 0, ownSite: stamped > 3, trowel: stamped > 6, firstBuilding: stamped > 10, van: stamped > 10, realProjects: stamped > 14 },
-  practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
+  practice: { name: "my-first-site", exists, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false, closedPull: null },
   real: null,
   team: NO_TEAM,
 });
@@ -57,7 +57,7 @@ describe("mentorAction", () => {
   it("asks the mayor first, then the commands", () => {
     const at13 = view(12, true);
     expect(mentorAction(at13, "practice")).toBe("mayor");
-    expect(mentorAction({ ...at13, practice: { ...at13.practice, mainMoved: true } }, "practice")).toBe("commands");
+    expect(mentorAction({ ...at13, practice: { ...at13.practice, mainMoved: true, closedPull: null } }, "practice")).toBe("commands");
   });
   it("at a14 with no open issue left, asks for one first instead of a dead pull request", () => {
     const at14 = view(13, true);
@@ -116,6 +116,15 @@ describe("the lead's path", () => {
     expect(boardCatchingUp(arrived, "team", 6)).toBe(false);
     expect(boardCatchingUp(lead("l2-sort-parcels"), "team", 0)).toBe(false);
     expect(boardCatchingUp(arrived, "main", 0)).toBe(false);
+  });
+  it("after a pull request closed without merging, level 15 offers no delete command", () => {
+    const at15 = (closedPull: number | null): LevelsView => ({
+      ...view(14, true), current: "a15-clean-up", practice: { ...view(14, true).practice, pull: null, closedPull },
+    });
+    expect(mentorAction(at15(4), "practice")).toBeNull();
+    expect(pullClosedUnmerged(at15(4))).toBe(true);
+    expect(mentorAction(at15(null), "practice")).toBe("commands");
+    expect(pullClosedUnmerged(at15(null))).toBe(false);
   });
   it("the sprint first, then the capacity, then the loading", () => {
     const sprint = (o: Partial<LevelsView["team"]["sprint"]>) => ({ ...NO_TEAM.sprint, field: true, ...o });

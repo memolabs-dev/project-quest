@@ -78,10 +78,16 @@ export interface PracticePull {
   closesElsewhere: string[];
   /** viaWeb: committed through GitHub (web or API), not pushed from a machine. */
   commits: { oid: string; url: string; committedDate: string; viaWeb: boolean }[];
+  /** GitHub's own word that the pull request's branch was deleted (its headRef is gone). */
+  branchGone?: boolean;
 }
 
 /** One commit of a branch's recent history. */
-export interface BranchCommit { oid: string; committedDate: string; viaWeb: boolean }
+export interface BranchCommit {
+  oid: string; committedDate: string; viaWeb: boolean;
+  /** Its parents' oids (two for a merge): what the branch is made of, whatever the machine's clock said. */
+  parents?: string[];
+}
 
 /** The player's practice repository as read on GitHub. */
 export interface PracticeSnapshot {

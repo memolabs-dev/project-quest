@@ -3,6 +3,7 @@
 import type { LevelsView } from "../shared/api.ts";
 import { levelsOf } from "../shared/levels/index.ts";
 import { inProgress, sprintFieldOf, sprintLoad, wipLimit } from "../shared/levels/lead.ts";
+import { ancestorsOf } from "../shared/levels/team-leader.ts";
 import { PARCELS, parcelOf } from "../shared/levels/parcels.ts";
 import { currentLevel, rankReached, unlocks } from "../shared/levels/progress.ts";
 import type { Observed, Path, PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
@@ -120,7 +121,11 @@ function forGestures(practice: PracticeSnapshot | null, login: string) {
   const work = practice?.branches
     .filter((b) => b.name !== main?.name && !/^practice-\d+$/.test(b.name) && !b.viaWeb && b.oid !== main?.oid && !inMain.has(b.oid))
     .sort((a, b) => headDate(b).localeCompare(headDate(a)))[0];
-  const firstOwn = work?.history.filter((h) => !h.viaWeb && !inMain.has(h.oid)).map((h) => h.committedDate).sort()[0];
+  // The work branch's first own commit (oldest, by the order git gives), and whether main's head is outside it.
+  const own = work?.history.filter((h) => !h.viaWeb && !inMain.has(h.oid)) ?? [];
+  const firstOwn = own[own.length - 1];
+  // The viewer's latest pull request from a work branch, closed without merging: nothing left to delete.
+  const closed = practice?.pulls.find((p) => same(p.author, login) && p.state !== "OPEN" && !/^practice-\d+$/.test(p.headRefName));
   return {
     readme: branch?.readme ?? practice?.readme ?? null,
     issue: issue?.number ?? null,
@@ -128,6 +133,7 @@ function forGestures(practice: PracticeSnapshot | null, login: string) {
     unassigned: unassigned?.number ?? null,
     defaultBranch: main?.name ?? null,
     workBranch: work?.name ?? null,
-    mainMoved: Boolean(main && firstOwn && main.committedDate > firstOwn),
+    mainMoved: Boolean(main && work && firstOwn && !ancestorsOf(work.history)(firstOwn.oid).has(main.oid)),
+    closedPull: closed?.state === "CLOSED" ? closed.number : null,
   };
 }

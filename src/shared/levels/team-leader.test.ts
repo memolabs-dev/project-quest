@@ -9,7 +9,10 @@ const MAIN = { name: "main", oid: "m1", committedDate: "2026-11-17T08:00:00Z" };
 type Branch = PracticeSnapshot["branches"][number];
 const branch = (o: Partial<Branch> = {}): Branch => ({
   name: "work-3", oid: "w1", author: VIEWER, url: "c-w1", readme: null, viaWeb: false,
-  history: [{ oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false }, { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true }],
+  history: [
+    { oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false, parents: ["m1"] },
+    { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true, parents: [] },
+  ],
   ...o,
 });
 const pull = (o: Partial<PracticePull> = {}): PracticePull => ({
@@ -51,8 +54,10 @@ describe("a13-bring-main", () => {
   const moved = { ...MAIN, oid: "m2", committedDate: "2026-11-17T11:00:00Z" };
   it("passes once main moved after the branch began, and came into it", () => {
     const merged = branch({ oid: "w2", history: [
-      { oid: "w2", committedDate: "2026-11-17T11:05:00Z", viaWeb: false }, { oid: "m2", committedDate: moved.committedDate, viaWeb: true },
-      { oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false }, { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true },
+      { oid: "w2", committedDate: "2026-11-17T11:05:00Z", viaWeb: false, parents: ["w1", "m2"] },
+      { oid: "m2", committedDate: moved.committedDate, viaWeb: true, parents: ["m1"] },
+      { oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false, parents: ["m1"] },
+      { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true, parents: [] },
     ] });
     expect(level("a13-bring-main").check(seen(snapshot({ defaultBranch: moved, branches: [merged], mainHistory: ["m2", "m1"] })))).toEqual({ done: true, proof: "c-w1" });
   });
@@ -66,9 +71,9 @@ describe("a13 and main's own past", () => {
   it("ignores main's old commits made on a machine (the foundation stone), counting only the branch's own", () => {
     // Main's history: a merge (m1, through GitHub) over the REST foundation stone (f0, reads like a machine commit).
     const fresh = branch({ history: [
-      { oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false },
-      { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true },
-      { oid: "f0", committedDate: "2026-11-17T07:00:00Z", viaWeb: false },
+      { oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false, parents: ["m1"] },
+      { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true, parents: ["f0"] },
+      { oid: "f0", committedDate: "2026-11-17T07:00:00Z", viaWeb: false, parents: [] },
     ] });
     const o = seen(snapshot({ branches: [fresh], mainHistory: ["m1", "f0"] }));
     expect(level("a13-bring-main").check(o).done).toBe(false);
@@ -106,5 +111,42 @@ describe("a15-clean-up", () => {
   it("waits for the merge, and for the branch to go", () => {
     expect(level("a15-clean-up").check(seen(snapshot({ pulls: [pull()] }))).done).toBe(false);
     expect(level("a15-clean-up").check(seen(snapshot({ pulls: [pull({ state: "MERGED" })], branches: [branch()] }))).done).toBe(false);
+  });
+});
+
+describe("a13 by ancestry, not by the machine's clock", () => {
+  const moved = { ...MAIN, oid: "m2", committedDate: "2026-11-17T11:00:00Z" };
+  // w1 began on m1; the mayor then moved main to m2; w2 merges m2 into the branch.
+  const merged = (w1Date: string) => branch({ oid: "w2", history: [
+    { oid: "w2", committedDate: "2026-11-17T11:05:00Z", viaWeb: false, parents: ["w1", "m2"] },
+    { oid: "m2", committedDate: moved.committedDate, viaWeb: true, parents: ["m1"] },
+    { oid: "w1", committedDate: w1Date, viaWeb: false, parents: ["m1"] },
+    { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true, parents: [] },
+  ] });
+  it("passes with a machine clock running ahead: the branch began on the old main, whatever its dates say", () => {
+    const o = seen(snapshot({ defaultBranch: moved, branches: [merged("2026-11-17T12:00:00Z")], mainHistory: ["m2", "m1"] }));
+    expect(level("a13-bring-main").check(o).done).toBe(true);
+  });
+  it("a branch begun on the new main has nothing to bring in, whatever its dates say", () => {
+    const fresh = branch({ oid: "w9", history: [
+      { oid: "w9", committedDate: "2026-11-17T07:00:00Z", viaWeb: false, parents: ["m2"] },
+      { oid: "m2", committedDate: moved.committedDate, viaWeb: true, parents: ["m1"] },
+      { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true, parents: [] },
+    ] });
+    expect(level("a13-bring-main").check(seen(snapshot({ defaultBranch: moved, branches: [fresh], mainHistory: ["m2", "m1"] }))).done).toBe(false);
+  });
+});
+
+describe("a14 counts what came after the pull request opened", () => {
+  it("a fix committed before the pull request opened does not count: GitHub records no push time", () => {
+    const early = { oid: "w3", url: "c-w3", committedDate: "2026-11-17T09:30:00Z", viaWeb: false };
+    expect(level("a14-fix-from-machine").check(seen(snapshot({ pulls: [pull({ commits: [...pull().commits, early] })] }))).done).toBe(false);
+  });
+});
+
+describe("a15 reads the branch on the pull request itself", () => {
+  it("passes when GitHub says the pull request's branch is gone, even beyond the branches read", () => {
+    expect(level("a15-clean-up").check(seen(snapshot({ pulls: [pull({ state: "MERGED", branchGone: true })], branches: [branch()] }))).done).toBe(true);
+    expect(level("a15-clean-up").check(seen(snapshot({ pulls: [pull({ state: "MERGED", branchGone: false })] }))).done).toBe(false);
   });
 });

@@ -90,7 +90,7 @@ test("a journeyman's edit dialog asks for the text and the message, and sends no
       login: "you", canWrite: false, path: null, ranks: { volunteer: null, lead: null }, current: "a8-edit-file", rank: "apprentice",
       stamps: ids.map((levelId) => ({ levelId, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: false, van: false, realProjects: false },
-      practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
+      practice: { name: "my-first-site", exists: true, readme: null, issue: 1, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false, closedPull: null },
       real: null, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false, name: "my-first-team" },
     });
   });
@@ -113,7 +113,7 @@ test("at the last level, a good first issue's card offers to ask for it, and the
       login: "you", canWrite: false, path: null, ranks: { volunteer: null, lead: null }, current: "a16-ask-good-first", rank: "team-leader",
       stamps: Array.from({ length: 15 }, (_, i) => ({ levelId: `x${i}`, proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: true, skillBook: true, ownSite: true, trowel: true, firstBuilding: true, van: true, realProjects: true },
-      practice: { name: "my-first-site", exists: true, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false },
+      practice: { name: "my-first-site", exists: true, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: "main", workBranch: null, mainMoved: false, closedPull: null },
       real: { issues: 1 }, team: { exists: false, parcels: false, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false, name: "my-first-team" },
     });
   });
@@ -153,7 +153,7 @@ test("a site manager declares the sprint's capacity as the game's rule, and sets
       login: "you", canWrite: false, path: "lead", ranks: { volunteer: null, lead: "site-foreman" }, current: current as string, rank: "site-foreman",
       stamps: ["l1-found-team", "l2-sort-parcels", "l3-ready", "l4-size"].map((levelId) => ({ levelId, proof: "u", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: false, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false },
-      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
+      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false, closedPull: null },
       real: null,
       team: { exists: true, parcels: true, labels: [], milestones: [], sprint: { field: true, current: "Sprint 1", points: 0, capacity: null, loaded: [], unsized: [] }, wip: { limit: null, count: 0 }, bulletin: null, teamDay: false, visitJobs: [], duplicateWrong: false, name: "my-first-team", ...(team as object) },
     });
@@ -185,7 +185,7 @@ test("a project director writes the evening bulletin from the radio's draft, and
       stamps: ["l1-found-team", "l2-sort-parcels", "l3-ready", "l4-size", "l5-sprint", "l6-milestone", "l7-split", "l8-rope"]
         .map((levelId) => ({ levelId, proof: "u", stampedAt: "2026-11-17T00:00:00Z" })),
       unlocks: { helmet: false, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false },
-      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
+      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false, closedPull: null },
       real: null,
       team: {
         exists: true, parcels: true, labels: [], milestones: [], sprint: { field: true, current: "Sprint 1", points: 2, capacity: 3, loaded: [2], unsized: [] },
@@ -212,7 +212,7 @@ test("a dialog keeps the keyboard inside, Escape closes it and the focus goes ba
       login: "you", canWrite: false, path: "lead", ranks: { volunteer: null, lead: "site-manager" }, current: "l9-bulletin", rank: "site-manager",
       stamps: [{ levelId: "a1-walk", proof: "tutorial", stampedAt: "2026-11-17T00:00:00Z" }],
       unlocks: { helmet: true, skillBook: true, ownSite: false, trowel: false, firstBuilding: false, van: false, realProjects: false },
-      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false },
+      practice: { name: "my-first-site", exists: false, readme: null, issue: null, pull: null, unassigned: null, defaultBranch: null, workBranch: null, mainMoved: false, closedPull: null },
       real: null,
       team: {
         exists: true, parcels: true, labels: [], milestones: [], sprint: { field: false, current: null, points: 0, capacity: null, loaded: [], unsized: [] },

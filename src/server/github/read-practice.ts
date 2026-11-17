@@ -15,12 +15,12 @@ export const PRACTICE_QUERY = /* GraphQL */ `
       refs(refPrefix: "refs/heads/", first: 100, orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
         nodes { name target { ... on Commit {
           oid url committedViaWeb author { user { login } } file(path: "README.md") { object { ... on Blob { text } } }
-          history(first: 30) { nodes { oid committedDate committedViaWeb } }
+          history(first: 30) { nodes { oid committedDate committedViaWeb parents(first: 2) { nodes { oid } } } }
         } } }
       }
       pullRequests(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
-          id number url state createdAt headRefName headRefOid
+          id number url state createdAt headRefName headRefOid headRef { name }
           author { login }
           closingIssuesReferences(first: 5) { nodes { number repository { nameWithOwner } } }
           commits(last: 20) { nodes { commit { oid url committedDate committedViaWeb } } }
@@ -82,11 +82,11 @@ interface PracticeResponse {
     refs: { nodes: { name: string; target: {
       oid?: string; url?: string; committedViaWeb?: boolean; author?: { user: { login: string } | null };
       file?: { object: { text?: string } | null } | null;
-      history?: { nodes: { oid: string; committedDate: string; committedViaWeb: boolean }[] };
+      history?: { nodes: { oid: string; committedDate: string; committedViaWeb: boolean; parents?: { nodes: { oid: string }[] } }[] };
     } }[] };
     pullRequests: { nodes: {
       id: string; number: number; url: string; state: "OPEN" | "CLOSED" | "MERGED"; createdAt: string;
-      headRefName: string; headRefOid: string; author: { login: string } | null;
+      headRefName: string; headRefOid: string; headRef?: { name: string } | null; author: { login: string } | null;
       closingIssuesReferences: { nodes: { number: number; repository: { nameWithOwner: string } }[] };
       commits: { nodes: { commit: { oid: string; url: string; committedDate: string; committedViaWeb: boolean } }[] };
     }[] };
@@ -195,11 +195,15 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
         name: b.name, oid: b.target.oid!, author: b.target.author?.user?.login ?? "ghost", url: b.target.url ?? "",
         readme: b.target.file?.object?.text ?? null,
         viaWeb: b.target.committedViaWeb ?? true,
-        history: (b.target.history?.nodes ?? []).map((h) => ({ oid: h.oid, committedDate: h.committedDate, viaWeb: h.committedViaWeb })),
+        history: (b.target.history?.nodes ?? []).map((h) => ({
+          oid: h.oid, committedDate: h.committedDate, viaWeb: h.committedViaWeb, parents: (h.parents?.nodes ?? []).map((n) => n.oid),
+        })),
       })),
     pulls: r.pullRequests.nodes.map((pr) => ({
       id: pr.id, number: pr.number, url: pr.url, author: login(pr.author), state: pr.state, createdAt: pr.createdAt,
       headRefName: pr.headRefName, headRefOid: pr.headRefOid,
+      // headRef is null once the branch is deleted; absent from an older answer, the branch list decides.
+      ...(pr.headRef !== undefined ? { branchGone: pr.headRef === null } : {}),
       closes: pr.closingIssuesReferences.nodes.filter((n) => here(n.repository)).map((n) => n.number),
       closesElsewhere: pr.closingIssuesReferences.nodes.filter((n) => !here(n.repository)).map((n) => `${n.repository.nameWithOwner}#${n.number}`),
       commits: pr.commits.nodes.map(({ commit: c }) => ({ oid: c.oid, url: c.url, committedDate: c.committedDate, viaWeb: c.committedViaWeb })),

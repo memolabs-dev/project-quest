@@ -54,7 +54,8 @@ export function mentorAction(view: LevelsView, kind: SiteKind): MentorAction | n
     case "a12-push-branch": return p.issue === null ? needIssue : "commands";
     case "a13-bring-main": return p.mainMoved ? "commands" : "mayor";
     case "a14-fix-from-machine": return p.pull !== null ? "commands" : p.issue === null ? needIssue : "pull";
-    case "a15-clean-up": return p.pull === null ? "commands" : "merge";
+    // A pull request closed without merging leaves nothing to clean up: the mentor says so instead (pullClosedUnmerged).
+    case "a15-clean-up": return p.pull !== null ? "merge" : p.closedPull !== null ? null : "commands";
     default: return GESTURES[level.id] ?? null;
   }
 }
@@ -154,3 +155,7 @@ export function requestsOf(p: PreparedPractice | PreparedAsk | PreparedTeam): st
     return `POST /graphql  mutation ${m.name}`;
   });
 }
+
+/** At level 15, the work's pull request was closed without merging: reopen it, or open a new one. */
+export const pullClosedUnmerged = (view: LevelsView) =>
+  view.current === "a15-clean-up" && view.practice.pull === null && view.practice.closedPull !== null;

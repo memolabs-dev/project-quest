@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { commandsFor, copyLine, safeBranch } from "../commands.ts";
 import { api } from "../api.ts";
 import { SIZE_POINTS } from "../../shared/levels/lead.ts";
-import { boardCatchingUp, capacityEditable, limitEditable, mentorAction, noOpenVisit, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
+import { boardCatchingUp, capacityEditable, pullClosedUnmerged, limitEditable, mentorAction, noOpenVisit, needsPath, newStamps, noGoodFirst, speakerOf } from "../levels.ts";
 import { useQuest } from "../store.ts";
 
 const CHEER_MS = 4000;
@@ -199,6 +199,7 @@ export function Mentor() {
           <button type="button" onClick={() => openTeam({ kind: "wip-limit" })}>{t("mentor.changeLimit")}</button>
         )}
         {noOpenVisit(levels) && <p className="mentor-notyet">{t("mentor.noVisit")}</p>}
+        {pullClosedUnmerged(levels) && <p className="mentor-notyet">{t("mentor.pullClosed", { number: levels.practice.closedPull })}</p>}
         {current === "l2-sort-parcels" && levels.team.duplicateWrong && <p className="mentor-notyet">{t("mentor.duplicateReason")}</p>}
         {current === "l10-wip" && levels.team.wip.limit !== null && (
           <p className="mentor-load">{t("mentor.wip", { count: levels.team.wip.count, limit: levels.team.wip.limit })}</p>

@@ -110,7 +110,8 @@
     "changeLimit": "Changer la limite",
     "noVisit": "Aucune visite ouverte : rouvre le jalon sur GitHub, ou demande une nouvelle visite à la maire.",
     "duplicateReason": "Le doublon est fermé, mais pas comme doublon : rouvre-le sur GitHub, puis ferme-le comme doublon de l'original.",
-    "selected": "Sélectionné : copie-le avec ton clavier"
+    "selected": "Sélectionné : copie-le avec ton clavier",
+    "pullClosed": "La pull request n°{{number}} a été fermée sans fusion : rouvre-la sur GitHub, ou ouvre-en une nouvelle depuis ta branche. Le ménage vient après la fusion."
   },
   "skills": {
     "title": "Compétences",
