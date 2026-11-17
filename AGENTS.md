@@ -19,7 +19,7 @@ The backlog lives in GitHub: issues of this repository on the public board https
 ## Commands
 
 - `npm run dev:demo`: the demo site (nothing sent to GitHub); `npm run dev`: the configured board (`quest.config.json`)
-- `npm test`: Vitest; `npm run test:e2e`: Playwright on the installed Chrome; `npm run test:db`: logbook on Docker Postgres (port 5442)
+- `npm test`: Vitest; `npm run test:e2e`: Playwright on the installed Chrome; `npm run test:db`: the database tests on Docker Postgres (port 5442), on their own `quest_test` database (`npm run db:test:setup` once); they empty their tables and refuse any database not named `*_test`
 - `npm run check`: types, lint, unit tests (lefthook runs it before each push)
 - `npm run assets`: rebuild the 3D kit with Blender 5.3 headless
 

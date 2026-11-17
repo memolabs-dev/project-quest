@@ -2,6 +2,7 @@
 // GitHub stays the truth: a lost stamp comes back on the next check, as long as its proof still exists.
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { assertTestDatabase } from "./test-guard.ts";
 import postgres from "postgres";
 import type { Path, Stamp, TutorialEvent } from "../../shared/levels/types.ts";
 import { players, progress, tutorialEvents } from "./schema.ts";
@@ -101,6 +102,7 @@ export function pgProgress(url: string): ProgressStore & { clearForTests(): Prom
       await db.delete(tutorialEvents).where(eq(tutorialEvents.playerLogin, key(login)));
     },
     async clearForTests() {
+      assertTestDatabase(url);
       await db.delete(progress);
       await db.delete(tutorialEvents);
       await db.delete(players);

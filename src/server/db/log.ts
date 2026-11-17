@@ -1,6 +1,7 @@
 // The action log: in Postgres for real play, in memory for the demo site and unit tests.
 import { desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { assertTestDatabase } from "./test-guard.ts";
 import postgres from "postgres";
 import { actionLog } from "./schema.ts";
 
@@ -42,6 +43,7 @@ export function pgActionLog(url: string): ActionLog & { clearForTests(): Promise
       return rows.map((r) => ({ ...r, result: r.result as LogEntry["result"], createdAt: r.createdAt.toISOString() }));
     },
     async clearForTests() {
+      assertTestDatabase(url);
       await db.delete(actionLog);
     },
   };
