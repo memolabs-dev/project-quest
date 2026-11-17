@@ -9,7 +9,7 @@ export const PRACTICE_QUERY = /* GraphQL */ `
   query Practice($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
       id nameWithOwner url
-      defaultBranchRef { name target { oid ... on Commit { committedDate } } }
+      defaultBranchRef { name target { oid ... on Commit { committedDate history(first: 50) { nodes { oid } } } } }
       plan: object(expression: "HEAD:PLAN.md") { ... on Blob { text } }
       object(expression: "HEAD:README.md") { ... on Blob { text } }
       refs(refPrefix: "refs/heads/", first: 20) {
@@ -51,7 +51,7 @@ export const PRACTICE_QUERY = /* GraphQL */ `
 interface PracticeResponse {
   repository: {
     id: string; nameWithOwner: string; url: string;
-    defaultBranchRef: { name: string; target: { oid: string; committedDate: string } } | null;
+    defaultBranchRef: { name: string; target: { oid: string; committedDate: string; history?: { nodes: { oid: string }[] } } } | null;
     plan: { text?: string } | null;
     object: { text?: string } | null;
     refs: { nodes: { name: string; target: {
@@ -113,6 +113,7 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
       ? { name: r.defaultBranchRef.name, oid: r.defaultBranchRef.target.oid, committedDate: r.defaultBranchRef.target.committedDate }
       : null,
     plan: r.plan?.text ?? null,
+    mainHistory: (r.defaultBranchRef?.target.history?.nodes ?? []).map((n) => n.oid),
     readme: r.object?.text ?? null,
     branches: r.refs.nodes
       .filter((b) => b.name !== r.defaultBranchRef?.name && b.target.oid)

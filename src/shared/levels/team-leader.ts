@@ -33,9 +33,11 @@ export const TEAM_LEADER: Level[] = [
   level("a13-bring-main", (o) => {
     const main = o.practice?.defaultBranch;
     if (!main) return NOT_YET;
-    // Main moved after the branch's first commit from the machine, and its head is now inside the branch.
+    // Main moved after the branch's first own commit from the machine, and its head is now inside the branch.
+    // "Own": not in main's history, so main's past (the REST foundation stone reads like a machine commit) never counts.
+    const inMain = new Set(o.practice?.mainHistory ?? []);
     const b = pushed(o).find((x) => {
-      const firstOwn = x.history.filter((h) => !h.viaWeb).map((h) => h.committedDate).sort()[0];
+      const firstOwn = x.history.filter((h) => !h.viaWeb && !inMain.has(h.oid)).map((h) => h.committedDate).sort()[0];
       return firstOwn !== undefined && main.committedDate > firstOwn && x.history.some((h) => h.oid === main.oid);
     });
     return b ? { done: true, proof: b.url } : NOT_YET;

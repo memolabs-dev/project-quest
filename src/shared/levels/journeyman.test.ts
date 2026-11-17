@@ -16,7 +16,7 @@ const pull = (o: Partial<PracticePull> = {}): PracticePull => ({
 const snapshot = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R", nameWithOwner: "fictif-volunteer/my-first-site", url: "r" },
   board: { id: "PVT", number: 1, url: "b", columns: ["Todo", "In Progress", "Done"] },
-  issues: [issue()], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" }, readme: "# my-first-site\n", branches: [], pulls: [], plan: null, ...o,
+  issues: [issue()], defaultBranch: { name: "main", oid: "a1", committedDate: "2026-11-17T08:00:00Z" }, readme: "# my-first-site\n", branches: [], pulls: [], plan: null, mainHistory: [], ...o,
 });
 const seen = (practice: PracticeSnapshot | null, viewer = VIEWER): Observed => ({ viewer, events: [], practice });
 

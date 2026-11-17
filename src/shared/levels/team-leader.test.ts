@@ -20,7 +20,7 @@ const pull = (o: Partial<PracticePull> = {}): PracticePull => ({
 const snapshot = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R", nameWithOwner: "fictif-volunteer/my-first-site", url: "r" },
   board: { id: "PVT", number: 1, url: "b", columns: ["Todo", "In Progress", "Done"] },
-  issues: [], defaultBranch: MAIN, readme: null, branches: [], pulls: [], plan: null, ...o,
+  issues: [], defaultBranch: MAIN, readme: null, branches: [], pulls: [], plan: null, mainHistory: ["m1"], ...o,
 });
 const seen = (practice: PracticeSnapshot): Observed => ({ viewer: VIEWER, events: [], practice });
 
@@ -54,11 +54,24 @@ describe("a13-bring-main", () => {
       { oid: "w2", committedDate: "2026-11-17T11:05:00Z", viaWeb: false }, { oid: "m2", committedDate: moved.committedDate, viaWeb: true },
       { oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false }, { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true },
     ] });
-    expect(level("a13-bring-main").check(seen(snapshot({ defaultBranch: moved, branches: [merged] })))).toEqual({ done: true, proof: "c-w1" });
+    expect(level("a13-bring-main").check(seen(snapshot({ defaultBranch: moved, branches: [merged], mainHistory: ["m2", "m1"] })))).toEqual({ done: true, proof: "c-w1" });
   });
   it("a13 needs main to have moved, then come in", () => {
     expect(level("a13-bring-main").check(seen(snapshot({ branches: [branch()] }))).done).toBe(false);
-    expect(level("a13-bring-main").check(seen(snapshot({ defaultBranch: moved, branches: [branch()] }))).done).toBe(false);
+    expect(level("a13-bring-main").check(seen(snapshot({ defaultBranch: moved, branches: [branch()], mainHistory: ["m2", "m1"] }))).done).toBe(false);
+  });
+});
+
+describe("a13 and main's own past", () => {
+  it("ignores main's old commits made on a machine (the foundation stone), counting only the branch's own", () => {
+    // Main's history: a merge (m1, through GitHub) over the REST foundation stone (f0, reads like a machine commit).
+    const fresh = branch({ history: [
+      { oid: "w1", committedDate: "2026-11-17T09:00:00Z", viaWeb: false },
+      { oid: "m1", committedDate: MAIN.committedDate, viaWeb: true },
+      { oid: "f0", committedDate: "2026-11-17T07:00:00Z", viaWeb: false },
+    ] });
+    const o = seen(snapshot({ branches: [fresh], mainHistory: ["m1", "f0"] }));
+    expect(level("a13-bring-main").check(o).done).toBe(false);
   });
 });
 

@@ -7,7 +7,7 @@ const viewer = { login: "fictif-volunteer", id: "U_fictif" };
 const site = (o: Partial<PracticeSnapshot> = {}): PracticeSnapshot => ({
   repo: { id: "R_fictif", nameWithOwner: "fictif-volunteer/my-first-site", url: "https://github.com/fictif-volunteer/my-first-site" },
   board: { id: "PVT_fictif", number: 1, url: "https://github.com/users/fictif-volunteer/projects/1", columns: ["Todo", "In Progress", "Done"] },
-  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], plan: null, ...o,
+  issues: [], defaultBranch: null, readme: null, branches: [], pulls: [], plan: null, mainHistory: [], ...o,
 });
 const issue = (o: Partial<PracticeIssue> = {}): PracticeIssue => ({
   id: "I_fictif_1", number: 1, url: "u1", author: "fictif-volunteer", assignees: [], comments: [], status: "Todo", closed: false, ...o,

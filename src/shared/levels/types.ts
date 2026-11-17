@@ -56,6 +56,8 @@ export interface PracticeSnapshot {
     /** Newest first, up to 30. */
     history: BranchCommit[];
   }[];
+  /** Oids of the default branch's recent history (newest first, up to 50): what is not the player's own. */
+  mainHistory: string[];
   /** PLAN.md on the default branch: the mayor's plan. */
   plan: string | null;
   /** Newest first. */

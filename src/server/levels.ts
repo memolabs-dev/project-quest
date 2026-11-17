@@ -58,7 +58,8 @@ function forGestures(practice: PracticeSnapshot | null, login: string) {
   const main = practice?.defaultBranch ?? null;
   const work = practice?.branches.find((b) =>
     b.name !== main?.name && !/^practice-\d+$/.test(b.name) && !b.viaWeb && same(b.author, login));
-  const firstOwn = work?.history.filter((h) => !h.viaWeb).map((h) => h.committedDate).sort()[0];
+  const inMain = new Set(practice?.mainHistory ?? []);
+  const firstOwn = work?.history.filter((h) => !h.viaWeb && !inMain.has(h.oid)).map((h) => h.committedDate).sort()[0];
   return {
     readme: branch?.readme ?? practice?.readme ?? null,
     issue: issue?.number ?? null,
