@@ -12,7 +12,9 @@ const level = (id: string, check: (o: Observed) => Check): Level => ({ id, rank:
 
 export const JOURNEYMAN: Level[] = [
   level("a8-edit-file", (o) => {
-    const b = (o.practice?.branches ?? []).find((x) => same(x.author, o.viewer));
+    // A practice branch with a commit of the viewer's beyond the default branch: a real edit, not just a branch.
+    const b = (o.practice?.branches ?? []).find((x) =>
+      /^practice-\d+$/.test(x.name) && same(x.author, o.viewer) && x.oid !== o.practice?.defaultBranch?.oid);
     return b ? { done: true, proof: b.url } : NOT_YET;
   }),
   level("a9-open-pull", (o) => {

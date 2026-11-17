@@ -12,13 +12,13 @@ export const PRACTICE_QUERY = /* GraphQL */ `
       defaultBranchRef { name target { oid } }
       object(expression: "HEAD:README.md") { ... on Blob { text } }
       refs(refPrefix: "refs/heads/", first: 20) {
-        nodes { name target { ... on Commit { oid url author { user { login } } } } }
+        nodes { name target { ... on Commit { oid url author { user { login } } file(path: "README.md") { object { ... on Blob { text } } } } } }
       }
       pullRequests(first: 10, orderBy: { field: CREATED_AT, direction: DESC }) {
         nodes {
           id number url state createdAt headRefName headRefOid
           author { login }
-          closingIssuesReferences(first: 5) { nodes { number } }
+          closingIssuesReferences(first: 5) { nodes { number repository { nameWithOwner } } }
           commits(last: 20) { nodes { commit { oid url committedDate } } }
         }
       }
@@ -49,11 +49,13 @@ interface PracticeResponse {
     id: string; nameWithOwner: string; url: string;
     defaultBranchRef: { name: string; target: { oid: string } } | null;
     object: { text?: string } | null;
-    refs: { nodes: { name: string; target: { oid?: string; url?: string; author?: { user: { login: string } | null } } }[] };
+    refs: { nodes: { name: string; target: {
+      oid?: string; url?: string; author?: { user: { login: string } | null }; file?: { object: { text?: string } | null } | null;
+    } }[] };
     pullRequests: { nodes: {
       id: string; number: number; url: string; state: "OPEN" | "CLOSED" | "MERGED"; createdAt: string;
       headRefName: string; headRefOid: string; author: { login: string } | null;
-      closingIssuesReferences: { nodes: { number: number }[] };
+      closingIssuesReferences: { nodes: { number: number; repository: { nameWithOwner: string } }[] };
       commits: { nodes: { commit: { oid: string; url: string; committedDate: string } }[] };
     }[] };
     projectsV2: { nodes: {
@@ -89,6 +91,7 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
   // project of another owner is never played, its number would point at a different board of the viewer.
   const owned = r.projectsV2.nodes.filter((n) => n.owner?.login?.toLowerCase() === owner.toLowerCase());
   const p = owned.find((n) => n.title === name) ?? owned[0];
+  const here = (repo: { nameWithOwner: string }) => repo.nameWithOwner.toLowerCase() === r.nameWithOwner.toLowerCase();
   const board = p ? { id: p.id, number: p.number, url: p.url, columns: (p.field?.options ?? []).map((o) => o.name) } : null;
   return {
     repo: { id: r.id, nameWithOwner: r.nameWithOwner, url: r.url },
@@ -103,11 +106,15 @@ export async function readPractice(gql: Gql, owner: string, name: string): Promi
     readme: r.object?.text ?? null,
     branches: r.refs.nodes
       .filter((b) => b.name !== r.defaultBranchRef?.name && b.target.oid)
-      .map((b) => ({ name: b.name, oid: b.target.oid!, author: b.target.author?.user?.login ?? "ghost", url: b.target.url ?? "" })),
+      .map((b) => ({
+        name: b.name, oid: b.target.oid!, author: b.target.author?.user?.login ?? "ghost", url: b.target.url ?? "",
+        readme: b.target.file?.object?.text ?? null,
+      })),
     pulls: r.pullRequests.nodes.map((pr) => ({
       id: pr.id, number: pr.number, url: pr.url, author: login(pr.author), state: pr.state, createdAt: pr.createdAt,
       headRefName: pr.headRefName, headRefOid: pr.headRefOid,
-      closes: pr.closingIssuesReferences.nodes.map((n) => n.number),
+      closes: pr.closingIssuesReferences.nodes.filter((n) => here(n.repository)).map((n) => n.number),
+      closesElsewhere: pr.closingIssuesReferences.nodes.filter((n) => !here(n.repository)).map((n) => `${n.repository.nameWithOwner}#${n.number}`),
       commits: pr.commits.nodes.map((n) => n.commit),
     })),
   };

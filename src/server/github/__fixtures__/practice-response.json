@@ -130,6 +130,11 @@
               "user": {
                 "login": "fictif-volunteer"
               }
+            },
+            "file": {
+              "object": {
+                "text": "# README at main\n"
+              }
             }
           }
         },
@@ -142,6 +147,11 @@
               "user": {
                 "login": "fictif-volunteer"
               }
+            },
+            "file": {
+              "object": {
+                "text": "# README at practice-1\n"
+              }
             }
           }
         },
@@ -152,7 +162,8 @@
             "url": "https://github.com/fictif-volunteer/my-first-site/commit/ccc333",
             "author": {
               "user": null
-            }
+            },
+            "file": null
           }
         }
       ]
@@ -173,7 +184,16 @@
           "closingIssuesReferences": {
             "nodes": [
               {
-                "number": 1
+                "number": 1,
+                "repository": {
+                  "nameWithOwner": "fictif-volunteer/my-first-site"
+                }
+              },
+              {
+                "number": 3,
+                "repository": {
+                  "nameWithOwner": "fictif-org/real-repo"
+                }
               }
             ]
           },

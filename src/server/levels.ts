@@ -52,5 +52,7 @@ function forGestures(practice: PracticeSnapshot | null, login: string) {
     .filter((i) => !i.closed && i.assignees.some((a) => same(a, login)))
     .sort((a, b) => a.number - b.number)[0];
   const pull = practice?.pulls.find((p) => p.state === "OPEN" && same(p.author, login) && p.closes.length > 0);
-  return { readme: practice?.readme ?? null, issue: issue?.number ?? null, pull: pull?.number ?? null };
+  // The trowel starts from the file as it stands on the issue's branch, so the inspector's fix keeps the first edit.
+  const branch = issue ? practice?.branches.find((b) => b.name === `practice-${issue.number}`) : undefined;
+  return { readme: branch?.readme ?? practice?.readme ?? null, issue: issue?.number ?? null, pull: pull?.number ?? null };
 }

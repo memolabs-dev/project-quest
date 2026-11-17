@@ -75,7 +75,7 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice; note?
     <>
       <p className="move">{summary}</p>
       {note && <p className="practice-note">{note}</p>}
-      {prepared.kind === "edit" && <pre className="file-text" aria-label={prepared.path}>{prepared.content}</pre>}
+      {prepared.kind === "edit" && <pre className="file-text" tabIndex={0} aria-label={prepared.path}>{prepared.content}</pre>}
       <p className="payload-label">{t("confirm.payload")}</p>
       <pre className="payload">{JSON.stringify(prepared.mutations, null, 2)}</pre>
       {!canWrite && <p className="practice-note">{t("mentor.connectGithub")}</p>}
@@ -207,6 +207,7 @@ function EditDialog() {
     <Dialog title={t("practice.edit.title")}>
       {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
         <>
+          {issue === null && <p className="error" role="alert">{t("practice.blockedIssue")}</p>}
           {practice && practice.readme === null && <p className="practice-note">{t("practice.edit.foundation")}</p>}
           <label className="field">{t("practice.edit.contentLabel")}<textarea rows={6} value={content} onChange={(e) => setContent(e.target.value)} /></label>
           <label className="field">{t("practice.edit.messageLabel")}<input value={message} onChange={(e) => setMessage(e.target.value)} /></label>
@@ -234,7 +235,8 @@ function PullDialog() {
         <>
           <label className="field">{t("practice.pull.titleLabel")}<input value={title} onChange={(e) => setTitle(e.target.value)} /></label>
           <label className="field">{t("practice.pull.whyLabel")}<textarea rows={3} value={why} onChange={(e) => setWhy(e.target.value)} /></label>
-          {issue !== null && <p className="practice-note">{t("practice.pull.closes", { number: issue })}</p>}
+          {issue !== null ? <p className="practice-note">{t("practice.pull.closes", { number: issue })}</p>
+            : <p className="error" role="alert">{t("practice.blockedIssue")}</p>}
           {step.error && <p className="error" role="alert">{step.error}</p>}
           <div className="actions">
             <button type="button" className="primary" disabled={issue === null || !title.trim()} onClick={() => void step.run(() => api.preparePull(issue!, title, why))}>{t("practice.prepare")}</button>
@@ -255,7 +257,7 @@ function MergeDialog() {
     <Dialog title={t("practice.merge.title")}>
       {step.prepared ? <Preview prepared={step.prepared} onBack={step.back} /> : (
         <>
-          {pull !== null && <p>{t("practice.merge.body", { number: pull })}</p>}
+          {pull !== null ? <p>{t("practice.merge.body", { number: pull })}</p> : <p className="error" role="alert">{t("practice.blockedPull")}</p>}
           {step.error && <p className="error" role="alert">{step.error}</p>}
           <div className="actions">
             <button type="button" className="primary" disabled={pull === null} onClick={() => void step.run(() => api.prepareMerge(pull!))}>{t("practice.prepare")}</button>

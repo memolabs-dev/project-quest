@@ -210,7 +210,9 @@
       "open": "Fusionner",
       "title": "Fusionner ta pull request",
       "body": "La pull request n°{{number}} rejoint ta branche principale, et l'issue qu'elle ferme est fermée."
-    }
+    },
+    "blockedIssue": "Aucune issue ouverte à toi sur ton chantier : prends-en une d'abord, ton travail se fait sur une issue qui est à toi.",
+    "blockedPull": "Aucune pull request ouverte à toi ne ferme une issue : ouvre-en une d'abord."
   },
   "inspector": {
     "name": "L'inspectrice",

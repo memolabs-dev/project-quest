@@ -90,7 +90,7 @@ describe("editing a file", () => {
 
   it("a moved branch is reported, not overwritten", async () => {
     const { gql } = recording("createCommitOnBranch");
-    const moved: PracticeSnapshot = { ...empty, defaultBranch: { name: "main", oid: "a1" }, branches: [{ name: "practice-1", oid: "b1", author: "fictif-volunteer", url: "c" }] };
+    const moved: PracticeSnapshot = { ...empty, defaultBranch: { name: "main", oid: "a1" }, branches: [{ name: "practice-1", oid: "b1", author: "fictif-volunteer", url: "c", readme: null }] };
     const r = await applyPractice(gql, noRest, prepareEdit(moved, viewer, 1, "text", "fix"));
     expect(r).toEqual({ ok: false, reason: "github", message: "GitHub said no", applied: [] });
   });

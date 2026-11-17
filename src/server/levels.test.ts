@@ -192,7 +192,7 @@ describe("practice gestures", () => {
     const mine = issue({ assignees: [VIEWER] });
     const ready = site({
       issues: [mine], defaultBranch: { name: "main", oid: "a1" },
-      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c" }],
+      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c", readme: null }],
     });
     const { app, sent } = make(ready);
     const edit = (await (await app.request("/api/practice/edit/prepare", post({ issueNumber: 1, content: "x", message: "m" }))).json()) as Record<string, unknown>;
@@ -217,8 +217,8 @@ describe("practice gestures", () => {
     const progress = memoryProgress();
     for (const e of ["walked", "card-opened", "card-read", "pallet-moved"] as const) await progress.addEvent(VIEWER, e);
     const mine = issue({ assignees: [VIEWER], status: "In Progress", comments: [{ author: VIEWER, url: "c1" }] });
-    const branched = site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" }, branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "cb1" }] });
-    const pull = { id: "PR_2", number: 2, url: "p2", author: VIEWER, state: "OPEN" as const, createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "b1", commits: [] };
+    const branched = site({ issues: [mine], defaultBranch: { name: "main", oid: "a1" }, branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "cb1", readme: null }] });
+    const pull = { id: "PR_2", number: 2, url: "p2", author: VIEWER, state: "OPEN" as const, createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "b1", commits: [], closesElsewhere: [] };
     let reads = 0;
     // GitHub computes "Closes #1" a moment after the pull request exists.
     const readPractice = async () => {
@@ -230,6 +230,16 @@ describe("practice gestures", () => {
     const prepared = await (await app.request("/api/practice/pull/prepare", post({ issueNumber: 1, title: "t", why: "w" }))).json();
     const r = (await (await app.request("/api/practice/pull/apply", post(prepared))).json()) as { levels: LevelsView };
     expect(r.levels.stamps.map((s) => s.levelId)).toContain("a9-open-pull");
+  });
+
+  it("prefills the inspector's fix from the branch's README, not main's", async () => {
+    const mine = issue({ assignees: [VIEWER] });
+    const branched = site({
+      issues: [mine], defaultBranch: { name: "main", oid: "a1" }, readme: "# main\n",
+      branches: [{ name: "practice-1", oid: "b1", author: VIEWER, url: "c", readme: "# my first edit\n" }],
+    });
+    const v = await view(await make(branched).app.request("/api/levels", {}));
+    expect(v.practice.readme).toBe("# my first edit\n");
   });
 
   it("remembers the founded site's name", async () => {

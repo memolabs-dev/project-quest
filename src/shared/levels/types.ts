@@ -28,8 +28,10 @@ export interface PracticePull {
   createdAt: string;
   headRefName: string;
   headRefOid: string;
-  /** Issues this pull request closes when merged ("Closes #N"). */
+  /** Issues of the practice repository this pull request closes when merged ("Closes #N"). */
   closes: number[];
+  /** Issues of other repositories it would close too ("Closes owner/repo#N"): the game never merges it then. */
+  closesElsewhere: string[];
   commits: { oid: string; url: string; committedDate: string }[];
 }
 
@@ -43,7 +45,7 @@ export interface PracticeSnapshot {
   /** README.md on the default branch. */
   readme: string | null;
   /** Branches other than the default, with their head commit's author. */
-  branches: { name: string; oid: string; author: string; url: string }[];
+  branches: { name: string; oid: string; author: string; url: string; readme: string | null }[];
   /** Newest first. */
   pulls: PracticePull[];
 }

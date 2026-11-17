@@ -104,7 +104,7 @@ describe("prepareEdit", () => {
   it("edits on the branch head the server read", () => {
     const p = prepareEdit(site({
       issues: [mine], defaultBranch: { name: "main", oid: "a1" },
-      branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c" }],
+      branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c", readme: null }],
     }), viewer, 1, "text", "Say why");
     expect(p.mutations.map((m) => m.name)).toEqual(["createCommitOnBranch"]);
     expect(p.mutations[0].input).toMatchObject({ expectedHeadOid: "b7" });
@@ -123,11 +123,11 @@ describe("prepareEdit", () => {
 
 const pullOf = (o: Partial<PracticePull> = {}): PracticePull => ({
   id: "PR_2", number: 2, url: "p2", author: "fictif-volunteer", state: "OPEN", createdAt: "2026-11-17T10:00:00Z",
-  headRefName: "practice-1", headRefOid: "b7", closes: [1], commits: [], ...o,
+  headRefName: "practice-1", headRefOid: "b7", closes: [1], closesElsewhere: [], commits: [], ...o,
 });
 const branched = (o: Partial<PracticeSnapshot> = {}) => site({
   issues: [mine], defaultBranch: { name: "main", oid: "a1" },
-  branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c" }], ...o,
+  branches: [{ name: "practice-1", oid: "b7", author: "fictif-volunteer", url: "c", readme: null }], ...o,
 });
 
 describe("preparePull", () => {
@@ -156,5 +156,18 @@ describe("prepareMerge", () => {
     expect(() => prepareMerge(branched({ pulls: [pullOf({ author: "someone-else" })] }), viewer, 2)).toThrow(GestureError);
     expect(() => prepareMerge(branched({ pulls: [pullOf({ state: "MERGED" })] }), viewer, 2)).toThrow(GestureError);
     expect(() => prepareMerge(branched({ pulls: [pullOf({ closes: [] })] }), viewer, 2)).toThrow(GestureError);
+  });
+});
+
+describe("never touching another repository", () => {
+  it("never merges a pull request that would close an issue elsewhere", () => {
+    expect(() => prepareMerge(branched({ pulls: [pullOf({ closesElsewhere: ["fictif-org/real-repo#3"] })] }), viewer, 2)).toThrow(GestureError);
+  });
+  it("refuses a closing keyword aimed at another repository, in the pull request or the commit message", () => {
+    for (const text of ["Fixes fictif-org/real-repo#3", "this closes Fictif-Org/Real.Repo#12 too", "Resolved: fictif-org/x#1"]) {
+      expect(() => preparePull(branched(), viewer, 1, "t", text), text).toThrow(GestureError);
+      expect(() => prepareEdit(branched(), viewer, 1, "text", text), text).toThrow(GestureError);
+    }
+    expect(() => preparePull(branched(), viewer, 1, "t", "See fictif-org/real-repo#3 for the idea")).not.toThrow();
   });
 });

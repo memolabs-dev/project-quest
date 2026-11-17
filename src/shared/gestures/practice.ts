@@ -98,6 +98,14 @@ export function base64(text: string): string {
 
 export const practiceBranch = (issueNumber: number) => `practice-${issueNumber}`;
 
+/** "Closes owner/repo#12" and its kin: GitHub would close an issue in another repository. */
+const CLOSES_ELSEWHERE = /\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b:?\s+[\w.-]+\/[\w.-]+#\d+/i;
+function staysHome(text: string) {
+  if (CLOSES_ELSEWHERE.test(text)) {
+    throw new GestureError("This text would close an issue in another repository: your practice site closes only its own issues");
+  }
+}
+
 function ownIssue(practice: PracticeSnapshot, viewer: { login: string }, issueNumber: number) {
   const issue = practice.issues.find((i) => i.number === issueNumber);
   if (!issue || issue.closed || !issue.assignees.some((a) => same(a, viewer.login))) {
@@ -112,6 +120,7 @@ export function prepareEdit(
   ownIssue(practice, viewer, issueNumber);
   const headline = message.trim();
   if (!headline) throw new GestureError("Say in a few words what you changed: the message cannot be empty");
+  staysHome(headline);
   const repo = practice.repo.nameWithOwner;
   const branch = practiceBranch(issueNumber);
   const existing = practice.branches.find((b) => b.name === branch);
@@ -149,6 +158,8 @@ export function preparePull(
   }
   const t = title.trim();
   if (!t) throw new GestureError("A pull request needs a title");
+  staysHome(why);
+  staysHome(t);
   const body = `${why.trim()}\n\nCloses #${issueNumber}`;
   return {
     kind: "pull", repo: practice.repo.nameWithOwner, branch, issueNumber, title: t, body,
@@ -161,6 +172,9 @@ export function prepareMerge(practice: PracticeSnapshot, viewer: { login: string
   if (!pull || !same(pull.author, viewer.login)) throw new GestureError(`Pull request #${pullNumber} is not yours: the game merges only your own`);
   if (pull.state !== "OPEN") throw new GestureError(`Pull request #${pullNumber} is not open`);
   if (pull.closes.length === 0) throw new GestureError(`Pull request #${pullNumber} closes no issue`);
+  if (pull.closesElsewhere.length > 0) {
+    throw new GestureError(`Pull request #${pullNumber} would also close ${pull.closesElsewhere.join(", ")}: the game merges nothing that reaches another repository`);
+  }
   return {
     kind: "merge", repo: practice.repo.nameWithOwner, pullNumber,
     mutations: [{ name: "mergePullRequest", input: { pullRequestId: pull.id, expectedHeadOid: pull.headRefOid, mergeMethod: "MERGE" } }],

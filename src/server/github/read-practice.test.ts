@@ -41,12 +41,12 @@ describe("branches, README and pull requests", () => {
     expect(p?.defaultBranch).toEqual({ name: "main", oid: "aaa111" });
     expect(p?.readme).toBe("# my-first-site\n");
     expect(p?.branches).toEqual([
-      { name: "practice-1", oid: "bbb222", author: "fictif-volunteer", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb222" },
-      { name: "orphan", oid: "ccc333", author: "ghost", url: "https://github.com/fictif-volunteer/my-first-site/commit/ccc333" },
+      { name: "practice-1", oid: "bbb222", author: "fictif-volunteer", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb222", readme: "# README at practice-1\n" },
+      { name: "orphan", oid: "ccc333", author: "ghost", url: "https://github.com/fictif-volunteer/my-first-site/commit/ccc333", readme: null },
     ]);
     expect(p?.pulls).toEqual([{
       id: "PR_fictif_2", number: 2, url: "https://github.com/fictif-volunteer/my-first-site/pull/2", author: "fictif-volunteer", state: "OPEN",
-      createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "bbb222", closes: [1],
+      createdAt: "2026-11-17T10:00:00Z", headRefName: "practice-1", headRefOid: "bbb222", closes: [1], closesElsewhere: ["fictif-org/real-repo#3"],
       commits: [
         { oid: "bbb111", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb111", committedDate: "2026-11-17T09:59:00Z" },
         { oid: "bbb222", url: "https://github.com/fictif-volunteer/my-first-site/commit/bbb222", committedDate: "2026-11-17T10:05:00Z" },

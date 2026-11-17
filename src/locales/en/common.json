@@ -210,7 +210,9 @@
       "open": "Merge",
       "title": "Merge your pull request",
       "body": "Pull request #{{number}} joins your main branch, and the issue it closes is closed."
-    }
+    },
+    "blockedIssue": "No open issue of yours on your site: take one first, your work happens on an issue that is yours.",
+    "blockedPull": "No open pull request of yours closes an issue: open one first."
   },
   "inspector": {
     "name": "The inspector",
