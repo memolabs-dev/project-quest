@@ -1,5 +1,6 @@
 // The building site: ground, road, zone yards with their pallets, the buildings, the crane and the office.
-import { Html, KeyboardControls, Sky } from "@react-three/drei";
+import { Html, KeyboardControls } from "@react-three/drei";
+import { SiteLight } from "./Light.tsx";
 import { TeamRewards } from "./Rewards.tsx";
 import { Director } from "./Director.tsx";
 import { useReducedMotion } from "./motion.ts";
@@ -143,10 +144,7 @@ function Scene({ site, reduceMotion }: { site: SiteModel; reduceMotion: boolean 
     <>
       <color attach="background" args={["#F3D9B5"]} />
       <fog attach="fog" args={["#F3D9B5", 45, 110]} />
-      <Sky sunPosition={[30, 14, 25]} turbidity={6} rayleigh={1.2} mieCoefficient={0.006} />
-      <hemisphereLight args={["#FFE9C7", "#8C6A45", 0.7]} />
-      <directionalLight position={[25, 22, 18]} intensity={2.6} color="#FFE2B8" castShadow shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-45} shadow-camera-right={45} shadow-camera-top={45} shadow-camera-bottom={-45} shadow-bias={-0.0004} />
+      <SiteLight />
       <Physics>
         <Ground width={width} />
         {layout.zones.map((z) => (
