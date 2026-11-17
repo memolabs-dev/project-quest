@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ACTION_CODE } from "./client/keys.ts";
+import { useReducedMotion } from "./client/scene/motion.ts";
 import { useQuest } from "./client/store.ts";
 import { Hud } from "./client/ui/Hud.tsx";
 import { Overlays } from "./client/ui/Overlays.tsx";
@@ -16,6 +17,10 @@ export default function App() {
   const refreshLevels = useQuest((s) => s.refreshLevels);
 
   useEffect(() => { void refresh(); void refreshLevels(); }, [refresh, refreshLevels]);
+
+  // One motion setting for the interface too: its CSS reads data-motion, whatever the system says.
+  const reduce = useReducedMotion();
+  useEffect(() => { document.documentElement.dataset.motion = reduce ? "reduce" : "full"; }, [reduce]);
 
   // E opens the pallet in front of the player
   useEffect(() => {

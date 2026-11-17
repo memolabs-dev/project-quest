@@ -69,7 +69,7 @@
 .card {
   position: absolute; z-index: 30; left: 16px; bottom: 16px; width: min(380px, calc(100vw - 32px)); max-height: calc(100vh - 100px);
   overflow-y: auto; overflow-x: hidden; background: var(--paper); border: var(--line); border-top-width: 10px;
-  border-radius: var(--radius); box-shadow: 6px 6px 0 var(--ink); padding: 14px 16px; animation: pop 0.22s var(--ease);
+  border-radius: var(--radius); box-shadow: 6px 6px 0 var(--ink); padding: 14px 16px; animation: pop 0.18s var(--ease);
 }
 .card h2 { margin: 2px 0 10px; font-size: 20px; line-height: 1.2; overflow-wrap: anywhere; text-wrap: balance; }
 .card-num { margin: 0; font-weight: 900; color: #6b6b6b; }
@@ -215,9 +215,10 @@
 .skill-text small { font-size: 13px; overflow-wrap: anywhere; }
 .skill-text a { color: var(--accent-ink); font-weight: 800; }
 
-@keyframes pop { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
 @keyframes stamp { from { transform: scale(1.8) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .card, .stamp { animation: none !important; } }
+/* The game's motion setting (data-motion on the root), which already follows the system unless the player forced it. */
+[data-motion="reduce"] .card, [data-motion="reduce"] .stamp, [data-motion="reduce"] .confirm { animation: none !important; }
 @media (max-width: 600px) {
   .controls { display: none; }
   .card { left: 8px; right: 8px; bottom: 8px; width: auto; }
