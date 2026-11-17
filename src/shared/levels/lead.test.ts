@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SITE_FOREMAN } from "./lead.ts";
+import { SITE_FOREMAN, SITE_MANAGER, SIZE_POINTS, currentIteration } from "./lead.ts";
 import { PARCELS, ZONES, SIZES, parcelBody } from "./parcels.ts";
 import type { Observed, PracticeIssue, PracticeSnapshot } from "./types.ts";
 
@@ -95,5 +95,82 @@ describe("l4-size", () => {
     expect(level("l4-size").check(seen(team({ issues: [sized] })))).toEqual({ done: true, proof: board().url });
     expect(level("l4-size").check(seen(team({ issues: [sized, parcel("hinge", { status: "Ready" })] }))).done).toBe(false);
     expect(level("l4-size").check(seen(team({ issues: [parcel("hinge")] }))).done).toBe(false);
+  });
+});
+
+describe("the Site manager levels", () => {
+  const TODAY = "2026-11-17";
+  const sprintField = (iterations = [{ id: "it1", title: "Sprint 1", startDate: "2026-11-10", duration: 7 }, { id: "it2", title: "Sprint 2", startDate: "2026-11-17", duration: 7 }]) =>
+    ({ id: "F_sprint", name: "Sprint", dataType: "ITERATION", iterations });
+  const planned = (issues: PracticeIssue[], o: Partial<Observed> = {}): Observed => ({
+    ...seen(team({ issues, board: board({ fields: [...board().fields!, sprintField()] }) })), capacity: 5, today: TODAY, ...o,
+  });
+  const m = (id: string) => SITE_MANAGER.find((l) => l.id === id)!;
+
+  it("are four, on the lead's path, after the Site foreman", () => {
+    expect(SITE_MANAGER.map((l) => l.id)).toEqual(["l5-sprint", "l6-milestone", "l7-split", "l8-rope"]);
+    expect(SITE_MANAGER.every((l) => l.path === "lead" && l.rank === "site-manager")).toBe(true);
+    expect(SIZE_POINTS).toEqual({ XS: 1, S: 2, M: 3, L: 5, XL: 8 });
+  });
+
+  describe("l5-sprint", () => {
+    it("passes on a current sprint whose sized pallets fit the capacity, proof the board", () => {
+      const o = planned([parcel("bench", { iteration: "it2", size: "S" }), parcel("hinge", { iteration: "it2", size: "M" })]);
+      expect(m("l5-sprint").check(o)).toEqual({ done: true, proof: board().url });
+    });
+    it("l5 passes again once the load fits", () => {
+      const over = [parcel("bench", { iteration: "it2", size: "S" }), parcel("square", { iteration: "it2", size: "XL" })];
+      expect(m("l5-sprint").check(planned(over)).done).toBe(false);
+      expect(m("l5-sprint").check(planned([over[0], { ...over[1], iteration: null }])).done).toBe(true);
+    });
+    it("l5 needs every pallet of the sprint sized", () => {
+      expect(m("l5-sprint").check(planned([parcel("bench", { iteration: "it2", size: "S" }), parcel("nicer", { iteration: "it2" })])).done).toBe(false);
+    });
+    it("l5 needs a capacity declared", () => {
+      expect(m("l5-sprint").check(planned([parcel("bench", { iteration: "it2", size: "S" })], { capacity: null })).done).toBe(false);
+    });
+    it("l5 counts only the current sprint, and only open pallets", () => {
+      expect(m("l5-sprint").check(planned([parcel("bench", { iteration: "it1", size: "S" })])).done).toBe(false);
+      expect(m("l5-sprint").check(planned([parcel("bench", { iteration: "it2", size: "S", closed: true })])).done).toBe(false);
+      expect(m("l5-sprint").check(planned([parcel("bench", { iteration: "it2", size: "S" })], { today: "2026-11-24" })).done).toBe(false);
+    });
+    it("knows the current sprint: from its first day, up to the day before the next", () => {
+      const f = sprintField();
+      expect(currentIteration(f, "2026-11-16")?.id).toBe("it1");
+      expect(currentIteration(f, "2026-11-17")?.id).toBe("it2");
+      expect(currentIteration(f, "2026-11-23")?.id).toBe("it2");
+      expect(currentIteration(f, "2026-11-24")).toBeNull();
+    });
+  });
+
+  describe("l6-milestone", () => {
+    const visit = { id: "MI_1", number: 1, title: "FICTIF The mayor visits", dueOn: "2026-11-29T12:00:00Z", url: "u-visit", closed: false };
+    it("passes on an open milestone with a due date and an issue under it, proof the milestone", () => {
+      expect(m("l6-milestone").check(seen(team({ milestones: [visit], issues: [parcel("bench", { milestone: 1 })] })))).toEqual({ done: true, proof: "u-visit" });
+    });
+    it("l6 needs a due date and an issue under it", () => {
+      expect(m("l6-milestone").check(seen(team({ milestones: [{ ...visit, dueOn: null }], issues: [parcel("bench", { milestone: 1 })] }))).done).toBe(false);
+      expect(m("l6-milestone").check(seen(team({ milestones: [visit], issues: [parcel("bench")] }))).done).toBe(false);
+      expect(m("l6-milestone").check(seen(team({ milestones: [{ ...visit, closed: true }], issues: [parcel("bench", { milestone: 1 })] }))).done).toBe(false);
+    });
+  });
+
+  describe("l7-split", () => {
+    it("passes on an issue split in parts, proof that issue", () => {
+      expect(m("l7-split").check(seen(team({ issues: [parcel("square", { subIssues: [7, 8] })] })))).toEqual({ done: true, proof: "u-square" });
+    });
+    it("l7 needs two parts at least", () => {
+      expect(m("l7-split").check(seen(team({ issues: [parcel("square", { subIssues: [7] })] }))).done).toBe(false);
+    });
+  });
+
+  describe("l8-rope", () => {
+    it("passes on an open issue waiting for another, proof that issue", () => {
+      expect(m("l8-rope").check(seen(team({ issues: [parcel("bench", { blockedBy: [1] })] })))).toEqual({ done: true, proof: "u-bench" });
+    });
+    it("needs the waiting issue open", () => {
+      expect(m("l8-rope").check(seen(team({ issues: [parcel("bench", { blockedBy: [1], closed: true })] }))).done).toBe(false);
+      expect(m("l8-rope").check(seen(team({ issues: [parcel("bench")] }))).done).toBe(false);
+    });
   });
 });

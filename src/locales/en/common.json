@@ -76,7 +76,8 @@
       "journeyman": "That's the Journeyman rank. Your first contribution is in, from branch to merge. Real projects are next.",
       "team-leader": "That's the Team leader rank. You know git from end to end. Real projects are waiting for you.",
       "real-project": "That's the whole path. You know GitHub from the first issue to a real project. Welcome to the crew.",
-      "site-foreman": "That's the Site foreman rank. What comes in is sorted, ready and sized. Planning is next."
+      "site-foreman": "That's the Site foreman rank. What comes in is sorted, ready and sized. Planning is next.",
+      "site-manager": "That's the Site manager rank. The week is planned, the visit is set, big jobs are cut and roped. Steering is next."
     },
     "fold": "Fold Mémé away",
     "copy": "Copy",
@@ -232,6 +233,30 @@
       "goal": "Give a size to every job in Ready to lay: XS, S, M, L or XL.",
       "lesson": "A size is not a promise of time. It says how big the job looks, so you never load more than the team can carry.",
       "done": "Every ready job has its size. Now you can plan."
+    },
+    "l5-sprint": {
+      "skill": "Plan a sprint",
+      "goal": "Make a one-week sprint, say how many points the team can carry, then load the truck without going over.",
+      "lesson": "A sprint is a promise for one week. Load what the team can carry, not what you wish it could. The capacity is the game's rule: GitHub has none.",
+      "done": "The truck is loaded and it holds. That's a sprint."
+    },
+    "l6-milestone": {
+      "skill": "Set the mayor's visit",
+      "goal": "Make a milestone with a due date, and put the jobs she wants to see under it.",
+      "lesson": "A milestone is a date everyone can see, and the work that must be laid by then. It tells the team what matters, and when.",
+      "done": "The mayor's visit is on the calendar, with what she'll see."
+    },
+    "l7-split": {
+      "skill": "Split a job too big",
+      "goal": "Cut the job far too big into smaller parts, at least two, each its own issue.",
+      "lesson": "A job too big never moves: nobody knows where to start. Cut it into parts small enough to lay in a few days. The big one becomes a building, the parts its floors.",
+      "done": "The big job is in parts now. Each can be laid on its own."
+    },
+    "l8-rope": {
+      "skill": "Rope two pallets",
+      "goal": "Mark that one job waits for another: blocked by it.",
+      "lesson": "Some jobs can't start before another is done. Saying so on the board stops anyone lifting the wrong pallet first.",
+      "done": "The two pallets are roped. Everyone can see which goes first."
     }
   },
   "practice": {

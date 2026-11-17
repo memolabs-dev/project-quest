@@ -76,7 +76,8 @@
       "journeyman": "Te voilà compagne ou compagnon. Ta première contribution est entrée, de la branche à la fusion. La suite : les vrais projets.",
       "team-leader": "Te voilà cheffe ou chef d'équipe. Tu connais git de bout en bout. Les vrais projets t'attendent.",
       "real-project": "Tu as fait tout le chemin. Tu connais GitHub de la première issue à un vrai projet. Bienvenue dans l'équipe.",
-      "site-foreman": "Te voilà contremaîtresse ou contremaître. Ce qui arrive est trié, prêt et mesuré. La suite : planifier."
+      "site-foreman": "Te voilà contremaîtresse ou contremaître. Ce qui arrive est trié, prêt et mesuré. La suite : planifier.",
+      "site-manager": "Te voilà cheffe ou chef de chantier. La semaine est planifiée, la visite fixée, les gros boulots coupés et encordés. La suite : piloter."
     },
     "fold": "Replier Mémé",
     "copy": "Copier",
@@ -232,6 +233,30 @@
       "goal": "Donne une taille à chaque boulot en Prête à poser : XS, S, M, L ou XL.",
       "lesson": "Une taille n'est pas une promesse de temps. Elle dit si le boulot a l'air gros, pour ne jamais charger plus que l'équipe ne peut porter.",
       "done": "Chaque boulot prêt a sa taille. Tu peux planifier."
+    },
+    "l5-sprint": {
+      "skill": "Planifier un sprint",
+      "goal": "Crée un sprint d'une semaine, dis combien de points l'équipe peut porter, puis charge le camion sans dépasser.",
+      "lesson": "Un sprint, c'est une promesse pour une semaine. On charge ce que l'équipe peut porter, pas ce qu'on aimerait. La capacité est une règle du jeu : GitHub n'en a pas.",
+      "done": "Le camion est chargé et il tient. Ça, c'est un sprint."
+    },
+    "l6-milestone": {
+      "skill": "Fixer la visite de la maire",
+      "goal": "Crée un jalon avec une date, et mets dessous les boulots qu'elle veut voir.",
+      "lesson": "Un jalon, c'est une date que tout le monde voit, avec le travail qui doit être posé avant. Il dit à l'équipe ce qui compte, et pour quand.",
+      "done": "La visite de la maire est au calendrier, avec ce qu'elle verra."
+    },
+    "l7-split": {
+      "skill": "Découper un boulot trop gros",
+      "goal": "Coupe le boulot bien trop gros en parties plus petites, au moins deux, chacune son issue.",
+      "lesson": "Un boulot trop gros n'avance jamais : personne ne sait par où commencer. Coupe-le en parties qu'on pose en quelques jours. Le gros devient un bâtiment, les parties ses étages.",
+      "done": "Le gros boulot est en parties. Chacune se pose toute seule."
+    },
+    "l8-rope": {
+      "skill": "Encorder deux palettes",
+      "goal": "Indique qu'un boulot en attend un autre : bloqué par lui.",
+      "lesson": "Certains boulots ne peuvent pas commencer avant qu'un autre soit fini. Le dire sur le tableau évite de soulever la mauvaise palette en premier.",
+      "done": "Les deux palettes sont encordées. Tout le monde voit laquelle passe d'abord."
     }
   },
   "practice": {
