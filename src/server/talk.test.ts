@@ -130,6 +130,42 @@ describe("answer and welcome through the API", () => {
     expect((await t.d.progress.stamps("fictif-lead")).find((s) => s.levelId === "talk-welcome")?.proof).toBe("https://example.org/comment/1");
   });
 
+  it("GitHub refusing the comment: the failure is logged, nothing is stamped, its message comes back", async () => {
+    const t = setup();
+    await t.ready();
+    t.d.applyTalk = async () => ({ ok: false, reason: "github", message: "FICTIF Issue is locked", applied: [] });
+    const before = (await t.d.progress.stamps("fictif-lead")).length;
+    const res = await t.app.request("/api/talk/answer/apply", post(answer(t.board)));
+    expect(await res.json()).toEqual({ ok: false, reason: "github", message: "FICTIF Issue is locked", applied: [] });
+    const [entry] = await t.d.log.latest(1);
+    expect(entry).toMatchObject({ gesture: "answer", target: `${HOME}#12`, result: "failed", githubResponse: { message: "FICTIF Issue is locked" } });
+    expect(await t.d.progress.stamps("fictif-lead")).toHaveLength(before);
+  });
+
+  it("the send throwing: the failure is logged with its message, nothing is stamped, the server says it went wrong", async () => {
+    const t = setup();
+    await t.ready();
+    t.d.applyTalk = async () => { throw new Error("FICTIF network down"); };
+    const before = (await t.d.progress.stamps("fictif-lead")).length;
+    const res = await t.app.request("/api/talk/welcome/apply", post(prepareWelcome(t.newcomers, HOME, 31, "Welcome")));
+    expect(res.status).toBe(500);
+    expect(((await res.json()) as { message: string }).message).toBe("Something went wrong on the server");
+    const [entry] = await t.d.log.latest(1);
+    expect(entry).toMatchObject({ gesture: "welcome", target: `${HOME}#31`, result: "failed", githubResponse: { message: "FICTIF network down" } });
+    expect(await t.d.progress.stamps("fictif-lead")).toHaveLength(before);
+  });
+
+  it("an accepted talk sends no site back: the client reads the site with its people again", async () => {
+    const t = setup();
+    await t.ready();
+    let reads = 0;
+    t.d.readBoard = async () => { reads++; return t.board; };
+    const res = await t.app.request("/api/talk/answer/apply", post(answer(t.board)));
+    expect(await res.json()).toMatchObject({ ok: true, site: null, url: "https://example.org/comment/1" });
+    // One read only: the rebuild of the claim.
+    expect(reads).toBe(1);
+  });
+
   it("the demo answers and sends nothing", async () => {
     const real = setup();
     const demo = demoDeps(config, "asked");
@@ -146,5 +182,23 @@ describe("answer and welcome through the API", () => {
     expect(((await w.json()) as { url: string }).url).toContain("FICTIF");
     expect((await demo.readNewcomers()).map((n) => n.pr.number)).toEqual([32]);
     expect(await real.d.progress.stamps("fictif-lead")).toHaveLength(0);
+  });
+
+  it("the demo's people come back two minutes after being answered or welcomed, so a shared demo always has some", async () => {
+    let clock = NOW;
+    const demo = demoDeps(config, "asked", () => clock);
+    const app = createApp(setup().d, demo);
+    const prep = await app.request("/api/talk/answer/prepare?demo=1", post({ number: 12, words: "Yes" }));
+    await app.request("/api/talk/answer/apply?demo=1", post(await prep.json()));
+    await app.request("/api/talk/welcome/apply?demo=1", post(prepareWelcome(await demo.readNewcomers(), HOME, 31, "Welcome")));
+    const state = async () => ({
+      maria: (await demo.readBoard()).items.find((i) => i.number === 12)!.lastComment?.author ?? null,
+      newcomers: (await demo.readNewcomers()).map((n) => n.pr.number),
+    });
+    expect(await state()).toEqual({ maria: null, newcomers: [32] });
+    clock += 119_999;
+    expect(await state()).toEqual({ maria: null, newcomers: [32] });
+    clock += 1;
+    expect(await state()).toEqual({ maria: "fictif-maria", newcomers: [31, 32] });
   });
 });

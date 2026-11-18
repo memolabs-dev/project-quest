@@ -100,7 +100,8 @@ export type WarmApplyResponse =
 
 /** A talk's answer: the comment's address (the site is read again by the client, it carries the people). */
 export type TalkApplyResponse =
-  | { ok: true; site: Site | null; levels: LevelsView | null; url: string }
+  /** No site: the client reads the site again, with its people (an answer's site would come without them). */
+  | { ok: true; site: null; levels: LevelsView | null; url: string }
   | { ok: false; reason: "github"; message: string; applied: string[] };
 
 export type PracticeApplyResponse =

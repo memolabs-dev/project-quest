@@ -477,13 +477,8 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
           console.error("[project-quest] the stamp could not be written", err);
         }
       }
-      let site: ReturnType<typeof buildSite> | null = null;
-      try {
-        site = buildSite(await deps.readBoard(), deps.config);
-      } catch {
-        site = null;
-      }
-      return c.json({ ok: true as const, site, levels: deps.mode === "live" ? await levelsAfterWrite() : null, url });
+      // No site here: a site without its people would hide the signs, so the client reads the whole site again.
+      return c.json({ ok: true as const, site: null, levels: deps.mode === "live" ? await levelsAfterWrite() : null, url });
     })
     // ---------- The real project: ask for a good first issue (one comment, nothing else) ----------
     .post("/api/real/ask/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), comment: z.string() })), async (c) => {

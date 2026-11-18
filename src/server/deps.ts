@@ -9,7 +9,7 @@ import type { PreparedTalk } from "../shared/gestures/talk.ts";
 import type { PreparedWarm } from "../shared/gestures/warm.ts";
 import type { Newcomer } from "../shared/people.ts";
 import type { PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
-import type { BoardSnapshot } from "../shared/site.ts";
+import type { BoardItem, BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
 import { memoryProgress, pgProgress, type ProgressStore } from "./db/progress.ts";
 import { GitHubAuthError, githubGql, githubRest, githubToken, type Gql, type Rest } from "./github/client.ts";
@@ -104,13 +104,17 @@ export function liveDeps(config: QuestConfig): Deps {
   };
 }
 
-export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps {
+/** How long an answered or welcomed demo person stays away: a shared demo, or a video, always finds someone. */
+const DEMO_BACK_MS = 120_000;
+
+/** `clock`: the demo's time, for its people coming back (tests set it). */
+export function demoDeps(config: QuestConfig, reason: Deps["demoReason"], clock: () => number = Date.now): Deps {
   const board = structuredClone(json("src/shared/demo/demo-board.json")) as BoardSnapshot;
   const noGitHub = async (): Promise<never> => { throw new GitHubAuthError("The demo site has no GitHub access: run `gh auth login`"); };
   // The warm gestures play in memory: the player's reactions on the board, the pallets they thanked with words.
   const thanked = new Set<number>();
   // Two invented newcomers: one whose first pull request closes an open pallet, one linked to no issue. A welcome drops one.
-  const newcomers: Newcomer[] = [
+  const allNewcomers: Newcomer[] = [
     {
       login: "fictif-lucas", avatarUrl: "", pallet: null, closes: [13], contributingUrl: null,
       pr: { id: "PR_demo_1", number: 31, title: "FICTIF Light the reading room", url: "https://github.com/fictif-org/demo-site/pull/31" },
@@ -120,11 +124,23 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
       pr: { id: "PR_demo_2", number: 32, title: "FICTIF Fix a typo in the readme", url: "https://github.com/fictif-org/demo-site/pull/32" },
     },
   ];
+  // Who was answered or welcomed, and when: the waiting comment kept aside, the pull request's number.
+  const answered = new Map<number, { at: number; comment: BoardItem["lastComment"] }>();
+  const welcomed = new Map<number, number>();
+  const comeBack = () => {
+    for (const [n, a] of answered) {
+      if (clock() - a.at < DEMO_BACK_MS) continue;
+      const item = board.items.find((i) => i.number === n);
+      if (item) item.lastComment = a.comment;
+      answered.delete(n);
+    }
+    for (const [n, at] of welcomed) if (clock() - at >= DEMO_BACK_MS) welcomed.delete(n);
+  };
   return {
     mode: "demo",
     demoReason: reason,
     config,
-    readBoard: async () => board,
+    readBoard: async () => { comeBack(); return board; },
     applyMove: async (p) => {
       const item = board.items.find((i) => i.itemId === p.itemId);
       if (!item || item.status !== p.from || item.updatedAt !== p.expectedUpdatedAt) {
@@ -170,15 +186,17 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     },
     readThanked: async (n) => thanked.has(n),
     readRepo: noGitHub,
-    readNewcomers: async () => [...newcomers],
-    // An answer clears the pallet's waiting comment, a welcome drops the newcomer: in memory, and never a real comment.
+    readNewcomers: async () => { comeBack(); return allNewcomers.filter((n) => !welcomed.has(n.pr.number)); },
+    // An answer clears the pallet's waiting comment, a welcome drops the newcomer, for two minutes: in memory, never a real comment.
     applyTalk: async (p) => {
       if (p.kind === "answer") {
         const item = board.items.find((i) => i.number === p.target.number);
-        if (item) item.lastComment = null;
+        if (item) {
+          answered.set(item.number, { at: clock(), comment: item.lastComment });
+          item.lastComment = null;
+        }
       } else {
-        const at = newcomers.findIndex((n) => n.pr.number === p.target.number);
-        if (at >= 0) newcomers.splice(at, 1);
+        welcomed.set(p.target.number, clock());
       }
       return { ok: true, url: `https://example.org/FICTIF/comment/${p.target.number}` };
     },
