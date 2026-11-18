@@ -42,6 +42,35 @@ describe("a visit's site", () => {
     expect(site.pallets.find((p) => p.number === 4)).toMatchObject({ discarded: true });
   });
 
+  it("groups the issues that reach no epic by milestone, then by main label, and leaves the rest unassigned", () => {
+    const label = (name: string) => ({ nodes: [{ name }] });
+    const v = repoToVisit(response([
+      issue({ number: 1, subIssuesSummary: { total: 1 }, title: "FICTIF epic" }),
+      issue({ number: 2, parent: { number: 1 }, milestone: { number: 9, title: "v2" }, labels: label("docs") }),
+      issue({ number: 3, milestone: { number: 9, title: "v2" } }),
+      issue({ number: 4, milestone: { number: 9, title: "v2" }, labels: label("docs") }),
+      issue({ number: 5, labels: label("docs") }), issue({ number: 6, labels: label("docs") }), issue({ number: 7, labels: label("docs") }),
+      issue({ number: 8, labels: label("rare") }), issue({ number: 9, labels: label("rare") }),
+      issue({ number: 10 }),
+    ]), "2026-11-18T10:00:00Z");
+    const site = buildSite(v.board, visitConfig(v.repo.nameWithOwner));
+    expect(site.buildings.map((b) => [b.epicNumber, b.title, b.floorsTotal])).toEqual([
+      [1, "FICTIF epic", 1], [-1, "v2", 2], [-2, "docs", 3], [null, "", 3],
+    ]);
+    // The epic keeps its own sub-issue, even one in a milestone.
+    expect(site.pallets.find((p) => p.number === 2)?.building).toBe(1);
+    // A label carried by fewer than three loose issues is no building.
+    expect(site.pallets.filter((p) => p.building === null).map((p) => p.number)).toEqual([8, 9, 10]);
+    // Groups are never pallets.
+    expect(site.pallets.some((p) => p.number < 0)).toBe(false);
+  });
+
+  it("raises at most six group buildings", () => {
+    const many = Array.from({ length: 30 }, (_, k) => issue({ number: k + 1, labels: { nodes: [{ name: `area-${Math.floor(k / 3)}` }] } }));
+    const site = buildSite(repoToVisit(response(many), "2026-11-18T10:00:00Z").board, visitConfig("fictif-org/fictif-site"));
+    expect(site.buildings.filter((b) => b.epicNumber !== null && b.epicNumber < 0)).toHaveLength(6);
+  });
+
   it("refuses a private repository, even one the server's token can read", () => {
     expect(() => repoToVisit(response([issue({})], true), "2026-11-18T10:00:00Z")).toThrow(RepoNotPublicError);
     expect(() => repoToVisit({ repository: null }, "2026-11-18T10:00:00Z")).toThrow(RepoNotPublicError);

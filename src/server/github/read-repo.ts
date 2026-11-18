@@ -28,6 +28,7 @@ export const REPO_QUERY = /* GraphQL */ `
           labels(first: 20) { nodes { name } }
           assignees(first: 10) { nodes { login avatarUrl } }
           closedByPullRequestsReferences(first: 1) { totalCount }
+          milestone { number title }
         }
       }
     }
@@ -43,6 +44,8 @@ export interface RepoIssue {
   assignees: { nodes: { login: string; avatarUrl: string }[] };
   /** Open pull requests that will close this issue (GitHub leaves closed ones out by default). */
   closedByPullRequestsReferences: { totalCount: number } | null;
+  /** Absent in older fixtures. */
+  milestone?: { number: number; title: string } | null;
 }
 export interface RepoResponse {
   repository: {
@@ -74,10 +77,73 @@ export function repoToVisit(res: RepoResponse, fetchedAt: string): Visit {
     isEpic: c.issueType?.name === "Epic" || c.subIssuesSummary.total > 0,
     labels: c.labels.nodes.map((l) => l.name), assignees: c.assignees.nodes, updatedAt: c.updatedAt,
   }));
+  const milestones = new Map(r.issues.nodes.map((c) => [c.number, c.milestone ?? null]));
   return {
     repo: { nameWithOwner: r.nameWithOwner, url: r.url, stars: r.stargazerCount },
-    board: { fetchedAt, projectId: "", statusFieldId: "", statusOptions: [], items },
+    board: { fetchedAt, projectId: "", statusFieldId: "", statusOptions: [], items: [...items, ...groupLoose(items, milestones, r.url)] },
   };
+}
+
+/** At most this many buildings stand for milestones and labels: the row of buildings stays readable. */
+export const MAX_GROUPS = 6;
+/** A label becomes a building only if this many loose issues carry it. */
+const MIN_LABEL_ISSUES = 3;
+
+/**
+ * Most repositories have no epics, so every issue would stand in one building. The issues that reach no epic
+ * are grouped by their milestone, else by one of the repository's main labels (most used first); what is left
+ * stays unassigned. Each group is a building of its own, drawn as an epic with a negative number (never a real issue's).
+ * Mutates the loose items' parent and returns the group epics to add. Pure otherwise.
+ */
+export function groupLoose(items: BoardItem[], milestones: Map<number, { number: number; title: string } | null>, repoUrl: string): BoardItem[] {
+  const byNumber = new Map(items.map((i) => [i.number, i]));
+  const reachesEpic = (i: BoardItem) => {
+    let cur: BoardItem | undefined = i;
+    for (let guard = 0; cur?.parent != null && guard < 20; guard++) {
+      cur = byNumber.get(cur.parent);
+      if (cur?.isEpic) return true;
+    }
+    return false;
+  };
+  const loose = items.filter((i) => !i.isEpic && !reachesEpic(i));
+  const groups: { title: string; url: string; members: BoardItem[] }[] = [];
+
+  // Milestones first, the fullest first.
+  const byMilestone = new Map<number, { title: string; members: BoardItem[] }>();
+  for (const i of loose) {
+    const m = milestones.get(i.number);
+    if (!m) continue;
+    const g = byMilestone.get(m.number) ?? { title: m.title, members: [] };
+    g.members.push(i);
+    byMilestone.set(m.number, g);
+  }
+  for (const [n, g] of [...byMilestone].sort((a, b) => b[1].members.length - a[1].members.length)) {
+    if (groups.length >= MAX_GROUPS) break;
+    groups.push({ title: g.title, url: `${repoUrl}/milestone/${n}`, members: g.members });
+  }
+
+  // Then the main labels, among the issues no milestone took.
+  const taken = new Set(groups.flatMap((g) => g.members));
+  const rest = loose.filter((i) => !taken.has(i));
+  const count = new Map<string, number>();
+  for (const i of rest) for (const l of new Set(i.labels)) count.set(l, (count.get(l) ?? 0) + 1);
+  const main = [...count].filter(([, n]) => n >= MIN_LABEL_ISSUES).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, MAX_GROUPS - groups.length).map(([l]) => l);
+  for (const label of main) {
+    const members = rest.filter((i) => !taken.has(i) && i.labels.includes(label));
+    if (members.length < MIN_LABEL_ISSUES) continue;
+    members.forEach((i) => taken.add(i));
+    groups.push({ title: label, url: `${repoUrl}/labels/${encodeURIComponent(label)}`, members });
+  }
+
+  return groups.map((g, k) => {
+    const number = -(k + 1);
+    for (const i of g.members) i.parent = number;
+    return {
+      itemId: `group${number}`, issueId: `group${number}`, number, title: g.title, url: g.url, state: "OPEN" as const, stateReason: null,
+      status: null, size: null, parent: null, isEpic: true, labels: [], assignees: [], updatedAt: "",
+    };
+  });
 }
 
 /** The configuration a visit is drawn with: its zones and the common bug and newcomer labels. */

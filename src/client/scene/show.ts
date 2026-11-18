@@ -84,7 +84,9 @@ const TRIMS = ["#B5523B", "#3E6E8E", "#6B8F3A", "#8A5A9E", "#C2802E", "#2F6F6A"]
 /** A facade per epic, stable from one visit to the next. */
 export function facade(epicNumber: number | null): { wall: string; trim: string } {
   if (epicNumber === null) return { wall: "#E4E1D8", trim: "#7A7368" };
-  return { wall: WALLS[epicNumber % WALLS.length], trim: TRIMS[(epicNumber * 7) % TRIMS.length] };
+  // A visit's groups are numbered below zero: a JS remainder keeps the sign, so fold it back into the palette.
+  const at = (n: number, len: number) => ((n % len) + len) % len;
+  return { wall: WALLS[at(epicNumber, WALLS.length)], trim: TRIMS[at(epicNumber * 7, TRIMS.length)] };
 }
 
 export interface TermiteSpot { number: number; x: number; z: number; scale: number }
