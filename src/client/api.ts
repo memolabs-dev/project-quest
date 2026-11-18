@@ -32,10 +32,16 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(withDemo(path), body === undefined ? undefined : {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
   });
-  const json = (await res.json()) as unknown;
-  if (!res.ok) throw new ApiFailure(res.status, json as ApiError);
+  // A refusal from in front of the server (the hosted visit's rate limit answers 429 in plain text) is still read as one.
+  const json = (await res.json().catch(() => null)) as unknown;
+  if (!res.ok) throw new ApiFailure(res.status, (json as ApiError | null) ?? refusalOf(res.status));
+  if (json === null) throw new ApiFailure(res.status, { error: "server", message: "The server answered without data" });
   return json as T;
 }
+
+/** What a non-JSON refusal means: too many requests is "later", anything else is the server's problem. */
+export const refusalOf = (status: number): ApiError =>
+  status === 429 ? { error: "busy", message: "Too many visits from here: try again in a minute" } : { error: "server", message: `The server answered ${status}` };
 
 /** On the practice (?site=practice) or team (?site=team) site, the site and its moves are the player's own board. */
 const own = () => { const k = siteKindFromUrl(pageSearch()); return k === "practice" || k === "team" ? k : null; };

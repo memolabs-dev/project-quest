@@ -22,6 +22,7 @@
     "photoFailed": "La photo n'a pas pu être prise dans ce navigateur.",
     "signature": "project-quest · ton projet devient un jeu vidéo",
     "other": "Visiter un autre dépôt",
+    "busy": "Beaucoup de visites en ce moment. Attends une minute, puis recharge la page.",
     "notPublic": "Ce dépôt n'est pas public, ou n'existe pas. Vérifie son nom et réessaie."
   },
   "zones": {

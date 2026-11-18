@@ -227,6 +227,8 @@ function ErrorScreen() {
         </>
       ) : f instanceof ApiFailure && f.body.error === "not-public" ? (
         <p>{t("visit.notPublic")}</p>
+      ) : f instanceof ApiFailure && f.body.error === "busy" ? (
+        <p>{t("visit.busy")}</p>
       ) : (
         <p>{f instanceof ApiFailure && f.body.error === "board" ? t("errors.board", { message: f.message }) : t("errors.generic")}</p>
       )}

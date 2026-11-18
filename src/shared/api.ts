@@ -33,7 +33,7 @@ export interface LoggedActionView {
 
 export type ApiError =
   | { error: "github-auth" | "github-scope"; hint: string }
-  | { error: "board" | "gesture" | "server" | "practice-missing" | "not-public"; message: string };
+  | { error: "board" | "gesture" | "server" | "practice-missing" | "not-public" | "busy"; message: string };
 
 /** Where the player stands in the levels. Only ever the viewer's own. */
 export interface LevelsView {
