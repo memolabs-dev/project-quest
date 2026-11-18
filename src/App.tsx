@@ -1,10 +1,10 @@
 import { Suspense, lazy, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { visitedRepo } from "./client/api.ts";
-import { RADIO_DELAY_MS, chooseLines, radioSiteKey } from "./client/radio.ts";
+import { RADIO_DELAY_MS, chooseLines, radioKey } from "./client/radio.ts";
 import { ACTION_CODE, CHEER_CODE } from "./client/keys.ts";
 import { useReducedMotion } from "./client/scene/motion.ts";
-import { EMPTY_PLOT, holdsKeys, radioMayStart, useQuest } from "./client/store.ts";
+import { EMPTY_PLOT, holdsKeys, radioMayStart, radioTakesE, useQuest } from "./client/store.ts";
 import { actionAt } from "./client/talk.ts";
 import { Hud } from "./client/ui/Hud.tsx";
 import { Overlays } from "./client/ui/Overlays.tsx";
@@ -44,10 +44,10 @@ export default function App() {
       if (radioDone.current || !s.site || !radioMayStart(s)) return;
       radioDone.current = true;
       const visit = s.siteKind === "visit" ? s.visitRepo?.nameWithOwner ?? visitedRepo() : null;
-      const name = visit ?? (s.siteKind === "demo" ? t("onAir.demoSite") : t("onAir.yourSite"));
+      const name = visit ?? (s.siteKind === "demo" || s.mode === "demo" ? t("onAir.demoSite") : t("onAir.yourSite"));
       const date = new Date();
       const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      const lines = chooseLines(radioSiteKey(s.siteKind, visit), s.site, day, name);
+      const lines = chooseLines(radioKey(s.siteKind, s.mode, visit), s.site, day, name);
       // Muted, the radio keeps its lines for E and does not start by itself.
       if (s.settings.radio) s.playRadio(lines); else s.keepRadio(lines);
     }, RADIO_DELAY_MS);
@@ -65,7 +65,7 @@ export default function App() {
       // Escape silences the radio.
       if (e.code === "Escape" && s.radio) s.skipRadio();
       // E by the radio set, nearer than any pallet or visitor, tells its lines again.
-      if (e.code === ACTION_CODE && s.openCard === null && s.nearRadio) {
+      if (e.code === ACTION_CODE && s.openCard === null && radioTakesE(s)) {
         s.replayRadio();
         return;
       }

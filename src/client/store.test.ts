@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Pallet, Site } from "../shared/site.ts";
 import { RADIO_LINE_MS } from "./radio.ts";
-import { radioMayStart, useQuest } from "./store.ts";
+import { radioMayStart, radioTakesE, useQuest } from "./store.ts";
 
 const pallet = (number: number, zone = "Backlog"): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone, closed: false, discarded: false,
@@ -125,5 +125,17 @@ describe("the radio", () => {
     useQuest.getState().playRadio(lines);
     useQuest.getState().skipRadio();
     expect(useQuest.getState().radio).toBeNull();
+  });
+});
+
+describe("E by the radio set", () => {
+  it("the radio wins E only when it has lines to tell", () => {
+    useQuest.setState({ nearRadio: true, radioLines: [] });
+    expect(radioTakesE(useQuest.getState())).toBe(false);
+    useQuest.setState({ radioLines: [{ key: "onAir.calm", values: { variant: 0 } }] });
+    expect(radioTakesE(useQuest.getState())).toBe(true);
+    useQuest.setState({ nearRadio: false });
+    expect(radioTakesE(useQuest.getState())).toBe(false);
+    useQuest.setState({ radioLines: [] });
   });
 });

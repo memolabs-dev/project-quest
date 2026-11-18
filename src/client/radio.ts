@@ -94,6 +94,11 @@ export function radioSiteKey(kind: SiteKind, visitRepo: string | null): string {
   return kind === "visit" ? `visit:${(visitRepo ?? "").toLowerCase()}` : kind;
 }
 
+/** The key to store under: demo data is always `demo` (plain `/` on a demo server, or a board that fell back to it). */
+export function radioKey(kind: SiteKind, mode: "live" | "demo", visitRepo: string | null): string {
+  return mode === "demo" ? "demo" : radioSiteKey(kind, visitRepo);
+}
+
 const storageOrNull = (): Storage | null => {
   try {
     return typeof localStorage === "undefined" ? null : localStorage;

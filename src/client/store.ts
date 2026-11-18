@@ -117,6 +117,9 @@ export const holdsKeys = (s: Pick<QuestState, "openCard" | "warm" | "thanking" |
   s.openCard !== null || s.warm !== null || s.thanking !== null || s.pending !== null
   || s.practiceDialog !== null || s.teamDialog !== null || s.talk !== null || s.talkPrepared !== null;
 
+/** E tells the radio again only when the foreman is by it and it has lines; otherwise E falls through to the pallet. */
+export const radioTakesE = (s: Pick<QuestState, "nearRadio" | "radioLines">) => s.nearRadio && s.radioLines.length > 0;
+
 /** The radio's turn: the fly-over is done and nothing is open over the site. The mentor's panel does not hold it back. */
 export const radioMayStart = (s: QuestState) => s.arrived && !holdsKeys(s);
 

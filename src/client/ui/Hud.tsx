@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ACTION_CODE, CHEER_CODE, MOVE_CODES, keyLetters } from "../keys.ts";
-import { useQuest } from "../store.ts";
+import { radioTakesE, useQuest } from "../store.ts";
 import { talkPrompt } from "../talk.ts";
 import { isTouch } from "../touch.ts";
 import { VisitBar } from "./Visit.tsx";
@@ -17,7 +17,7 @@ export function Hud() {
   const talk = useQuest((s) => s.nearTalk);
   const openTalk = useQuest((s) => s.openTalk);
   const open = useQuest((s) => s.open);
-  const nearRadio = useQuest((s) => s.nearRadio && s.radioLines.length > 0);
+  const nearRadio = useQuest(radioTakesE);
   const replayRadio = useQuest((s) => s.replayRadio);
   const picking = useQuest((s) => s.picker !== null);
   const visiting = useQuest((s) => s.siteKind === "visit");

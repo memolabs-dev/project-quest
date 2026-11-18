@@ -222,3 +222,13 @@ describe("the radio's words", () => {
     });
   }
 });
+
+describe("the radio's key under the demo mode", () => {
+  it("the demo data is kept under demo, whatever the page asks for", async () => {
+    const { radioKey } = await import("./radio.ts");
+    expect(radioKey("main", "demo", null)).toBe("demo");
+    expect(radioKey("demo", "live", null)).toBe("demo");
+    expect(radioKey("main", "live", null)).toBe("main");
+    expect(radioKey("visit", "live", "Vitejs/Vite")).toBe("visit:vitejs/vite");
+  });
+});

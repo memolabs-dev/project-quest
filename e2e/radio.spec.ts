@@ -178,3 +178,10 @@ test("the radio makes no request to the server", async ({ browser }) => {
   expect(withRadio).toEqual(without);
   expect(withRadio.length).toBeGreaterThan(0);
 });
+
+test("plain / on the demo server keeps its picture under demo, never main", async ({ page }) => {
+  await ready(page, "/");
+  await expect(bubble(page)).toBeVisible();
+  const keys = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("project-quest.radio.")));
+  expect(keys).toEqual(["project-quest.radio.demo"]);
+});
