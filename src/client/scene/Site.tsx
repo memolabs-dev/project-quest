@@ -21,7 +21,7 @@ import { zoneColor } from "./colors.ts";
 import { Effects } from "./Effects.tsx";
 import { Piece, PieceRow } from "./kit.tsx";
 import { dashesAt, fenceAt } from "./rows.ts";
-import { BUILDING_ROW_Z, FOLLOW_START, YARD_Z, ZONE_SPACING, layoutSite } from "./layout.ts";
+import { BUILDING_ROW_Z, FOLLOW_START, RADIO_AT, YARD_Z, ZONE_SPACING, gateSignAt, layoutSite } from "./layout.ts";
 import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane, Weather } from "./Life.tsx";
@@ -122,12 +122,12 @@ function Yard({ name, index, x, z, count }: { name: string; index: number; x: nu
 }
 
 /** The practice site's gate: the player's name at the road, once they founded it. */
-function GateSign({ x }: { x: number }) {
+function GateSign({ at: [x, z] }: { at: [number, number] }) {
   const { t } = useTranslation();
   const login = useQuest((s) => (s.siteKind === "practice" && s.levels?.unlocks.ownSite ? s.levels.login : null));
   if (!login) return null;
   return (
-    <Html position={[x, 1.7, 1.9]} center transform distanceFactor={6} zIndexRange={[5, 0]}>
+    <Html position={[x, 1.7, z]} center transform distanceFactor={6} zIndexRange={[5, 0]}>
       {/* The demo player is called "you": no possessive on it. */}
       <div className="gate-sign">{login === "you" ? t("practice.gateYou") : t("practice.gate", { login })}</div>
     </Html>
@@ -163,8 +163,6 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
   const newcomers = site.people?.newcomers;
   const openTalk = useQuest((s) => s.openTalk);
   const visitors = useMemo(() => visitorSpots(newcomers, width), [newcomers, width]);
-  // The radio set stands in front of the site office.
-  const radioAt: [number, number] = [-width / 2 + 3, YARD_Z - 2];
   const body = useRef<EcctrlHandle>(null);
   // The drone flies over once, when the site first opens; never with reduced motion.
   const arrival = useRef(reduceMotion ? 0 : ARRIVAL_SECONDS);
@@ -215,10 +213,14 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
         {visitors.map((v) => (
           <Worker key={`visitor:${v.spot.login}`} spot={v.spot} lively reduceMotion={reduceMotion} visitor={{ welcome: () => openTalk({ kind: "welcome", number: v.number }) }} />
         ))}
-        <RadioSet position={[radioAt[0], 0, radioAt[1]]} reduceMotion={reduceMotion} />
-        <GateSign x={-width / 2 + 1.5} />
+        {/* The radio set beside the spawn: its foot is solid, the foreman walks round it (the set on the mast is above his helmet). */}
+        <RigidBody type="fixed" colliders={false} position={[RADIO_AT[0], 0, RADIO_AT[1]]}>
+          <CuboidCollider args={[0.3, 0.5, 0.3]} position={[0, 0.5, 0]} />
+          <RadioSet position={[0, 0, 0]} reduceMotion={reduceMotion} />
+        </RigidBody>
+        <GateSign at={gateSignAt(width)} />
         <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
-        <Player pallets={solid} workers={spots} visitors={visitors} radioAt={radioAt} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
+        <Player pallets={solid} workers={spots} visitors={visitors} radioAt={RADIO_AT} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
       <Effects aoHalf={aoHalf} tiltShift={tiltShift} />

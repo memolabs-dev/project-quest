@@ -52,7 +52,7 @@ test("the card cheers a pallet with no worker", async ({ page }) => {
   await card.getByRole("group", { name: /Cheer/ }).getByRole("button", { name: /❤️/ }).click();
   await expect(confirmation(page)).toContainText("HEART");
   await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
-  await expect(page.getByRole("status")).toContainText(/Cheered/);
+  await expect(page.locator(".toast[role=status]")).toContainText(/Cheered/);
 });
 
 test("after a pallet is laid, Thank is offered and sends a reaction with words", async ({ page }) => {
@@ -75,7 +75,7 @@ test("after a pallet is laid, Thank is offered and sends a reaction with words",
   await expect(confirmation(page)).toContainText("addComment");
   await expect(confirmation(page)).toContainText("These words will notify @maria-fictif.");
   await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
-  await expect(page.getByRole("status")).toContainText(/Thanked/);
+  await expect(page.locator(".toast[role=status]")).toContainText(/Thanked/);
   await expect(offer).toHaveCount(0);
 });
 

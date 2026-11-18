@@ -3,6 +3,7 @@ import type { Building, Site } from "../../shared/site.ts";
 import {
   badgeInitial, buildingPlan, crateScale, growsNow, solidPallets, dronePose, facade, idleOffset, jacketColor, termiteSpots, visitorSpots, workerSpots,
 } from "./show.ts";
+import { RADIO_AT, SPAWN, ZONE_SPACING, gateSignAt } from "./layout.ts";
 
 const b = (floorsDone: number, floorsTotal: number, epicNumber: number | null = 1): Building => ({ epicNumber, title: "FICTIF", floorsDone, floorsTotal });
 
@@ -186,5 +187,28 @@ describe("visitorSpots", () => {
     expect(v[1].spot.x - v[0].spot.x).toBeCloseTo(1.2);
     expect(v[0].spot.x).toBeCloseTo(-17);
     expect(visitorSpots(undefined, 40)).toEqual([]);
+  });
+});
+
+describe("the radio set's spot", () => {
+  const n = (i: number) => ({
+    login: `v${i}`, avatarUrl: "", pallet: null, contributingUrl: null, pr: { id: `PR_${i}`, number: i, title: "FICTIF fix", url: "" },
+  });
+  it("stands near the spawn, clear of the visitors, the gate sign and the foreman's first step", () => {
+    const [x, z] = RADIO_AT;
+    // Near the spawn, so the arrival frame shows it; never on it.
+    const fromSpawn = Math.hypot(x - SPAWN[0], z - SPAWN[2]);
+    expect(fromSpawn).toBeLessThan(3);
+    expect(fromSpawn).toBeGreaterThan(1.2);
+    // Behind the road's walking line: a walk along the road and up to a yard never meets it.
+    expect(z).toBeGreaterThan(SPAWN[2] + 0.8);
+    for (let zones = 0; zones <= 12; zones++) {
+      const width = zones * ZONE_SPACING + 10;
+      const gate = gateSignAt(width);
+      expect(Math.hypot(x - gate[0], z - gate[1]), `gate, ${zones} zones`).toBeGreaterThanOrEqual(2.5);
+      for (const v of visitorSpots(Array.from({ length: 30 }, (_, i) => n(i + 1)), width)) {
+        expect(Math.hypot(x - v.spot.x, z - v.spot.z), `${v.spot.login}, ${zones} zones`).toBeGreaterThanOrEqual(2.5);
+      }
+    }
   });
 });

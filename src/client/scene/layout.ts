@@ -43,6 +43,13 @@ export function layoutSite(site: Site): SiteLayout {
 export const SPAWN: [number, number, number] = [0, 2, 2];
 export const CAMERA_OFFSET: [number, number, number] = [0, 11, 12];
 export const LOOK_AHEAD: [number, number, number] = [0, 0, -6];
+/**
+ * The radio set (x, z): beside the spawn, on the verge behind the road, so the arrival frame shows it on a phone too.
+ * Behind the line the foreman walks along the road, and far from the visitors' row and the gate sign (show.test.ts).
+ */
+export const RADIO_AT: [number, number] = [-1, 3.4];
+/** The practice site's gate sign (x, z), at the road's left end. */
+export const gateSignAt = (width: number): [number, number] => [-width / 2 + 1.5, 1.9];
 /** Height of the character's centre once it stands on the ground. */
 const STANDING_Y = 1.1;
 /** Where the follow camera settles over the spawn point: the drone's fly-over lands there. */

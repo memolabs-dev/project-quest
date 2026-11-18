@@ -35,7 +35,7 @@ const movePallet = async (page: Page) => {
   const applied = page.waitForResponse((r) => r.url().includes("/moves/apply"));
   await page.getByRole("dialog", { name: /sent to GitHub/ }).getByRole("button", { name: /Send to GitHub/ }).click();
   expect((await applied).ok()).toBe(true);
-  await expect(page.getByRole("status")).not.toBeEmpty();
+  await expect(page.locator(".toast[role=status]")).not.toBeEmpty();
 };
 
 const setMotion = async (page: Page, label: RegExp) => {

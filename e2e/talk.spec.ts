@@ -72,7 +72,7 @@ test("E near a waiting pallet opens its card, Answer first and focused, then the
   await expect(area).toHaveValue(/^> FICTIF Can I take this one\? I built shelves before\.\n\n$/);
   // The quote alone is not an answer.
   await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
-  await expect(page.getByRole("status")).toContainText(/Write your answer/);
+  await expect(page.locator(".toast[role=status]")).toContainText(/Write your answer/);
   // The hint says what leaves: the quote and the words, and a quoted name notifies nobody.
   await expect(dialog).toContainText("The quote and your words leave as one comment.");
   await area.fill(`${await area.inputValue()}Yes, it is yours: ask @fictif-tom if you get stuck.`);
@@ -98,7 +98,7 @@ test("E near a waiting pallet opens its card, Answer first and focused, then the
   expect((await applied).ok()).toBe(true);
   // The site is read again: the last word is the team's, so the sign goes by itself.
   await expect(bubble).toHaveCount(0);
-  await expect(page.getByRole("status")).toContainText(/Answer sent/);
+  await expect(page.locator(".toast[role=status]")).toContainText(/Answer sent/);
   expect(await talks()).toHaveLength(1);
 });
 
@@ -143,7 +143,7 @@ test("reduced motion: the bubble goes, no wave", async ({ page }) => {
   expect((await applied).ok()).toBe(true);
   // The bubble goes, there is no rising emoji, and the visitor does not wave: they keep the clip they had.
   await expect(page.locator(".talk-bubble", { hasText: "fictif-sana" })).toHaveCount(0);
-  await expect(page.getByRole("status")).toContainText(/Welcome sent/);
+  await expect(page.locator(".toast[role=status]")).toContainText(/Welcome sent/);
   await expect(page.locator(".greet-emoji")).toHaveCount(0);
   expect(await page.evaluate(() => (window as unknown as { __played: string[] }).__played)).toContain("cheer");
   const clips = await page.evaluate(() => [...(window as unknown as { __clips: Set<string> }).__clips]);

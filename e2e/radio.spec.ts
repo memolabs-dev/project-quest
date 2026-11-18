@@ -27,21 +27,27 @@ const setting = (page: Page, patch: Record<string, unknown>) =>
     if (!localStorage.getItem("project-quest.settings")) localStorage.setItem("project-quest.settings", JSON.stringify(p));
   }, patch);
 
-/** What the test reads of the radio set in the scene: where it stands, the light's colour, the antenna's tilt. */
-const sceneRead = (page: Page, what: "spot" | "light" | "tilt") => page.evaluate(async (w) => {
+/** What the test reads of the radio set in the scene: the light's colour, the antenna's tilt. */
+const sceneRead = (page: Page, what: "light" | "tilt") => page.evaluate(async (w) => {
   const urls = performance.getEntriesByType("resource").map((e) => e.name);
   const fiber = await import(urls.find((u) => /\/deps\/@react-three_fiber\.js/.test(u))!);
   const scene = [...fiber._roots.values()][0].store.getState().scene;
-  if (w === "spot") {
-    const o = scene.getObjectByName("radio-set");
-    o.updateWorldMatrix(true, false);
-    return { x: o.matrixWorld.elements[12] as number, z: o.matrixWorld.elements[14] as number };
-  }
   return w === "light" ? (scene.getObjectByName("radio-light").material.color.getHex() as number) : (scene.getObjectByName("radio-antenna").rotation.z as number);
 }, what);
 
-const walkToRadio = async (page: Page) => {
-  const target = (await sceneRead(page, "spot")) as { x: number; z: number };
+/** The world position of a named object on the site, or null. */
+const placeOf = (page: Page, name: string) => page.evaluate(async (who) => {
+  const urls = performance.getEntriesByType("resource").map((e) => e.name);
+  const fiber = await import(urls.find((u) => /\/deps\/@react-three_fiber\.js/.test(u))!);
+  const o = [...fiber._roots.values()][0].store.getState().scene.getObjectByName(who);
+  if (!o) return null;
+  o.updateWorldMatrix(true, false);
+  return { x: o.matrixWorld.elements[12] as number, z: o.matrixWorld.elements[14] as number };
+}, name);
+
+/** Walks the foreman along the road to an object's column, then up to it, until the prompt says stopAt. Returns the prompts seen on the way up. */
+const walkTo = async (page: Page, name: string, stopAt: RegExp) => {
+  const target = (await placeOf(page, name))!;
   expect(target).not.toBeNull();
   const prompt = page.locator(".prompt");
   const at = () => page.evaluate(async () => (await import("/src/client/moments/player.ts")).playerPosition);
@@ -61,14 +67,142 @@ const walkToRadio = async (page: Page) => {
     });
   }
   await page.keyboard.up("ShiftLeft");
-  await hold("KeyW", async () => /listen to the radio again/.test((await prompt.allTextContents()).join(" ")));
-  await expect(prompt).toContainText("E: listen to the radio again");
+  const seen: string[] = [];
+  await hold("KeyW", async () => {
+    const now = (await prompt.allTextContents()).join(" ");
+    seen.push(now);
+    return stopAt.test(now);
+  });
+  return seen;
+};
+
+const walkToRadio = async (page: Page) => {
+  await walkTo(page, "radio-set", /listen to the radio again/);
+  await expect(page.locator(".prompt")).toContainText("E: listen to the radio again");
 };
 
 test("the first visit's welcome plays after the arrival", async ({ page }) => {
   await ready(page);
   await expect(bubble(page)).toHaveText(WELCOME);
-  await expect(bubble(page).locator("xpath=..")).toHaveAttribute("aria-live", "polite");
+  // A live region a screen reader knows: a status, polite.
+  await expect(bubble(page).locator("xpath=..")).toHaveAttribute("role", "status");
+});
+
+for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+  test(`after the arrival the bubble is on screen, at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await ready(page);
+    await expect(bubble(page)).toHaveText(WELCOME);
+    const box = (await bubble(page).boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+  });
+}
+
+test("the welcome bubble reads as a line, wider than tall", async ({ page }) => {
+  await ready(page);
+  await expect(bubble(page)).toHaveText(WELCOME);
+  const box = (await bubble(page).boundingBox())!;
+  expect(box.width).toBeGreaterThan(box.height);
+});
+
+test("with the radio's lines chosen, the first visitor still takes E", async ({ page }) => {
+  await ready(page);
+  await chosen(page);
+  await page.keyboard.press("Escape");
+  const login = await page.evaluate(async () => {
+    const { useQuest } = await import("/src/client/store.ts");
+    return useQuest.getState().site!.people!.newcomers.find((n) => n.pallet === null)!.login;
+  });
+  const seen = await walkTo(page, `worker-${login}`, new RegExp(`welcome ${login}`));
+  await expect(page.locator(".prompt")).toHaveText(`E: welcome ${login}`);
+  // On the way up to the visitor, the radio never took the E key.
+  expect(seen.filter((p) => /radio/.test(p))).toEqual([]);
+});
+
+/** Plays three calm lines (nine seconds): long enough that nothing ends by itself during a test's check. */
+const playLong = (page: Page) => page.evaluate(async () => {
+  const { useQuest } = await import("/src/client/store.ts");
+  useQuest.getState().playRadio([0, 1, 2].map((variant) => ({ key: "onAir.calm", values: { variant } })));
+});
+
+test("the radio set is solid: the foreman walks round it, never through it", async ({ page }) => {
+  await ready(page);
+  await page.keyboard.press("Escape");
+  const set = (await placeOf(page, "radio-set"))!;
+  const at = () => page.evaluate(async () => (await import("/src/client/moments/player.ts")).playerPosition);
+  // Along the road to the set's column, then straight at it (S walks toward the camera, where the set stands).
+  // Short taps: a held key would carry him past the column.
+  for (let i = 0; i < 60 && (await at()).x > set.x + 0.05; i++) {
+    await page.keyboard.down("KeyA");
+    await page.waitForTimeout(40);
+    await page.keyboard.up("KeyA");
+    await page.waitForTimeout(120);
+  }
+  expect(Math.abs((await at()).x - set.x)).toBeLessThan(0.2);
+  let nearest = Infinity;
+  await page.keyboard.down("KeyS");
+  for (let i = 0; i < 40; i++) {
+    const p = await at();
+    nearest = Math.min(nearest, Math.hypot(p.x - set.x, p.z - set.z));
+    await page.waitForTimeout(40);
+  }
+  await page.keyboard.up("KeyS");
+  // The foot is 0.6 m across and the foreman 0.64 m: their centres never come closer than about 0.6 m.
+  expect(nearest).toBeGreaterThan(0.5);
+});
+
+test("a card opened during a line silences the radio", async ({ page }) => {
+  await ready(page);
+  await expect(bubble(page)).toHaveText(WELCOME);
+  await page.keyboard.press("Escape");
+  await playLong(page);
+  await expect(bubble(page)).toHaveText(CALM);
+  await page.evaluate(async () => {
+    const { useQuest } = await import("/src/client/store.ts");
+    useQuest.getState().open(useQuest.getState().site!.pallets[0].number);
+  });
+  // At once, not at the end of the line.
+  await expect(bubble(page)).toHaveCount(0, { timeout: 1000 });
+  // Closed again, it stays silent: E by the set replays.
+  await page.evaluate(async () => (await import("/src/client/store.ts")).useQuest.getState().open(null));
+  await page.waitForTimeout(3500);
+  await expect(bubble(page)).toHaveCount(0);
+});
+
+test("turning the radio off while it speaks stops it", async ({ page }) => {
+  await ready(page);
+  await expect(bubble(page)).toHaveText(WELCOME);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Settings" }).click();
+  await playLong(page);
+  await expect(bubble(page)).toHaveText(CALM);
+  await page.getByRole("checkbox", { name: "Site radio speaks by itself" }).uncheck();
+  await expect(bubble(page)).toHaveCount(0, { timeout: 1000 });
+});
+
+test("one crackle when the radio starts, not one per line", async ({ page }) => {
+  await ready(page);
+  await expect(bubble(page)).toHaveText(WELCOME);
+  await page.keyboard.press("Escape");
+  await expect(bubble(page)).toHaveCount(0);
+  // The game's own sound player: its calls are the proof of what was played.
+  await page.evaluate(async () => {
+    const { gameSound } = await import("/src/client/sound.ts");
+    const sound = await gameSound();
+    const w = window as unknown as { __played: string[] };
+    w.__played = [];
+    const play = sound.play.bind(sound);
+    sound.play = (name, opts) => { w.__played.push(name); play(name, opts); };
+    const { useQuest } = await import("/src/client/store.ts");
+    useQuest.getState().playRadio([{ key: "onAir.calm", values: { variant: 0 } }, { key: "onAir.calm", values: { variant: 1 } }]);
+  });
+  await expect(bubble(page)).toHaveText(/Dead calm/);
+  await expect(bubble(page)).toHaveText(/Not a breath of wind/);
+  await expect(bubble(page)).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { __played: string[] }).__played.filter((n) => n === "radio"))).toEqual(["radio"]);
 });
 
 test("a reload does not repeat the news", async ({ page }) => {

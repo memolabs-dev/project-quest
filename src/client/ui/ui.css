@@ -33,9 +33,10 @@
 }
 .talk-bubble b { font-weight: 900; }
 /* The site radio's line, over the set in front of the office. */
+/* A line reads as a line: as wide as its words up to 260px (less on a phone), never a column of single words. */
 .radio-bubble {
   background: var(--paper); border: var(--line); border-radius: 12px; padding: 4px 12px; font-weight: 800; font-size: 13px;
-  max-width: 260px; text-align: center; box-shadow: var(--shadow); cursor: pointer;
+  width: max-content; max-width: min(260px, 50vw); white-space: normal; text-align: center; box-shadow: var(--shadow); cursor: pointer;
 }
 .radio-pallet { font: inherit; font-weight: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
 .worker-badge {
