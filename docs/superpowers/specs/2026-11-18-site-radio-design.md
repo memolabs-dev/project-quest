@@ -33,10 +33,10 @@ Coming back to the site, the player knows in ten seconds what moved since their 
 ## 4. On the site
 
 - **The set**: a small radio standing in front of the site office, near the foreman's starting point, built from the simple shapes already used for the truck and the rewards' mast (a box, an antenna, a grille): no new model, nothing downloaded. While it speaks, the antenna sways a little and a small light blinks; with reduced motion, only the light.
-- **On arrival**: about a second after the camera's arrival, the radio crackles (a sound from the Interface Sounds pack already downloaded, nothing new), then its lines show one after another in a bubble above it, about 3 seconds each, then it falls silent.
-- **A line about a pallet or a building** can be clicked: the camera glides to it, as the game's other moments do.
+- **On arrival**: about a second after the camera's arrival, the radio crackles (a sound from the Interface Sounds pack already downloaded, nothing new), then its lines show one after another in a bubble above it, about 3 seconds each, then it falls silent. The crackle is `glitch_002.ogg` of that pack, saved as `public/audio/radio.ogg` and recorded in `public/audio/LICENSES.md`.
+- **A line about a pallet** can be clicked: it opens that pallet's card (the game has no camera move to a pallet; the card is the existing way to look at one). A line about a building is not clickable.
 - **Near the radio**, the prompt says "E: listen to the radio again"; on a touch screen, "Tap the radio".
-- **Manners**: the radio never speaks over an open dialog, a card or the mentor's tutorial; it waits until they are closed. A "Radio" setting (on or muted) joins the existing settings: muted, it does not speak by itself, and E still replays it.
+- **Manners**: the radio never speaks over an open card or dialog; it waits until they are closed. The mentor's panel, which stays on screen, does not hold it back. A "Radio" setting (on or muted) joins the existing settings: muted, it does not speak by itself, and E still replays it.
 - **Accessibility**: the bubble's text is announced to screen readers (a polite `aria-live` region); a click or Escape skips it.
 - **The photo**: the radio's bubble is an HTML label like the others, so it shows on the visit's photo when taken while the radio speaks.
 
