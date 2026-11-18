@@ -13,6 +13,8 @@ import { PracticeDialogs } from "./PracticeDialogs.tsx";
 import { Settings } from "./Settings.tsx";
 import { SkillBook } from "./SkillBook.tsx";
 import { VisitForm } from "./Visit.tsx";
+import { ConfirmTalk, TalkDialog } from "./Talk.tsx";
+import { talkAt } from "../talk.ts";
 import { ConfirmWarm, Notice, ThankDialog, ThankOffer, WarmPicker } from "./Warm.tsx";
 
 function PalletCard({ number }: { number: number }) {
@@ -29,6 +31,8 @@ function PalletCard({ number }: { number: number }) {
   // The warm gestures go to the configured project only (and play on the demo site).
   const warmSite = useQuest((s) => s.siteKind === "main" || s.siteKind === "demo");
   const openThank = useQuest((s) => s.openThank);
+  const people = useQuest((s) => s.site?.people);
+  const openTalk = useQuest((s) => s.openTalk);
   const visiting = useQuest((s) => s.siteKind === "visit");
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -85,6 +89,9 @@ function PalletCard({ number }: { number: number }) {
           <WarmPicker pallet={pallet.number} login={null} />
         </div>
       )}
+      {talkAt(people, pallet.number).map((x) => (
+        <button key={x.kind} type="button" className="got-it" onClick={() => openTalk({ kind: x.kind, number: x.number })}>{t(`talk.${x.kind}`, { login: x.login })}</button>
+      ))}
       {error && <p className="error" role="alert">{error}</p>}
       {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
       {gestures.length > 0 && !pallet.closed && (
@@ -256,6 +263,8 @@ export function Overlays() {
       {/* A new pallet, a fresh dialog: words written for one never show up on another. */}
       <ThankDialog key={thanking ?? "none"} />
       <ConfirmWarm />
+      <TalkDialog />
+      <ConfirmTalk />
       <Notice />
       <PracticeDialogs />
       <ErrorScreen />

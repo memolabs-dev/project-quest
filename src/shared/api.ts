@@ -98,6 +98,11 @@ export type WarmApplyResponse =
   | { ok: true; site: Site | null; levels: LevelsView | null }
   | { ok: false; reason: "github"; message: string; applied: string[] };
 
+/** A talk's answer: the comment's address (the site is read again by the client, it carries the people). */
+export type TalkApplyResponse =
+  | { ok: true; site: Site | null; levels: LevelsView | null; url: string }
+  | { ok: false; reason: "github"; message: string; applied: string[] };
+
 export type PracticeApplyResponse =
   /** levels is null when GitHub accepted the gesture but the levels could not be read again right after. */
   | { ok: true; levels: LevelsView | null }

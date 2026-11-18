@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Building, Site } from "../../shared/site.ts";
 import {
-  badgeInitial, buildingPlan, crateScale, growsNow, solidPallets, dronePose, facade, idleOffset, jacketColor, termiteSpots, workerSpots,
+  badgeInitial, buildingPlan, crateScale, growsNow, solidPallets, dronePose, facade, idleOffset, jacketColor, termiteSpots, visitorSpots, workerSpots,
 } from "./show.ts";
 
 const b = (floorsDone: number, floorsTotal: number, epicNumber: number | null = 1): Building => ({ epicNumber, title: "FICTIF", floorsDone, floorsTotal });
@@ -173,5 +173,18 @@ describe("facade", () => {
     expect(facade(1)).toEqual(facade(1));
     expect(facade(1)).not.toEqual(facade(2));
     expect(facade(null).wall).toMatch(/^#/);
+  });
+});
+
+describe("visitorSpots", () => {
+  const n = (login: string, pallet: number | null, number: number) => ({
+    login, avatarUrl: "", pallet, contributingUrl: null, pr: { id: `PR_${number}`, number, title: "FICTIF fix", url: "" },
+  });
+  it("stands the newcomers with no pallet in a row beside the office, the others stay out", () => {
+    const v = visitorSpots([n("a", null, 31), n("b", 12, 32), n("c", null, 33)], 40);
+    expect(v.map((x) => [x.spot.login, x.number])).toEqual([["a", 31], ["c", 33]]);
+    expect(v[1].spot.x - v[0].spot.x).toBeCloseTo(1.2);
+    expect(v[0].spot.x).toBeCloseTo(-17);
+    expect(visitorSpots(undefined, 40)).toEqual([]);
   });
 });

@@ -6,11 +6,13 @@ import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type * as THREE from "three";
 import type { Pallet as PalletModel } from "../../shared/site.ts";
 import { arc, shake, squash } from "../moments/curves.ts";
 import { palletAnim, type PalletAnim } from "../moments/pallet.ts";
 import { useQuest } from "../store.ts";
+import { waitedDays } from "../talk.ts";
 import { Piece } from "./kit.tsx";
 import { crateScale } from "./show.ts";
 import { paintedNumber } from "./textures.ts";
@@ -26,6 +28,12 @@ export function Pallet({ pallet, x, z, color, near, reduceMotion, openedAt }: {
   const open = useQuest((s) => s.open);
   const announce = useQuest((s) => s.announce);
   const motion = useQuest((s) => s.motions[pallet.number]);
+  const { t } = useTranslation();
+  // Who waits for an answer here, and whose first pull request will close this issue (the lead's signs; absent otherwise).
+  const waiting = useQuest((q) => q.site?.people?.waiting.find((w) => w.pallet === pallet.number) ?? null);
+  const welcome = useQuest((q) => q.site?.people?.newcomers.find((n) => n.pallet === pallet.number) ?? null);
+  // Read once when the pallet appears: days are the grain, and a render stays pure.
+  const [now] = useState(() => Date.now());
   const s = crateScale(pallet.size);
   const number = useMemo(() => paintedNumber(`#${pallet.number}`), [pallet.number]);
   const crate = useRef<THREE.Group>(null);
@@ -106,6 +114,14 @@ export function Pallet({ pallet, x, z, color, near, reduceMotion, openedAt }: {
       {near && (
         <Html position={[0, 1.3 * s, 0]} center zIndexRange={[6, 0]}>
           <div className="near-tag">#{pallet.number}</div>
+        </Html>
+      )}
+      {(waiting || welcome) && (
+        <Html position={[0, 1.3 * s + 0.9, 0]} center zIndexRange={[6, 0]}>
+          <div className="talk-bubbles">
+            {waiting && <div className="talk-bubble"><b aria-hidden="true">?</b> {waiting.login} · {t("talk.days", { count: waitedDays(waiting.since, now) })}</div>}
+            {welcome && <div className="talk-bubble"><b aria-hidden="true">👋</b> {welcome.login}</div>}
+          </div>
         </Html>
       )}
     </RigidBody>

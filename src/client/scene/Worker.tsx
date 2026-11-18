@@ -40,7 +40,11 @@ function Badge({ login, avatarUrl, color, named }: { login: string; avatarUrl: s
   );
 }
 
-export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; lively: boolean; reduceMotion: boolean }) {
+export function Worker({ spot, lively, reduceMotion, visitor }: {
+  spot: WorkerSpot; lively: boolean; reduceMotion: boolean;
+  /** A newcomer with no pallet, waiting at the office: the 👋 bubble, and a click that opens the welcome. */
+  visitor?: { welcome(): void };
+}) {
   const group = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF(URL);
   const color = jacketColor(spot.trade);
@@ -134,10 +138,12 @@ export function Worker({ spot, lively, reduceMotion }: { spot: WorkerSpot; livel
     // A fixed body does not follow a new position: a new place makes a new body, so the worker follows their crate.
     <RigidBody key={`${spot.x}:${spot.z}`} type="fixed" colliders={false} position={[spot.x, 0, spot.z]} name={`worker-${spot.login}`}>
       <CuboidCollider args={[0.3, 0.85, 0.3]} position={[0, 0.85, 0]} />
-      <group ref={group} scale={scale} rotation-y={FACING} dispose={null} name={`worker-${spot.login}`}>
+      <group ref={group} scale={scale} rotation-y={FACING} dispose={null} name={`worker-${spot.login}`}
+        onClick={visitor ? (e) => { e.stopPropagation(); visitor.welcome(); } : undefined}>
         <primitive object={body} />
       </group>
       <Html position={[0, HEIGHT + 0.45, 0]} center distanceFactor={14} zIndexRange={[5, 0]}>
+        {visitor && <div className="talk-bubbles"><div className="talk-bubble"><b aria-hidden="true">👋</b> {spot.login}</div></div>}
         <Badge key={spot.avatarUrl} login={spot.login} avatarUrl={spot.avatarUrl} color={color} named={named} />
         {picking && <WarmPicker pallet={spot.pallet} login={spot.login} />}
         {shown && <span key={shown.at} className={reduceMotion ? "greet-emoji" : "greet-emoji rising"} aria-hidden="true">{shown.emoji}</span>}

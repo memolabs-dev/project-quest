@@ -15,7 +15,8 @@ export function TouchControls() {
   const site = useQuest((s) => s.site !== null);
   // A card or a dialog over the site has the screen: the stick hides and lets go.
   const busy = useQuest((s) => s.openCard !== null || s.warm !== null || s.thanking !== null || s.pending !== null
-    || s.practiceDialog !== null || s.teamDialog !== null || (s.siteKind === "visit" && s.visitRepo === null));
+    || s.practiceDialog !== null || s.teamDialog !== null
+    || s.talk !== null || s.talkPrepared !== null || (s.siteKind === "visit" && s.visitRepo === null));
   const show = touch && site && !busy;
   useEffect(() => { if (!show) useJoystickStore.getState().resetJoystick(); }, [show]);
   if (!show) return null;

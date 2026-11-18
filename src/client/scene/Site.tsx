@@ -25,7 +25,7 @@ import { Pallet } from "./Pallet.tsx";
 import { Player } from "./Player.tsx";
 import { ARRIVAL_SECONDS, Arrival, Dust, Termites, TurningCrane, Weather } from "./Life.tsx";
 import { withWind } from "./wind.ts";
-import { jacketColor, solidPallets, termiteSpots, workerSpots } from "./show.ts";
+import { jacketColor, solidPallets, termiteSpots, visitorSpots, workerSpots } from "./show.ts";
 import { livelyWorkers, sameMembers } from "./people.ts";
 import { playerPosition } from "../moments/player.ts";
 import { groundTexture, paintedNumber } from "./textures.ts";
@@ -158,6 +158,10 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
   const termites = useMemo(() => termiteSpots(site, layout.pallets), [site, layout]);
   // The Site foreman's reward: on the team site, each yard's sign counts its open pallets.
   const counting = useQuest((s) => s.siteKind === "team" && s.levels?.ranks.lead != null);
+  // A newcomer whose first pull request closes no pallet stands in a row beside the site office, waiting to be welcomed.
+  const newcomers = site.people?.newcomers;
+  const openTalk = useQuest((s) => s.openTalk);
+  const visitors = useMemo(() => visitorSpots(newcomers, width), [newcomers, width]);
   const body = useRef<EcctrlHandle>(null);
   // The drone flies over once, when the site first opens; never with reduced motion.
   const arrival = useRef(reduceMotion ? 0 : ARRIVAL_SECONDS);
@@ -205,9 +209,12 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
         {spots.map((s) => (
           <Worker key={`${s.login}:${jacketColor(s.trade)}`} spot={s} lively={lively.has(s.login)} reduceMotion={reduceMotion} />
         ))}
+        {visitors.map((v) => (
+          <Worker key={`visitor:${v.spot.login}`} spot={v.spot} lively reduceMotion={reduceMotion} visitor={{ welcome: () => openTalk({ kind: "welcome", number: v.number }) }} />
+        ))}
         <GateSign x={-width / 2 + 1.5} />
         <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
-        <Player pallets={solid} workers={spots} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
+        <Player pallets={solid} workers={spots} visitors={visitors} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
       <Effects aoHalf={aoHalf} tiltShift={tiltShift} />

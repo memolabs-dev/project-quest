@@ -1,5 +1,7 @@
 // What the site shows, decided from the project's state. Pure functions: the components only draw them.
+import type { Newcomer } from "../../shared/people.ts";
 import type { Building, Site } from "../../shared/site.ts";
+import { YARD_Z } from "./layout.ts";
 
 /** Drawn floors are capped so a huge epic stays readable; the label still says the real numbers. */
 const MAX_DRAWN_FLOORS = 12;
@@ -27,6 +29,18 @@ export interface WorkerSpot {
   busy: boolean;
   /** The pallet they stand by: the one a cheer goes to. */
   pallet: number;
+}
+
+/** A newcomer with no pallet: a visitor in a row beside the site office, welcomed through their pull request's number. */
+export interface Visitor { spot: WorkerSpot; number: number }
+
+/** One visitor per newcomer whose first pull request closes no pallet of the board, in a row in front of the office. */
+export function visitorSpots(newcomers: Newcomer[] | undefined, width: number): Visitor[] {
+  return (newcomers ?? []).filter((n) => n.pallet === null).map((n, i) => ({
+    // A negative pallet: never the one of a real pallet, so a worker's greeting never reaches a visitor.
+    spot: { login: n.login, avatarUrl: n.avatarUrl, trade: null, x: -width / 2 + 3 + 1.2 * i, z: YARD_Z - 2.5, busy: false, pallet: -n.pr.number },
+    number: n.pr.number,
+  }));
 }
 
 /**

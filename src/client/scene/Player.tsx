@@ -12,6 +12,8 @@ import { CAMERA_OFFSET as CAMERA_OFFSET_XYZ, LOOK_AHEAD as LOOK_AHEAD_XYZ, SPAWN
 import { cameraKick } from "../moments/camera.ts";
 import { lastInput, playerPosition } from "../moments/player.ts";
 import { nearestWorker } from "./people.ts";
+import { talkAt, type TalkTarget } from "../talk.ts";
+import type { Visitor } from "./show.ts";
 import { kickAt } from "../moments/play.ts";
 import { useGameSound } from "./useGameSound.ts";
 
@@ -23,10 +25,12 @@ const CAMERA_OFFSET = new THREE.Vector3(...CAMERA_OFFSET_XYZ);
 /** The camera looks a little ahead of the player, so the yards and buildings stay in view. */
 const LOOK_AHEAD = new THREE.Vector3(...LOOK_AHEAD_XYZ);
 
-export function Player({ pallets, workers, reduceMotion, body, arrival, look }: {
+export function Player({ pallets, workers, visitors, reduceMotion, body, arrival, look }: {
   pallets: { number: number; x: number; z: number }[];
   /** The workers' spots: the nearest within reach can be cheered. */
   workers: { login: string; x: number; z: number; pallet: number }[];
+  /** Newcomers waiting at the office: one within reach can be welcomed. */
+  visitors: Visitor[];
   reduceMotion: boolean;
   body: RefObject<EcctrlHandle | null>;
   /** Seconds left of the arrival fly-over; the camera is the drone's until it reaches zero. */
@@ -41,9 +45,10 @@ export function Player({ pallets, workers, reduceMotion, body, arrival, look }: 
   const walked = useRef({ x: NaN, z: NaN, since: 0 });
   const setNear = useQuest((s) => s.setNear);
   const setNearWorker = useQuest((s) => s.setNearWorker);
+  const setNearTalk = useQuest((s) => s.setNearTalk);
   // A card or a dialog over the site holds the keys: the foreman stands still (typed words never walk him).
   const cardOpen = useQuest((s) => s.openCard !== null || s.warm !== null || s.thanking !== null || s.pending !== null
-    || s.practiceDialog !== null || s.teamDialog !== null);
+    || s.practiceDialog !== null || s.teamDialog !== null || s.talk !== null || s.talkPrepared !== null);
   const sendEvent = useQuest((s) => s.sendEvent);
   // The Apprentice's first reward: their initial on the helmet.
   const helmet = useQuest((s) => (s.levels?.unlocks.helmet ? badgeInitial(s.levels.login) : null));
@@ -90,6 +95,24 @@ export function Player({ pallets, workers, reduceMotion, body, arrival, look }: 
     }
     setNear(best);
     setNearWorker(nearestWorker(workers, pos));
+    // Someone to talk to: a visitor within reach (the lead's signs only).
+    let talk: TalkTarget | null = null;
+    let talkD = NEAR_DISTANCE;
+    for (const v of visitors) {
+      const d = Math.hypot(v.spot.x - pos.x, v.spot.z - pos.z);
+      if (d < talkD) { talkD = d; talk = { kind: "welcome", number: v.number, login: v.spot.login }; }
+    }
+    // Else the nearest pallet within reach that shows a sign (a neighbour without one never hides it).
+    if (!talk) {
+      const people = useQuest.getState().site?.people;
+      let bestSign = NEAR_DISTANCE;
+      for (const p of pallets) {
+        const d = Math.hypot(p.x - pos.x, p.z - pos.z);
+        const here = d < bestSign ? talkAt(people, p.number)[0] : undefined;
+        if (here) { bestSign = d; talk = here; }
+      }
+    }
+    setNearTalk(talk);
   });
 
   return (

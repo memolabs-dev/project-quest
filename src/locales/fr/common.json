@@ -611,5 +611,30 @@
     "wordsHint": "Quelques mots de merci, avec ta voix",
     "noMention": "Le jeu n'ajoute aucune @mention : seuls les mots que tu écris partent.",
     "show": "Voir ce qui partira"
+  },
+  "talk": {
+    "nearAnswer": "{{key}} : répondre à {{login}}",
+    "nearWelcome": "{{key}} : accueillir {{login}}",
+    "nearAnswerTouch": "Touche pour répondre à {{login}}",
+    "nearWelcomeTouch": "Touche pour accueillir {{login}}",
+    "days": "{{count}} j",
+    "answer": "Répondre à {{login}}",
+    "welcome": "Accueillir {{login}}",
+    "answerTitle": "Répondre à {{login}} sur #{{number}}",
+    "welcomeTitle": "Accueillir {{login}}",
+    "wrote": "{{login}} a écrit :",
+    "theirPull": "Sa première pull request :",
+    "words": "Tes mots",
+    "writeFirst": "Écris d'abord ta réponse sous la citation.",
+    "what": {
+      "answer": "Commentaire sur l'issue #{{number}}, pour {{login}}",
+      "welcome": "Commentaire sur la pull request #{{number}}, pour {{login}}"
+    },
+    "done": {
+      "answer": "Réponse envoyée à {{login}}",
+      "welcome": "Accueil envoyé à {{login}}"
+    },
+    "welcomeDraft": "Bonjour {{login}}, merci pour cette première contribution ! Quelqu'un de l'équipe la relira bientôt.",
+    "welcomeGuide": "Pour savoir comment on travaille, notre guide de contribution est ici : {{url}}"
   }
 }

@@ -38,8 +38,16 @@ export default function App() {
       // A key typed in a field is the player's words, never a gesture.
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
       // A dialog over the site has the keys: no card or signs open behind it.
-      const dialog = s.warm !== null || s.thanking !== null || s.pending !== null || s.practiceDialog !== null || s.teamDialog !== null;
+      const dialog = s.warm !== null || s.thanking !== null || s.pending !== null || s.practiceDialog !== null || s.teamDialog !== null
+        || s.talk !== null || s.talkPrepared !== null;
       if (dialog) return;
+      // Someone waits or arrived here: E opens the talk (the pallet's card is one click away).
+      if (e.code === ACTION_CODE && s.nearTalk && s.openCard === null) {
+        // The key opens the dialog and must not be typed into its field.
+        e.preventDefault();
+        s.openTalk({ kind: s.nearTalk.kind, number: s.nearTalk.number });
+        return;
+      }
       if (e.code === ACTION_CODE && s.nearPallet !== null && s.openCard === null) s.open(s.nearPallet);
       // R opens the warm signs above the worker within reach (the configured site and the demo only).
       if (e.code === CHEER_CODE && s.nearWorker && s.openCard === null && (s.siteKind === "main" || s.siteKind === "demo")) {

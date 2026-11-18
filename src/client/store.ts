@@ -2,6 +2,7 @@
 import type { PreparedWarm } from "../shared/gestures/warm.ts";
 import { create } from "zustand";
 import type { LevelsView, PreparedMove, RepoInfo, SiteResponse } from "../shared/api.ts";
+import type { TalkKind, PreparedTalk } from "../shared/gestures/talk.ts";
 import type { TeamKind } from "../shared/gestures/team.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Pallet, Site } from "../shared/site.ts";
@@ -10,6 +11,7 @@ import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
 import { laidBetween, momentsBetween, type Moment } from "./moments/diff.ts";
 import type { Greet } from "./moments/greet.ts";
 import { loadSettings, saveSettings, type Settings } from "./settings.ts";
+import { sameTarget, type TalkTarget } from "./talk.ts";
 
 type Load = { status: "loading" } | { status: "ready" } | { status: "error"; failure: ApiFailure | Error };
 
@@ -78,6 +80,15 @@ interface QuestState {
   /** The thank-you dialog open, for this pallet. */
   thanking: number | null;
   openThank(n: number | null): void;
+  /** The talk dialog open (answer someone who waits, welcome a newcomer): the number is the issue or the pull request. */
+  talk: { kind: TalkKind; number: number } | null;
+  openTalk(t: { kind: TalkKind; number: number } | null): void;
+  /** A talk waiting for the player's confirmation. */
+  talkPrepared: PreparedTalk | null;
+  setTalkPrepared(p: PreparedTalk | null): void;
+  /** Who the foreman can talk to where he stands (a pallet that shows a sign, or a visitor at the office). */
+  nearTalk: TalkTarget | null;
+  setNearTalk(t: TalkTarget | null): void;
   /** The latest warm gesture GitHub accepted: the pallet's worker answers it; `at` grows so a repeat replays. */
   greet: Greet | null;
   greetWith(g: Omit<Greet, "at">): void;
@@ -234,6 +245,12 @@ export const useQuest = create<QuestState>((set, get) => ({
   toThank: [],
   dismissThank: (n) => set((s) => ({ toThank: s.toThank.filter((x) => x !== n) })),
   thanking: null,
+  talk: null,
+  openTalk: (talk) => set({ talk, openCard: null }),
+  talkPrepared: null,
+  setTalkPrepared: (talkPrepared) => set({ talkPrepared }),
+  nearTalk: null,
+  setNearTalk: (t) => set((s) => (sameTarget(s.nearTalk, t) ? s : { nearTalk: t })),
   greet: null,
   greetWith: (g) => set((s) => ({ greet: { ...g, at: (s.greet?.at ?? 0) + 1 } })),
   openThank: (thanking) => set((s) => ({ thanking, toThank: thanking === null ? s.toThank : s.toThank.filter((x) => x !== thanking) })),

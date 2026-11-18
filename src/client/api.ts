@@ -1,13 +1,14 @@
 // The game's calls to its own server. The server alone talks to GitHub.
 import type {
   ApiError, ApplyResponse, LevelsView, LoggedActionView, PracticeApplyResponse, PreparedMove, PreparedPractice, SiteResponse, VisitResponse,
-  WarmApplyResponse,
+  TalkApplyResponse, WarmApplyResponse,
 } from "../shared/api.ts";
 import type {
   PreparedEdit, PreparedFound, PreparedIssue, PreparedMayor, PreparedMerge, PreparedPull, PreparedTake,
 } from "../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { PreparedTeam, TeamArgs, TeamKind } from "../shared/gestures/team.ts";
+import type { PreparedTalk, TalkKind } from "../shared/gestures/talk.ts";
 import type { PreparedWarm, WarmKind } from "../shared/gestures/warm.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import { siteKindFromUrl } from "./levels.ts";
@@ -86,5 +87,8 @@ export const api = {
   /** The warm gestures go to the configured project (or play on the demo site). */
   prepareWarm: (kind: WarmKind, args: { issueNumber: number; content: string; words?: string | null }) =>
     call<PreparedWarm>(`/api/warm/${kind}/prepare`, args),
+  /** Answer someone who waits (number: the issue) or welcome a newcomer (number: the pull request); the lead's only. */
+  prepareTalk: (kind: TalkKind, number: number, words: string) => call<PreparedTalk>(`/api/talk/${kind}/prepare`, { number, words }),
+  applyTalk: (p: PreparedTalk) => call<TalkApplyResponse>(`/api/talk/${p.kind}/apply`, p),
   applyWarm: (p: PreparedWarm) => call<WarmApplyResponse>(`/api/warm/${p.kind}/apply`, p),
 };

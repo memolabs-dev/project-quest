@@ -25,6 +25,13 @@
   background: var(--accent); color: var(--ink); border: var(--line); border-radius: 999px;
   padding: 1px 9px; font-weight: 900; font-size: 13px; pointer-events: none;
 }
+/* The people who wait or arrive: a bubble above a pallet, or above a visitor at the office. */
+.talk-bubbles { display: grid; gap: 3px; justify-items: center; pointer-events: none; }
+.talk-bubble {
+  background: var(--paper); border: var(--line); border-radius: 999px; padding: 1px 9px; font-weight: 800; font-size: 13px;
+  white-space: nowrap; box-shadow: var(--shadow); pointer-events: none;
+}
+.talk-bubble b { font-weight: 900; }
 .worker-badge {
   width: 32px; height: 32px; border-radius: 50%; border: 3px solid; background: var(--paper);
   display: grid; place-items: center; overflow: hidden; box-shadow: var(--shadow); pointer-events: none;
@@ -265,6 +272,7 @@
 .thank-offer .primary { background: var(--accent); }
 .thank-offer p { margin: 0; overflow-wrap: anywhere; }
 /* Two prompts side by side (a pallet and a worker within reach): a dot between them. */
+.prompt-talk { font: inherit; font-weight: 800; background: none; border: 0; padding: 0; min-height: 44px; cursor: pointer; color: inherit; }
 .prompt span + span::before { content: " · "; }
 .greet-emoji { display: block; text-align: center; font-size: 28px; line-height: 1; }
 .greet-emoji.rising { animation: greet-rise 1.2s ease-out forwards; }
