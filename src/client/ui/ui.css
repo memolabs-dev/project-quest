@@ -297,3 +297,12 @@
 .visit-intro h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
 .visit-intro p { margin: 0; }
 .error-screen .visit-form { width: min(520px, calc(100vw - 32px)); margin: 0 auto; }
+.visit-examples { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.visit-examples span { font-weight: 800; }
+.visit-examples a {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border: var(--line); border-radius: 999px;
+  background: #fff; color: var(--ink); font-weight: 700; text-decoration: none; overflow-wrap: anywhere;
+}
+.visit-examples a:hover { background: var(--sand); }
+.visit-foot { font-size: 14px; color: #4a4a4a; }
+.visit-foot a { color: var(--accent-ink); font-weight: 800; }

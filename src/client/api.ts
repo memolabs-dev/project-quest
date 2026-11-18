@@ -50,6 +50,11 @@ const moves = () => (own() ? `/api/${own()}/moves` : "/api/moves");
 /** The public repository a visit is about (?visit=owner/name), or "" when none is named yet. */
 export const visitedRepo = () => (new URLSearchParams(pageSearch()).get("visit") ?? "").trim();
 
+/** The site drawn behind the visit's question, and the examples offered under it. */
+export const LANDING_REPO = "vitejs/vite";
+export const EXAMPLE_REPOS = ["vitejs/vite", "microsoft/vscode", "facebook/react", "memolabs-dev/project-quest"];
+export const CODE_URL = "https://github.com/memolabs-dev/project-quest";
+
 /** Pasted addresses are welcome: https://github.com/owner/name/issues becomes owner/name. */
 export const repoFromInput = (text: string) =>
   text.trim().replace(/^https?:\/\/(www\.)?github\.com\//i, "").split(/[?#]/)[0].split("/").filter(Boolean).slice(0, 2).join("/")

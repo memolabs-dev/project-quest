@@ -1,7 +1,7 @@
 // A visit of any public repository, read-only (#16): the repository's name, a photo to share, another visit.
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { repoFromInput, visitedRepo } from "../api.ts";
+import { CODE_URL, EXAMPLE_REPOS, LANDING_REPO, repoFromInput, visitedRepo } from "../api.ts";
 import { bandHeight, photoName } from "../photo.ts";
 import { useQuest } from "../store.ts";
 
@@ -83,6 +83,13 @@ export function VisitBar() {
         <h1 id="visit-title">{t("visit.title")}</h1>
         <p>{t("visit.intro")}</p>
         <VisitForm autoFocus />
+        <div className="visit-examples">
+          <span>{t("visit.examples")}</span>
+          {EXAMPLE_REPOS.map((r) => <a key={r} href={`?visit=${r}`}>{r}</a>)}
+        </div>
+        <p className="visit-foot">
+          {t("visit.behind", { repo: LANDING_REPO })} · <a href={CODE_URL} target="_blank" rel="noreferrer">{t("visit.code")}</a>
+        </p>
       </div>
     );
   }

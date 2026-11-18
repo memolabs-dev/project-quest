@@ -22,6 +22,9 @@
     "photoFailed": "The photo could not be taken in this browser.",
     "signature": "project-quest · turn your project into a video game",
     "other": "Visit another",
+    "examples": "Or try:",
+    "behind": "Behind: the site of {{repo}}",
+    "code": "The game's code on GitHub",
     "busy": "Many visits right now. Wait a minute, then reload the page.",
     "notPublic": "This repository is not public, or does not exist. Check its name and try again."
   },

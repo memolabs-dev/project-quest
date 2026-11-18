@@ -63,7 +63,9 @@ export function Player({ pallets, workers, reduceMotion, body, arrival, look }: 
     playerPosition.x = h.currPos.x;
     playerPosition.z = h.currPos.z;
     if (h.isMoving) lastInput.at = performance.now();
-    h.setMovement(cardOpen ? {} : getKeys());
+    // Words typed in any field (a visit's repository name, for one) never walk him either.
+    const typing = document.activeElement instanceof HTMLElement && document.activeElement.closest("input, textarea, select") !== null;
+    h.setMovement(cardOpen || typing ? {} : getKeys());
     if (h.isMoving && h.moveSpeed > 0.4) sendEvent("walked"); // the store sends it once
     const pos = h.currPos;
     if (arrival.current <= 0) {

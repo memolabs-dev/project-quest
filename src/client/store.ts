@@ -5,7 +5,7 @@ import type { LevelsView, PreparedMove, RepoInfo, SiteResponse } from "../shared
 import type { TeamKind } from "../shared/gestures/team.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Pallet, Site } from "../shared/site.ts";
-import { ApiFailure, api, pageSearch, visitedRepo } from "./api.ts";
+import { ApiFailure, LANDING_REPO, api, pageSearch, visitedRepo } from "./api.ts";
 import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
 import { laidBetween, momentsBetween, type Moment } from "./moments/diff.ts";
 import type { Greet } from "./moments/greet.ts";
@@ -181,8 +181,12 @@ export const useQuest = create<QuestState>((set, get) => ({
   async refresh() {
     if (get().siteKind === "visit") {
       const repo = visitedRepo();
-      // No repository named yet: the visit page asks for one.
-      if (!repo) { set({ site: null, visitRepo: null, load: { status: "ready" } }); return; }
+      // No repository named yet: the visit page asks for one, over a real site drawn behind the question.
+      if (!repo) {
+        const site = await api.visit(LANDING_REPO).then((r) => r.site).catch(() => null);
+        set({ site, visitRepo: null, load: { status: "ready" } });
+        return;
+      }
       try {
         const r = await api.visit(repo);
         set({ site: r.site, visitRepo: r.repo, load: { status: "ready" } });
