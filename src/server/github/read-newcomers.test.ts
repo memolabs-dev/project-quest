@@ -36,4 +36,22 @@ describe("readNewcomers", () => {
     ] } } };
     expect((await readNewcomers(gqlOf(res), config)).map((n) => n.login)).toEqual(["fictif-ines"]);
   });
+
+  it("one person is welcomed once: their latest first pull request, none once the player wrote on any of theirs", async () => {
+    const pr = (n: number, login: string, o: { comments?: boolean[]; reviews?: boolean[] } = {}) => ({
+      id: `PR_fictif_${n}`, number: n, title: `FICTIF Change ${n}`, url: `https://github.com/fictif-org/demo-site/pull/${n}`,
+      authorAssociation: "FIRST_TIME_CONTRIBUTOR", author: { __typename: "User", login, avatarUrl: "" }, closingIssuesReferences: { nodes: [] },
+      comments: { nodes: (o.comments ?? []).map((v) => ({ viewerDidAuthor: v })) },
+      reviews: { nodes: (o.reviews ?? []).map((v) => ({ viewerDidAuthor: v })) },
+    });
+    // Most recently updated first, as the query orders them.
+    const res = { repository: { ...fixture.repository, pullRequests: { nodes: [
+      pr(50, "fictif-ines"), pr(51, "fictif-ines"),
+      pr(52, "fictif-omar"), pr(53, "fictif-omar", { comments: [true] }),
+      pr(54, "fictif-jade", { reviews: [false, true] }),
+      pr(55, "fictif-noe", { reviews: [false] }),
+    ] } } };
+    const found = await readNewcomers(gqlOf(res), config);
+    expect(found.map((n) => [n.login, n.pr.number])).toEqual([["fictif-ines", 50], ["fictif-noe", 55]]);
+  });
 });
