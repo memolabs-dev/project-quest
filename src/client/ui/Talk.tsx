@@ -78,7 +78,7 @@ function TalkForm({ subject }: { subject: Subject }) {
       <label className="field">{t("talk.words")}
         <textarea ref={area} rows={7} value={words} onChange={(e) => setWords(e.target.value)} />
       </label>
-      <p className="hint">{t("warm.noMention")}</p>
+      <p className="hint">{t(subject.kind === "answer" ? "talk.answerHint" : "warm.noMention")}</p>
       <div className="actions">
         <button type="button" className="primary" onClick={() => void go()}>{t("warm.show")}</button>
         <button type="button" onClick={() => openTalk(null)}>{t("confirm.cancel")}</button>

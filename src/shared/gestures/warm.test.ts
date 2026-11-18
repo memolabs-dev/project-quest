@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BoardItem, BoardSnapshot } from "../site.ts";
 import { GestureError } from "./move.ts";
-import { WARM_EMOJIS, prepareCheer, prepareThank, prepareUncheer } from "./warm.ts";
+import { WARM_EMOJIS, mentionsIn, prepareCheer, prepareThank, prepareUncheer } from "./warm.ts";
 
 const REPO = "memolabs-dev/project-quest-sandbox";
 const item = (o: Partial<BoardItem>): BoardItem => ({
@@ -62,6 +62,14 @@ describe("warm gestures", () => {
   it("words with an @mention carry the warning", () => {
     const p = prepareThank(board(laid), REPO, 2, "HEART", "Thanks @maria-fictif and @jo, great job (not mail@example.org)", false);
     expect(p.mentions).toEqual(["maria-fictif", "jo"]);
+  });
+
+  it("a mention written as code notifies nobody, so it is not warned about", () => {
+    expect(mentionsIn("`@tom` and @ana")).toEqual(["ana"]);
+    expect(mentionsIn("see ``x @tom y`` then")).toEqual([]);
+    expect(mentionsIn("```\n@tom\n```\nand @jo")).toEqual(["jo"]);
+    // A lone backtick opens no code: the mention still notifies.
+    expect(mentionsIn("it's ` broken @tom")).toEqual(["tom"]);
   });
 
   it("empty words are refused", () => {

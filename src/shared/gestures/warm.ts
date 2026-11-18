@@ -38,7 +38,18 @@ const emojiOf = (content: string): WarmEmoji => {
 };
 
 /** `@login` at the start or after a space or punctuation, never inside an address. */
-export const mentionsIn = (words: string) => [...words.matchAll(/(?:^|[^\w@.])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))/g)].map((m) => m[1]);
+const MENTION = /(^|[^\w@.])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))/g;
+/**
+ * Code, where GitHub notifies nobody: a run of backticks up to the same run, within a paragraph (a fenced block too,
+ * when it holds no empty line). Anything else is read as words, so a doubt warns rather than stays quiet.
+ */
+const CODE = /(`+)(?!`)(?:(?!\n[ \t]*\n)[\s\S])*?[^`]\1(?!`)/g;
+
+/** The logins the words notify: a mention written as code notifies nobody. */
+export const mentionsIn = (words: string) => [...words.replace(CODE, " ").matchAll(MENTION)].map((m) => m[2]);
+
+/** The same text with every mention written as code, so quoting it notifies nobody (its own backticks become quote marks). */
+export const quietMentions = (text: string) => text.replace(/`/g, "'").replace(MENTION, (_m, before: string, login: string) => `${before}\`@${login}\``);
 
 export function prepareCheer(board: BoardSnapshot, repo: string, issueNumber: number, content: string): PreparedWarm {
   const issue = issueOf(board, issueNumber);

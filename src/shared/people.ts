@@ -23,13 +23,13 @@ export interface Newcomer {
 }
 export interface People { waiting: Waiting[]; newcomers: Newcomer[] }
 
-/** The first 200 characters of a comment, cut on a word. */
+/** The first 200 characters of a comment, cut on a word; a cut one ends with "…", inside the 200. */
 export function excerptOf(text: string, max = 200): string {
   const t = text.trim();
   if (t.length <= max) return t;
-  const cut = t.slice(0, max);
+  const cut = t.slice(0, max - 1);
   const space = cut.search(/\s\S*$/);
-  return (space > 0 ? cut.slice(0, space) : cut).trimEnd();
+  return `${(space > 0 ? cut.slice(0, space) : cut).trimEnd()}…`;
 }
 
 /** Someone waits on this issue when the last word is neither the team's nor the player's, and is a day old. */

@@ -627,6 +627,7 @@
     "wrote": "{{login}} a écrit :",
     "theirPull": "Sa première pull request :",
     "words": "Tes mots",
+    "answerHint": "La citation et tes mots partent en un seul commentaire. Le jeu n'ajoute aucune @mention : un nom dans la citation est écrit comme du code, il ne prévient personne.",
     "writeFirst": "Écris d'abord ta réponse sous la citation.",
     "what": {
       "answer": "Commentaire sur l'issue #{{number}}, pour {{login}}",

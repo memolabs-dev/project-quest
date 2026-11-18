@@ -627,6 +627,7 @@
     "wrote": "{{login}} wrote:",
     "theirPull": "Their first pull request:",
     "words": "Your words",
+    "answerHint": "The quote and your words leave as one comment. The game adds no @mention: a name in the quote is written as code, so it notifies nobody.",
     "writeFirst": "Write your answer under the quote first.",
     "what": {
       "answer": "Comment on issue #{{number}}, for {{login}}",

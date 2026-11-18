@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { prepareAnswer } from "../shared/gestures/talk.ts";
 import type { Newcomer, People } from "../shared/people.ts";
+import type { BoardSnapshot } from "../shared/site.ts";
 import { answerDraft, talkAt, waitedDays, welcomeDraft } from "./talk.ts";
 
 // A stand-in for the player's language: the key and the values, readable in a test.
@@ -21,6 +23,37 @@ describe("the drafts", () => {
     const lines = answerDraft("first line\nsecond line\n\nfourth line", say).trimEnd().split("\n");
     expect(lines).toEqual(["> first line", "> second line", "> ", "> fourth line"]);
     expect(answerDraft("short", say)).toBe("> short\n\n");
+  });
+
+  it("the answer draft quotes mentions as code, so the quote notifies nobody", () => {
+    expect(answerDraft("ask @fictif-tom or @fictif-ana.", say)).toBe("> ask `@fictif-tom` or `@fictif-ana`.\n\n");
+    // A backtick of their own could open code around the name: it is quoted as a plain quote mark.
+    expect(answerDraft("run `make` then @fictif-tom", say)).toBe("> run 'make' then `@fictif-tom`\n\n");
+    // An address is no mention.
+    expect(answerDraft("mail fictif@example.org", say)).toBe("> mail fictif@example.org\n\n");
+  });
+
+  it("a quoted @mention notifies nobody: only the player's own words can", () => {
+    const board = { fetchedAt: "", projectId: "P", statusFieldId: "F", statusOptions: [], items: [{
+      itemId: "PVTI_1", issueId: "I_1", number: 12, title: "FICTIF Paint the facade", url: "https://example.org/12", state: "OPEN",
+      stateReason: null, status: "In progress", size: null, parent: null, isEpic: false, labels: [], assignees: [], updatedAt: "",
+      lastComment: { author: "fictif-maria", association: "NONE", createdAt: "2026-11-16T09:30:00Z", excerpt: "x" },
+    }] } satisfies BoardSnapshot;
+    const now = Date.parse("2026-11-18T12:00:00Z");
+    // The person who waits wrote mentions; the draft quotes them, the player adds none of their own.
+    const draft = answerDraft("FICTIF @fictif-tom said I could take it, ok @fictif-ana?", say);
+    const quiet = prepareAnswer(board, "o/r", 12, `${draft}Yes, it is yours.`, "fictif-lead", now);
+    expect(quiet.mentions).toEqual([]);
+    expect(quiet.words).toContain("`@fictif-tom`");
+    // A mention in the player's own words, under the quote, is warned about.
+    expect(prepareAnswer(board, "o/r", 12, `${draft}Ask @fictif-tom first.`, "fictif-lead", now).mentions).toEqual(["fictif-tom"]);
+  });
+
+  it("a cut quote ends with an ellipsis", () => {
+    const draft = answerDraft("word ".repeat(80), say);
+    expect(draft.trimEnd().endsWith("word…")).toBe(true);
+    expect(draft.trimEnd().slice(2).length).toBeLessThanOrEqual(200);
+    expect(answerDraft("short", say)).not.toContain("…");
   });
 
   it("the welcome draft links the contributing guide only when there is one", () => {

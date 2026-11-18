@@ -65,9 +65,13 @@ test("E near a waiting pallet opens the draft, the confirmation shows the words,
   // The quote alone is not an answer.
   await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
   await expect(page.getByRole("status")).toContainText(/Write your answer/);
-  await area.fill(`${await area.inputValue()}Yes, it is yours: tell us if you get stuck.`);
+  // The hint says what leaves: the quote and the words, and a quoted name notifies nobody.
+  await expect(dialog).toContainText("The quote and your words leave as one comment.");
+  await area.fill(`${await area.inputValue()}Yes, it is yours: ask @fictif-tom if you get stuck.`);
   await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
-  await expect(confirmation(page)).toContainText("Yes, it is yours: tell us if you get stuck.");
+  await expect(confirmation(page)).toContainText("Yes, it is yours: ask @fictif-tom if you get stuck.");
+  // A mention in the player's own words is warned about, as on a welcome.
+  await expect(confirmation(page)).toContainText("These words will notify @fictif-tom.");
   await expect(confirmation(page)).toContainText("addComment");
   await expect(confirmation(page)).toContainText("fictif-maria");
   // Nothing has left: the action log holds no talk, and the bubble is still there.

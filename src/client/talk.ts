@@ -1,6 +1,7 @@
 // The two talking gestures on the client (welcome and answer spec, sections 2, 3 and 5): the drafts the player starts
 // from, and who can be talked to where. The game writes no substance: a quote, a thank-you, never an answer.
 import type { TalkKind } from "../shared/gestures/talk.ts";
+import { quietMentions } from "../shared/gestures/warm.ts";
 import { excerptOf, type People } from "../shared/people.ts";
 
 type Say = (key: string, o?: Record<string, unknown>) => string;
@@ -8,9 +9,12 @@ type Say = (key: string, o?: Record<string, unknown>) => string;
 /** Who can be talked to: the answer's number is the issue, the welcome's number is the pull request. */
 export interface TalkTarget { kind: TalkKind; number: number; login: string }
 
-/** The first words of what the person wrote, every line quoted, then an empty line for the player's own answer. */
+/**
+ * The first words of what the person wrote, every line quoted, then an empty line for the player's own answer.
+ * A mention in the quote is written as code: quoting someone never notifies the people they named.
+ */
 export function answerDraft(excerpt: string, _say?: Say): string {
-  return `${excerptOf(excerpt).split("\n").map((line) => `> ${line}`).join("\n")}\n\n`;
+  return `${quietMentions(excerptOf(excerpt)).split("\n").map((line) => `> ${line}`).join("\n")}\n\n`;
 }
 
 /** A warm thank-you for a first contribution, with the contributing guide when the repository has one. No @mention. */

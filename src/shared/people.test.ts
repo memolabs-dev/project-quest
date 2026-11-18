@@ -61,6 +61,7 @@ describe("excerptOf", () => {
     expect(excerptOf("  FICTIF short  ")).toBe("FICTIF short");
     const long = excerptOf("word ".repeat(100));
     expect(long.length).toBeLessThanOrEqual(200);
-    expect(long.endsWith("word")).toBe(true);
+    // A cut comment says so: it ends with an ellipsis, inside the 200 characters.
+    expect(long.endsWith("word…")).toBe(true);
   });
 });
