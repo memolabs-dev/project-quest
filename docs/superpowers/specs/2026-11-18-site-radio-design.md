@@ -33,7 +33,7 @@ Coming back to the site, the player knows in ten seconds what moved since their 
 
 ## 4. On the site
 
-- **The set**: a small radio standing in front of the site office, near the foreman's starting point, built from the simple shapes already used for the truck and the rewards' mast (a box, an antenna, a grille): no new model, nothing downloaded. While it speaks, the antenna sways a little and a small light blinks; with reduced motion, only the light.
+- **The set**: a small radio on a 2.4 m mast beside the foreman's starting point, inside the arrival frame on a computer and on a phone, at least 2.5 m from the visitors and the gate sign, with a solid foot, built from the simple shapes already used for the truck and the rewards' mast (a box, an antenna, a grille): no new model, nothing downloaded. While it speaks, the antenna sways a little and a small light blinks; with reduced motion, only the light.
 - **On arrival**: about a second after the camera's arrival, the radio crackles (a sound from the Interface Sounds pack already downloaded, nothing new), then its lines show one after another in a bubble above it, about 3 seconds each, then it falls silent. The crackle is `glitch_002.ogg` of that pack, saved as `public/audio/radio.ogg` and recorded in `public/audio/LICENSES.md`.
 - **A line about a pallet** can be clicked: it opens that pallet's card (the game has no camera move to a pallet; the card is the existing way to look at one). A line about a building is not clickable.
 - **Near the radio**, the prompt says "E: listen to the radio again"; on a touch screen, "Tap the radio".

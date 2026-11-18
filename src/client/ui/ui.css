@@ -32,7 +32,7 @@
   white-space: nowrap; box-shadow: var(--shadow); pointer-events: none;
 }
 .talk-bubble b { font-weight: 900; }
-/* The site radio's line, over the set in front of the office. */
+/* The site radio's line, over the set on its mast beside the spawn. */
 /* A line reads as a line: as wide as its words up to 260px (less on a phone), never a column of single words. */
 .radio-bubble {
   background: var(--paper); border: var(--line); border-radius: 12px; padding: 4px 12px; font-weight: 800; font-size: 13px;
