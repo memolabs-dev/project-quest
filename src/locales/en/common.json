@@ -5,6 +5,7 @@
     "unassigned": "Unassigned",
     "floors": "{{done}} of {{total}} floors",
     "controls": "{{keys}} or arrows to walk, Shift to run, {{action}} or a click to open a pallet",
+    "nearTouch": "Tap pallet #{{number}} to look at it",
     "near": "Press {{action}} to look at pallet #{{number}}",
     "newFloor": "New floor laid"
   },

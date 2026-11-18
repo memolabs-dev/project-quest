@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ACTION_CODE, CHEER_CODE, MOVE_CODES, keyLetters } from "../keys.ts";
 import { useQuest } from "../store.ts";
+import { isTouch } from "../touch.ts";
 import { VisitBar } from "./Visit.tsx";
 
 export function Hud() {
@@ -27,7 +28,7 @@ export function Hud() {
       )}
       {card === null && (near !== null || (worker && !picking)) && (
         <div className="prompt">
-          {near !== null && <span>{t("site.near", { number: near, action: letters.action })}</span>}
+          {near !== null && <span>{t(isTouch() ? "site.nearTouch" : "site.near", { number: near, action: letters.action })}</span>}
           {worker && !picking && <span>{t("warm.near", { login: worker.login, key: letters.cheer })}</span>}
         </div>
       )}

@@ -2,6 +2,7 @@
 import { Html, useKeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { Ecctrl, type EcctrlHandle } from "ecctrl";
+import { useJoystickStore } from "ecctrl/input";
 import { useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { useQuest } from "../store.ts";
@@ -65,7 +66,9 @@ export function Player({ pallets, workers, reduceMotion, body, arrival, look }: 
     if (h.isMoving) lastInput.at = performance.now();
     // Words typed in any field (a visit's repository name, for one) never walk him either.
     const typing = document.activeElement instanceof HTMLElement && document.activeElement.closest("input, textarea, select") !== null;
-    h.setMovement(cardOpen || typing ? {} : getKeys());
+    // On a phone, the on-screen joystick walks him too (ecctrl reads it as an analog stick).
+    const stick = useJoystickStore.getState().joysticks.default;
+    h.setMovement(cardOpen || typing ? {} : stick?.active ? { ...getKeys(), joystick: { x: stick.x, y: stick.y } } : getKeys());
     if (h.isMoving && h.moveSpeed > 0.4) sendEvent("walked"); // the store sends it once
     const pos = h.currPos;
     if (arrival.current <= 0) {

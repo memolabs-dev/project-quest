@@ -306,3 +306,8 @@
 .visit-examples a:hover { background: var(--sand); }
 .visit-foot { font-size: 14px; color: #4a4a4a; }
 .visit-foot a { color: var(--accent-ink); font-weight: 800; }
+
+/* The touch joystick (#17): bottom left, clear of the phone's home bar */
+.touch-stick { position: absolute; z-index: 12; left: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); width: 200px; height: 200px; }
+/* On a touch screen the joystick holds the bottom left: the prompt sits above it. */
+.app[data-touch] .prompt { bottom: calc(216px + env(safe-area-inset-bottom, 0px)); max-width: calc(100% - 32px); text-align: center; }

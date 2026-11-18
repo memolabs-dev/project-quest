@@ -6,6 +6,8 @@ import { useReducedMotion } from "./client/scene/motion.ts";
 import { useQuest } from "./client/store.ts";
 import { Hud } from "./client/ui/Hud.tsx";
 import { Overlays } from "./client/ui/Overlays.tsx";
+import { TouchControls } from "./client/ui/Touch.tsx";
+import { isTouch } from "./client/touch.ts";
 import "./client/ui/ui.css";
 
 // The 3D scene (its libraries are most of the download) starts loading with the page, while the site is read:
@@ -51,7 +53,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="app">
+    <div className="app" data-touch={isTouch() ? "" : undefined}>
       {load.status === "loading" && <div className="loading" role="status">{waiting}</div>}
       {site && (
         <Suspense fallback={<div className="loading" role="status">{waiting}</div>}>
@@ -59,6 +61,7 @@ export default function App() {
         </Suspense>
       )}
       <Hud />
+      <TouchControls />
       <Overlays />
     </div>
   );
