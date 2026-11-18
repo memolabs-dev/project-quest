@@ -1,0 +1,13 @@
+.git
+node_modules
+dist
+test-results
+playwright-report
+e2e
+assets-src
+docs
+.superpowers
+.claude
+.env
+.env.*
+*.log

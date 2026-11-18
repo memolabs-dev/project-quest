@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { loadConfig } from "../shared/config.ts";
 import { prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
-import { createApp, visitCache } from "./app.ts";
+import { createApp } from "./app.ts";
+import { createVisitApp, readBudget, visitCache } from "./visit-app.ts";
 import { repoToVisit } from "./github/read-repo.ts";
 import { memoryActionLog } from "./db/log.ts";
 import { memoryProgress } from "./db/progress.ts";
@@ -95,6 +96,30 @@ describe("a visit (#16)", () => {
     await cache.read("a/three");
     await cache.read("a/one");
     expect(asked).toEqual(["a/one", "a/one", "a/two", "a/three", "a/one"]);
+  });
+
+  it("asks GitHub at most `perHour` times in the last hour, then again as the hour slides", () => {
+    let t = 0;
+    const budget = readBudget(2, () => t);
+    expect([budget.take(), budget.take(), budget.take()]).toEqual([true, true, false]);
+    t = 60 * 60_000;
+    expect(budget.take()).toBe(true);
+  });
+
+  it("answers 429 once the hour's reads are spent, while cached visits still answer", async () => {
+    const app = createVisitApp(async () => visitOf(false), { readsPerHour: 1 });
+    expect((await app.request("/api/visit?repo=fictif-org/one")).status).toBe(200);
+    expect((await app.request("/api/visit?repo=fictif-org/one")).status).toBe(200);
+    const busy = await app.request("/api/visit?repo=fictif-org/two");
+    expect(busy.status).toBe(429);
+    expect(await busy.json()).toMatchObject({ error: "busy" });
+  });
+
+  it("has no route but the visit: the public server can write nothing", async () => {
+    const app = createVisitApp(async () => visitOf(false));
+    for (const [method, path] of [["GET", "/api/site"], ["POST", "/api/moves/apply"], ["POST", "/api/warm/cheer/apply"], ["GET", "/api/levels"], ["GET", "/api/log"]]) {
+      expect((await app.request(path, { method })).status).toBe(404);
+    }
   });
 });
 
