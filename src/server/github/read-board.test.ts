@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { loadConfig } from "../../shared/config.ts";
 import { buildSite, type BoardSnapshot } from "../../shared/site.ts";
 import type { Gql } from "./client.ts";
-import { readBoard } from "./read-board.ts";
+import { BOARD_QUERY, readBoard } from "./read-board.ts";
+import { waitingOn } from "../../shared/people.ts";
 
 const read = (path: string) => JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8")) as unknown;
 const config = loadConfig(read("../../../quest.config.json"));
@@ -58,6 +59,35 @@ describe("readBoard", () => {
     expect(item.myReactions).toEqual(["HOORAY", "EYES"]);
     // The site keeps only the four warm signs.
     expect(buildSite(board, config).pallets.find((p) => p.number === item.number)?.myReactions ?? ["HOORAY"]).toEqual(["HOORAY"]);
+  });
+
+  it("the last comment is a person's only: a bot or a mannequin reads as nobody", async () => {
+    const project = structuredClone(fixture.repositoryOwner.projectV2) as { items: { nodes: { content: Record<string, unknown> | null }[] } };
+    const issues = project.items.nodes.filter((n) => n.content?.__typename === "Issue").slice(0, 3);
+    const comment = (author: unknown) => ({ nodes: [{ author, authorAssociation: "NONE", createdAt: "2026-11-15T09:30:00Z", bodyText: "FICTIF can I take this one" }] });
+    // A bot on live GitHub has no [bot] suffix in GraphQL; a mannequin is an imported account nobody answers.
+    issues[0].content!.comments = comment({ __typename: "Bot", login: "github-actions" });
+    issues[1].content!.comments = comment({ __typename: "Mannequin", login: "fictif-imported" });
+    issues[2].content!.comments = comment({ __typename: "User", login: "fictif-maria" });
+    const { gql } = fakeGql([{ repositoryOwner: { projectV2: project } }]);
+    const board = await readBoard(gql, config, { people: true });
+    const at = (k: number) => board.items.find((i) => i.number === issues[k].content!.number)!;
+    expect(at(0).lastComment).toEqual({ author: null, association: "NONE", createdAt: "2026-11-15T09:30:00Z", excerpt: "FICTIF can I take this one" });
+    expect(at(1).lastComment?.author).toBeNull();
+    expect(at(2).lastComment).toEqual({ author: "fictif-maria", association: "NONE", createdAt: "2026-11-15T09:30:00Z", excerpt: "FICTIF can I take this one" });
+    const now = Date.parse("2026-11-18T12:00:00Z");
+    const open = (k: number) => ({ ...at(k), state: "OPEN" as const });
+    expect(waitingOn(open(0), "fictif-lead", now)).toBeNull();
+    expect(waitingOn(open(1), "fictif-lead", now)).toBeNull();
+    expect(waitingOn(open(2), "fictif-lead", now)?.login).toBe("fictif-maria");
+  });
+
+  it("the comments are read only when the people are asked for", async () => {
+    expect(BOARD_QUERY).toMatch(/comments\(last: 1\) @include\(if: \$people\)/);
+    const { gql, calls } = fakeGql([fixture, fixture]);
+    await readBoard(gql, config);
+    await readBoard(gql, config, { people: true });
+    expect(calls.map((c) => c.people)).toEqual([false, true]);
   });
 
   it("follows pagination, passing the cursor back", async () => {

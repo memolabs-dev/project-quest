@@ -307,6 +307,22 @@ describe("the people of the site (#18)", () => {
     expect(people.newcomers.map((n) => [n.login, n.pallet])).toEqual([["fictif-lucas", 13], ["fictif-sana", null]]);
   });
 
+  it("the board's comments are read only for the people: a lead with a rank, or the demo", async () => {
+    const asked: unknown[] = [];
+    const d = peopleDeps({ readBoard: async (o) => { asked.push(o?.people ?? false); return board; } });
+    await d.progress.setPath("fictif-lead", "volunteer");
+    await siteOf(createApp(d));
+    await d.progress.setPath("fictif-lead", "lead");
+    await siteOf(createApp(d));
+    await foreman(d);
+    await siteOf(createApp(d));
+    expect(asked).toEqual([false, false, true]);
+    // Elsewhere (a move's prepare) the board is read without them.
+    asked.length = 0;
+    await createApp(d).request("/api/moves/prepare", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ itemId: item.itemId, toZone: "Ready" }) });
+    expect(asked).toEqual([false]);
+  });
+
   it("the people's read failing never takes the site down", async () => {
     const d = peopleDeps({ readNewcomers: async () => { throw new Error("FICTIF GitHub is down"); } });
     await foreman(d);

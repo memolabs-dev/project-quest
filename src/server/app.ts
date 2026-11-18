@@ -176,10 +176,19 @@ async function mayTalk(deps: Deps, login: string) {
   return rankReached(levelsOf("lead"), stamped) !== null;
 }
 
+/** Whether the site shows its people to this player; a failed read of the stamps only hides the signs. */
+async function showsPeople(deps: Deps, login: string) {
+  try {
+    return await mayTalk(deps, login);
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
 /** Who waits and who is new, for the people allowed to answer. A failed read only hides the signs: the site still stands. */
 async function peopleFor(deps: Deps, board: BoardSnapshot, login: string) {
   try {
-    if (!(await mayTalk(deps, login))) return null;
     return peopleOf(board, await deps.readNewcomers(), login, deps.now?.() ?? Date.now());
   } catch (err) {
     console.error(err);
@@ -193,7 +202,7 @@ const talkArgs = z.object({ number: z.number().int(), words: z.string().max(65_5
 async function rebuildTalk(deps: Deps, kind: TalkKind, args: { number: number; words: string }, login: string): Promise<PreparedTalk> {
   const repo = `${deps.config.owner}/${deps.config.repo}`;
   if (kind === "welcome") return prepareWelcome(await deps.readNewcomers(), repo, args.number, args.words);
-  return prepareAnswer(await deps.readBoard(), repo, args.number, args.words, login, deps.now?.() ?? Date.now());
+  return prepareAnswer(await deps.readBoard({ people: true }), repo, args.number, args.words, login, deps.now?.() ?? Date.now());
 }
 
 const TALK_LEAD_ONLY = { error: "gesture" as const, message: "Only a lead may answer or welcome: nothing was sent" };
@@ -250,9 +259,12 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
         return c.json({ site: buildSite(await board.read(), board.config), viewer, mode: live.mode, demoReason: null });
       }
       const deps = pick(c);
-      const [board, viewer] = await Promise.all([deps.readBoard(), deps.viewer()]);
+      // The last comments are read only when the people show (spec section 6): the stored stamps say so first.
+      const viewer = await deps.viewer();
+      const shows = await showsPeople(deps, viewer.login);
+      const board = await deps.readBoard({ people: shows });
       const site = buildSite(board, deps.config);
-      const people = await peopleFor(deps, board, viewer.login);
+      const people = shows ? await peopleFor(deps, board, viewer.login) : null;
       return c.json({ site: people ? { ...site, people } : site, viewer, mode: deps.mode, demoReason: deps.demoReason ?? null });
     })
     // A public repository, visited read-only: nothing can be written from a visit (#16).

@@ -27,7 +27,8 @@ export interface Deps {
   /** Why the demo runs instead of the real board, when it does. */
   demoReason?: "asked" | "no-github-access";
   config: QuestConfig;
-  readBoard(): Promise<BoardSnapshot>;
+  /** `people`: also read each issue's last comment, only for the lead who answers (and the demo, which has it anyway). */
+  readBoard(o?: { people?: boolean }): Promise<BoardSnapshot>;
   applyMove(p: PreparedMove): Promise<ApplyResult>;
   /** The same, for another board (the player's practice site). */
   readBoardFor(config: QuestConfig): Promise<BoardSnapshot>;
@@ -79,7 +80,7 @@ export function liveDeps(config: QuestConfig): Deps {
   return {
     mode: "live",
     config,
-    readBoard: async () => readBoard(await client(), config),
+    readBoard: async (o) => readBoard(await client(), config, o),
     applyMove: async (p) => applyMove(await client(), config, p),
     readBoardFor: async (c) => readBoard(await client(), c),
     applyMoveFor: async (c, p) => applyMove(await client(), c, p),

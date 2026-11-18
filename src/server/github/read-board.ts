@@ -8,7 +8,7 @@ import { BoardNotFoundError } from "./errors.ts";
 export { BoardNotFoundError };
 
 export const BOARD_QUERY = /* GraphQL */ `
-  query Board($owner: String!, $number: Int!, $statusField: String!, $sizeField: String!, $after: String) {
+  query Board($owner: String!, $number: Int!, $statusField: String!, $sizeField: String!, $after: String, $people: Boolean!) {
     repositoryOwner(login: $owner) {
       ... on ProjectV2Owner {
         projectV2(number: $number) {
@@ -32,7 +32,7 @@ export const BOARD_QUERY = /* GraphQL */ `
                   labels(first: 20) { nodes { name } }
                   assignees(first: 10) { nodes { login avatarUrl } }
                   reactionGroups { content viewerHasReacted }
-                  comments(last: 1) { nodes { author { login } authorAssociation createdAt bodyText } }
+                  comments(last: 1) @include(if: $people) { nodes { author { __typename login } authorAssociation createdAt bodyText } }
                 }
               }
             }
@@ -54,8 +54,8 @@ interface IssueNode {
   assignees: { nodes: { login: string; avatarUrl: string }[] };
   /** Only the viewer's own reactions are kept: the game never counts anyone's. */
   reactionGroups?: { content: string; viewerHasReacted: boolean }[] | null;
-  /** The last comment, to tell who waits for an answer; absent in older fixtures. */
-  comments?: { nodes: { author: { login: string } | null; authorAssociation: string; createdAt: string; bodyText: string }[] } | null;
+  /** The last comment, to tell who waits for an answer; read only for the people (absent otherwise, and in older fixtures). */
+  comments?: { nodes: { author: { __typename: string; login: string } | null; authorAssociation: string; createdAt: string; bodyText: string }[] } | null;
 }
 interface ItemNode {
   id: string;
@@ -75,23 +75,31 @@ interface BoardResponse {
 }
 
 
-/** The issue's last comment, or null when nobody has written. */
+/**
+ * The issue's last comment, or null when nobody has written. Only a person (`User`) is an author: a bot has no
+ * `[bot]` suffix in GraphQL and a mannequin is an imported account, so both read as nobody, like a deleted account.
+ */
 function lastCommentOf(c: IssueNode): BoardItem["lastComment"] {
   const n = c.comments?.nodes[0];
-  return n ? { author: n.author?.login ?? null, association: n.authorAssociation, createdAt: n.createdAt, excerpt: excerptOf(n.bodyText) } : null;
+  if (!n) return null;
+  const author = n.author?.__typename === "User" ? n.author.login : null;
+  return { author, association: n.authorAssociation, createdAt: n.createdAt, excerpt: excerptOf(n.bodyText) };
 }
 
 const isIssue = (c: ItemNode["content"]): c is IssueNode => c?.__typename === "Issue";
 
-/** Only the configured repository's issues are read: a board mixing repositories would repeat issue numbers. */
-export async function readBoard(gql: Gql, config: QuestConfig): Promise<BoardSnapshot> {
+/**
+ * Only the configured repository's issues are read: a board mixing repositories would repeat issue numbers.
+ * `people`: also read each issue's last comment, for the lead who answers (welcome and answer spec, section 6).
+ */
+export async function readBoard(gql: Gql, config: QuestConfig, { people = false }: { people?: boolean } = {}): Promise<BoardSnapshot> {
   const repo = `${config.owner}/${config.repo}`.toLowerCase();
   const items: BoardItem[] = [];
   let after: string | null = null;
   let project: NonNullable<NonNullable<BoardResponse["repositoryOwner"]>["projectV2"]>;
   do {
     const res: BoardResponse = await gql<BoardResponse>(BOARD_QUERY, {
-      owner: config.owner, number: config.projectNumber, statusField: config.fields.status, sizeField: config.fields.size, after,
+      owner: config.owner, number: config.projectNumber, statusField: config.fields.status, sizeField: config.fields.size, after, people,
     });
     const p = res.repositoryOwner?.projectV2;
     if (!p) throw new BoardNotFoundError(`Project ${config.projectNumber} of ${config.owner} not found, or no access`);

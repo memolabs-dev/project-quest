@@ -7,28 +7,28 @@
         {
           "id": "PR_fictif_1", "number": 31, "title": "FICTIF Fix the clock", "url": "https://github.com/fictif-org/demo-site/pull/31",
           "authorAssociation": "FIRST_TIME_CONTRIBUTOR",
-          "author": { "login": "fictif-lucas", "avatarUrl": "https://example.org/lucas.png" },
+          "author": { "__typename": "User", "login": "fictif-lucas", "avatarUrl": "https://example.org/lucas.png" },
           "closingIssuesReferences": { "nodes": [{ "number": 7 }, { "number": 9 }] },
           "comments": { "nodes": [{ "viewerDidAuthor": false }] }
         },
         {
           "id": "PR_fictif_2", "number": 32, "title": "FICTIF Typo in the readme", "url": "https://github.com/fictif-org/demo-site/pull/32",
           "authorAssociation": "FIRST_TIMER",
-          "author": { "login": "fictif-sana", "avatarUrl": "https://example.org/sana.png" },
+          "author": { "__typename": "User", "login": "fictif-sana", "avatarUrl": "https://example.org/sana.png" },
           "closingIssuesReferences": { "nodes": [] },
           "comments": { "nodes": [] }
         },
         {
           "id": "PR_fictif_3", "number": 33, "title": "FICTIF Already welcomed", "url": "https://github.com/fictif-org/demo-site/pull/33",
           "authorAssociation": "FIRST_TIME_CONTRIBUTOR",
-          "author": { "login": "fictif-omar", "avatarUrl": "https://example.org/omar.png" },
+          "author": { "__typename": "User", "login": "fictif-omar", "avatarUrl": "https://example.org/omar.png" },
           "closingIssuesReferences": { "nodes": [{ "number": 12 }] },
           "comments": { "nodes": [{ "viewerDidAuthor": false }, { "viewerDidAuthor": true }] }
         },
         {
           "id": "PR_fictif_4", "number": 34, "title": "FICTIF A regular's change", "url": "https://github.com/fictif-org/demo-site/pull/34",
           "authorAssociation": "CONTRIBUTOR",
-          "author": { "login": "fictif-nora", "avatarUrl": "https://example.org/nora.png" },
+          "author": { "__typename": "User", "login": "fictif-nora", "avatarUrl": "https://example.org/nora.png" },
           "closingIssuesReferences": { "nodes": [{ "number": 13 }] },
           "comments": { "nodes": [] }
         },

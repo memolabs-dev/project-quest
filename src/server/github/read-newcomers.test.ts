@@ -22,4 +22,18 @@ describe("readNewcomers", () => {
     const without = { repository: { ...fixture.repository, contributing: null } };
     expect((await readNewcomers(gqlOf(without), config))[0].contributingUrl).toBeNull();
   });
+
+  it("only people: a bot (no [bot] suffix in GraphQL) and a mannequin are never welcomed", async () => {
+    const pr = (n: number, author: unknown) => ({
+      id: `PR_fictif_${n}`, number: n, title: "FICTIF A change", url: `https://github.com/fictif-org/demo-site/pull/${n}`,
+      authorAssociation: "FIRST_TIME_CONTRIBUTOR", author, closingIssuesReferences: { nodes: [] }, comments: { nodes: [] }, reviews: { nodes: [] },
+    });
+    const res = { repository: { ...fixture.repository, pullRequests: { nodes: [
+      pr(40, { __typename: "Bot", login: "dependabot", avatarUrl: "" }),
+      pr(41, { __typename: "Mannequin", login: "fictif-imported", avatarUrl: "" }),
+      pr(42, { __typename: "User", login: "fictif-helper[bot]", avatarUrl: "" }),
+      pr(43, { __typename: "User", login: "fictif-ines", avatarUrl: "" }),
+    ] } } };
+    expect((await readNewcomers(gqlOf(res), config)).map((n) => n.login)).toEqual(["fictif-ines"]);
+  });
 });
