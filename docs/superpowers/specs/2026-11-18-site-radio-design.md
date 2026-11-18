@@ -8,7 +8,7 @@ Coming back to the site, the player knows in ten seconds what moved since their 
 
 ## 2. Memory: two pictures of the site
 
-- The browser keeps a small picture of each site the player visited: the player's board, the demo, the practice and team sites, each public repository visited. The picture holds the date, each pallet's zone and state (open, laid, discarded), each building's floors, the bug pallets and the workers' logins.
+- The browser keeps a small picture of each site the player visited: the player's board, the demo, the practice and team sites, each public repository visited. The picture holds the date, each pallet's zone and state (open, laid, discarded), the bug pallets and the workers' logins.
 - On arrival the game compares that picture with today's site, the radio speaks, and the picture is replaced by today's.
 - It is kept in `localStorage` under `project-quest.radio.<site>` (the site: the board's `owner/repo`, `demo`, `practice`, `team`, or `visit:owner/repo`), with a format version: a picture of another version is ignored, as a first visit.
 - The picture is written as soon as the radio has chosen its lines, even if it is muted or skipped: a reload does not repeat the same news.
@@ -26,6 +26,7 @@ Coming back to the site, the player knows in ten seconds what moved since their 
   When there are more facts than lines, the fifth line says "and more besides".
 - **Never a count per person**: "4 pallets laid", never "maria laid 3". No line holds both a login and a number.
 - **Nothing invented**: each line matches a real change between the two pictures. Gags that come from no data are decoration only (a jingle, a crackle).
+- **Unknown history is not news.** A visit reads only the most recently updated issues, so an old issue can come back into view, and its group buildings are numbered by fullness. A new parcel is therefore only a pallet numbered above the old picture's highest; any other pallet the old picture never saw gives no line at all. Floors count the pallets the old picture knew that are newly laid, per building (an epic by its number, a visit's group by its title). A new worker counts only on a pallet the old picture knew, or on a new parcel.
 - **First visit**: the radio presents the site ("Welcome to the site of vitejs/vite: 7 buildings, 25 pallets at inspection!").
 - **Nothing moved**: a kind line ("Dead calm, the concrete mixers are resting"), never a reproach.
 - **The tone**: the over-excited commentator, with two or three variants per kind of fact, in both languages. The variant follows the date, not chance, so tests stay stable.

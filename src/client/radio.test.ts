@@ -26,8 +26,11 @@ const pallet = (number: number, o: Partial<Pallet> = {}): Pallet => ({
 });
 const laidPallet = (n: number, o: Partial<Pallet> = {}) => pallet(n, { zone: "Done", closed: true, ...o });
 const building = (epicNumber: number | null, title: string, floorsDone: number, floorsTotal: number): Building => ({ epicNumber, title, floorsDone, floorsTotal });
-const site = (pallets: Pallet[], buildings: Building[] = [building(1, "Public map", 0, 10)], logins: string[] = []): Site => ({
-  zones: [], buildings, pallets, workers: logins.map((login) => ({ login, avatarUrl: "", carrying: [] })),
+/** A worker is a login, or a login and the pallets they carry. */
+type Crew = (string | [string, number[]])[];
+const site = (pallets: Pallet[], buildings: Building[] = [building(1, "Public map", 0, 10)], crew: Crew = []): Site => ({
+  zones: [], buildings, pallets,
+  workers: crew.map((w) => (typeof w === "string" ? { login: w, avatarUrl: "", carrying: [] } : { login: w[0], avatarUrl: "", carrying: w[1] })),
 });
 const DAY = "2026-11-18";
 const keys = (lines: { key: string }[]) => lines.map((l) => l.key);
@@ -64,56 +67,58 @@ describe("the radio", () => {
   it("a visit's group building (negative epic number) is a floors line too", () => {
     const before = snapshotOf(site([pallet(1, { building: -1 })], [building(-1, "Group", 0, 1)]), "t");
     const now = site([laidPallet(1, { building: -1 })], [building(-1, "Group", 1, 1)]);
-    expect(before.floors).toEqual({ "epic--1": 0 });
-    expect(radioLines(before, now, DAY, "x")[0].key).toBe("onAir.floors");
+    expect(radioLines(before, now, DAY, "x")[0]).toMatchObject({ key: "onAir.floors", values: { title: "Group", count: 1 } });
   });
 
-  it("laid, review, progress, parcels, termites and helmets, in that order", () => {
-    const before = snapshotOf(
-      site([pallet(1), pallet(2), pallet(3), pallet(4, { isBug: true }), pallet(5)], [building(1, "A", 0, 5)], ["maria"]), "t",
-    );
+  it("floors, laid, review, progress and parcels, in that order", () => {
+    const before = snapshotOf(site([pallet(1), pallet(2), pallet(3), pallet(4)], [building(1, "A", 0, 4)], ["maria"]), "t");
     const now = site(
-      [
-        pallet(1, { zone: "Done", closed: true, isBug: false }), pallet(2, { zone: "In review" }), pallet(3, { zone: "In progress" }),
-        pallet(4, { isBug: true, zone: "Done", closed: true }), pallet(5), pallet(6), pallet(7), pallet(8, { isBug: true }),
-      ],
-      [building(1, "A", 0, 8)],
-      ["maria", "lucas"],
+      [laidPallet(1), pallet(2, { zone: "In review" }), pallet(3, { zone: "In progress" }), pallet(4), pallet(5)],
+      [building(1, "A", 1, 5)], ["maria"],
     );
-    // Seven facts, so four lines and the rest.
     const lines = radioLines(before, now, DAY, "x");
-    expect(keys(lines)).toEqual(["onAir.laid", "onAir.review", "onAir.progress", "onAir.parcels", "onAir.more"]);
-    const fewer = radioLines(snapshotOf(site([pallet(4, { isBug: true })], [building(1, "A", 0, 1)], ["maria"]), "t"), site([laidPallet(4, { isBug: true }), pallet(9, { isBug: true })], [building(1, "A", 1, 2)], ["maria", "lucas"]), DAY, "x");
-    expect(keys(fewer)).toEqual(["onAir.floors", "onAir.laid", "onAir.parcels", "onAir.termitesIn", "onAir.more"]);
+    expect(keys(lines)).toEqual(["onAir.floors", "onAir.laid", "onAir.review", "onAir.progress", "onAir.parcels"]);
+    // A single pallet is pointed at.
+    expect(lines.slice(1).map((l) => l.pallet)).toEqual([1, 2, 3, 5]);
   });
 
-  it("each fact kind speaks when alone, in order", () => {
-    const before = snapshotOf(site([pallet(1, { isBug: true }), pallet(2)], [building(1, "A", 0, 2)], ["maria"]), "t");
-    const now = site([laidPallet(1, { isBug: true }), pallet(2, { zone: "In review" }), pallet(3, { isBug: true })], [building(1, "A", 0, 3)], ["maria"]);
+  it("then parcels, termites in and out, and helmets, in that order", () => {
+    // 4 is closed as not planned: the termite is gone, nothing is laid.
+    const before = snapshotOf(site([pallet(4, { isBug: true }), pallet(5)], [building(1, "A", 0, 2)], ["maria"]), "t");
+    const now = site(
+      [pallet(4, { isBug: true, zone: "Done", closed: true, discarded: true }), pallet(5), pallet(6, { isBug: true })],
+      [building(1, "A", 0, 2)], ["maria", ["lucas", [6]]],
+    );
     const lines = radioLines(before, now, DAY, "x");
-    expect(keys(lines)).toEqual(["onAir.laid", "onAir.review", "onAir.parcels", "onAir.termitesIn", "onAir.termitesOut"]);
-    const solo = radioLines(before, site([pallet(1, { isBug: true }), pallet(2)], [building(1, "A", 0, 2)], ["maria", "lucas"]), DAY, "x");
-    expect(solo).toEqual([{ key: "onAir.helmet", values: { variant: expect.any(Number), login: "lucas" } }]);
-    // A single pallet is pointed at; several are not.
-    expect(lines[0].pallet).toBe(1);
-    expect(lines[1].pallet).toBe(2);
-    expect(lines[2].pallet).toBe(3);
+    expect(keys(lines)).toEqual(["onAir.parcels", "onAir.termitesIn", "onAir.termitesOut", "onAir.helmet"]);
+    expect(lines[3]).toEqual({ key: "onAir.helmet", values: { variant: expect.any(Number), login: "lucas" } });
+  });
+
+  it("six facts are four lines and the rest", () => {
+    const before = snapshotOf(site([pallet(1), pallet(2), pallet(3)], [building(1, "A", 0, 3)], ["maria"]), "t");
+    const now = site(
+      [laidPallet(1), pallet(2, { zone: "In review" }), pallet(3, { zone: "In progress" }), pallet(4, { isBug: true })],
+      [building(1, "A", 1, 4)], ["maria"],
+    );
+    expect(keys(radioLines(before, now, DAY, "x"))).toEqual(["onAir.floors", "onAir.laid", "onAir.review", "onAir.progress", "onAir.more"]);
   });
 
   it("lines about several pallets do not point at one", () => {
     const before = snapshotOf(site([pallet(1), pallet(2)]), "t");
     const lines = radioLines(before, site([laidPallet(1), laidPallet(2)], [building(1, "A", 0, 2)]), DAY, "x");
-    expect(lines[0]).toMatchObject({ key: "onAir.laid", values: { count: 2 } });
-    expect(lines[0].pallet).toBeUndefined();
+    expect(lines[1]).toMatchObject({ key: "onAir.laid", values: { count: 2 } });
+    expect(lines[1].pallet).toBeUndefined();
   });
 
   it("more facts than lines end with and more besides", () => {
     const many = Array.from({ length: 300 }, (_, i) => i + 1);
-    const before = snapshotOf(site([], [building(1, "A", 0, 0)], []), "t");
+    const epics = [1, 2, 3, 4, 5, 6];
+    const buildings = epics.map((e) => building(e, `B${e}`, 0, 50));
+    const before = snapshotOf(site(many.map((n) => pallet(n, { building: epics[n % 6] })), buildings, []), "t");
     const now = site(
-      many.map((n) => laidPallet(n)),
-      [building(1, "A", 300, 300), building(2, "B", 4, 4), building(3, "C", 4, 4), building(4, "D", 4, 4), building(5, "E", 4, 4), building(6, "F", 4, 4)],
-      many.map((n) => `w${n}`),
+      many.map((n) => laidPallet(n, { building: epics[n % 6] })),
+      buildings,
+      many.map((n): [string, number[]] => [`w${n}`, [n]]),
     );
     const lines = radioLines(before, now, DAY, "x");
     expect(lines).toHaveLength(MAX_LINES);
@@ -123,7 +128,7 @@ describe("the radio", () => {
 
   it("no line holds a login and a number", () => {
     const before = snapshotOf(site([pallet(1)], [building(1, "A", 0, 1)], ["maria"]), "t");
-    const now = site([laidPallet(1), pallet(2)], [building(1, "A", 1, 2)], ["maria", "lucas", "zoe"]);
+    const now = site([laidPallet(1), pallet(2)], [building(1, "A", 1, 2)], ["maria", ["lucas", [2]], ["zoe", [1]]]);
     for (const l of radioLines(before, now, DAY, "x")) {
       const { variant: _variant, ...rest } = l.values;
       const hasLogin = "login" in rest;
@@ -133,6 +138,75 @@ describe("the radio", () => {
     // A new worker is named, never counted.
     const helmets = radioLines(before, now, DAY, "x").filter((l) => l.key === "onAir.helmet");
     expect(helmets.map((l) => l.values.login)).toEqual(["lucas", "zoe"]);
+  });
+
+  it("a pallet the old picture never saw, with a lower number, is unknown history: no line at all", () => {
+    const before = snapshotOf(site([pallet(50)], [building(1, "A", 0, 1)], ["maria"]), "t");
+    // 10 and 12 come back into view: one laid, one a bug at inspection carried by someone the radio never met.
+    const now = site(
+      [laidPallet(10), pallet(12, { isBug: true, zone: "In review" }), pallet(14, { zone: "In progress" }), pallet(50)],
+      [building(1, "A", 1, 4)], ["maria", ["old-hand", [10, 12, 14]]],
+    );
+    expect(keys(radioLines(before, now, DAY, "x"))).toEqual(["onAir.calm"]);
+  });
+
+  it("a new parcel is a number above the old picture's highest", () => {
+    const before = snapshotOf(site([pallet(50)], [building(1, "A", 0, 1)]), "t");
+    const now = site([pallet(11), pallet(50), pallet(61, { isBug: true })], [building(1, "A", 0, 3)]);
+    const lines = radioLines(before, now, DAY, "x");
+    expect(lines.map((l) => [l.key, l.values.count, l.pallet])).toEqual([["onAir.parcels", 1, 61], ["onAir.termitesIn", 1, 61]]);
+  });
+
+  it("a new helmet counts only on a pallet the old picture knew, or on a new parcel", () => {
+    const before = snapshotOf(site([pallet(50)], [building(1, "A", 0, 1)], ["maria"]), "t");
+    const now = site([pallet(12), pallet(50), pallet(61)], [building(1, "A", 0, 3)], ["maria", ["old-hand", [12]], ["lucas", [50]], ["zoe", [12, 61]]]);
+    const helmets = radioLines(before, now, DAY, "x").filter((l) => l.key === "onAir.helmet");
+    expect(helmets.map((l) => l.values.login)).toEqual(["lucas", "zoe"]);
+  });
+
+  it("floors count the pallets the old picture knew that are newly laid, building by building", () => {
+    const before = snapshotOf(site([pallet(10), pallet(11), laidPallet(12), pallet(13, { building: null })], [building(1, "A", 1, 3), building(null, "", 0, 1)]), "t");
+    // 12 was laid already, 13 is cleared as a duplicate (never a floor), 9 is unknown history.
+    const now = site(
+      [laidPallet(9), laidPallet(10), laidPallet(11), laidPallet(12), laidPallet(13, { building: null, discarded: true })],
+      [building(1, "A", 4, 4), building(null, "", 0, 0)],
+    );
+    const lines = radioLines(before, now, DAY, "x");
+    expect(lines.map((l) => [l.key, l.values.count])).toEqual([["onAir.floors", 2], ["onAir.laid", 2]]);
+  });
+
+  describe("on a visit, whose window and group numbers move between two pictures", () => {
+    // A visit reads the 100 most recently updated issues, and numbers its group buildings by fullness.
+    const before = snapshotOf(site(
+      [pallet(50, { building: -1 }), pallet(51, { building: -1 }), pallet(60, { building: -2, isBug: true })],
+      [building(-1, "v2", 0, 2), building(-2, "docs", 0, 1)], [["maria", [50]]],
+    ), "t");
+    const shifted = (extra: Pallet[], o: { laid51?: boolean } = {}) => site(
+      [
+        laidPallet(10, { building: -2 }), pallet(12, { building: -1, isBug: true, zone: "In review" }), pallet(14, { building: null, zone: "In progress" }),
+        pallet(50, { building: -2 }), o.laid51 ? laidPallet(51, { building: -2 }) : pallet(51, { building: -2 }), pallet(60, { building: -1, isBug: true }),
+        ...extra,
+      ],
+      // The groups swapped numbers: "docs" is now -1, "v2" is -2.
+      [building(-1, "docs", 0, 1), building(-2, "v2", o.laid51 ? 2 : 1, 4), building(null, "", 0, 1)],
+      [["maria", [50]], ["old-hand", [12, 14]]],
+    );
+
+    it("old issues coming back and renumbered groups invent nothing", () => {
+      expect(keys(radioLines(before, shifted([]), DAY, "x"))).toEqual(["onAir.calm"]);
+    });
+
+    it("a known pallet laid counts one floor on its group, named by its title", () => {
+      const lines = radioLines(before, shifted([], { laid51: true }), DAY, "x");
+      expect(lines.map((l) => [l.key, l.values.count, l.values.title, l.pallet])).toEqual([
+        ["onAir.floors", 1, "v2", undefined], ["onAir.laid", 1, undefined, 51],
+      ]);
+    });
+
+    it("an issue opened since is the only parcel", () => {
+      const lines = radioLines(before, shifted([pallet(61, { building: null })]), DAY, "x");
+      expect(lines.map((l) => [l.key, l.pallet])).toEqual([["onAir.parcels", 61]]);
+    });
   });
 
   it("the variant follows the date", () => {
@@ -218,9 +292,27 @@ describe("the radio's words", () => {
           expect(text).not.toMatch(/[\u2013\u2014]/);
         }
       }
-      expect(i.t("onAir.floorsUnassigned_0", { count: 1 })).toContain(i.t("site.unassigned"));
+      // The unassigned building has its own words: never "on Unassigned".
+      for (let variant = 0; variant < 3; variant++) {
+        for (const count of [1, 2]) expect(i.t(`onAir.floorsUnassigned_${variant}`, { count })).not.toContain(i.t("site.unassigned"));
+      }
     });
   }
+});
+
+describe("the radio's French", () => {
+  const onAir = fr.onAir as Record<string, string>;
+  it("the mayor is a woman, as everywhere in the game", () => {
+    for (const [k, v] of Object.entries(onAir)) expect(v, k).not.toMatch(/\bLe maire\b/);
+    expect(onAir.parcels_0_one).toMatch(/^La maire/);
+  });
+  it("a termite is masculine, and every word around it agrees", () => {
+    for (const [k, v] of Object.entries(onAir)) {
+      expect(v, k).not.toMatch(/\b(une|la|cette) termite|termites? (repérées?|chassées?|toutes? fraîches?)/i);
+    }
+    expect(onAir.termitesIn_0_one).toMatch(/^Termites repérés/);
+    expect(onAir.termitesOut_0_one).toMatch(/^Un termite chassé/);
+  });
 });
 
 describe("the radio's key under the demo mode", () => {
