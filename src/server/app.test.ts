@@ -5,7 +5,7 @@ import { prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { createApp } from "./app.ts";
 import { createVisitApp, readBudget, visitCache } from "./visit-app.ts";
-import { repoToVisit } from "./github/read-repo.ts";
+import { RepoNotPublicError, repoToVisit } from "./github/read-repo.ts";
 import { memoryActionLog } from "./db/log.ts";
 import { memoryProgress } from "./db/progress.ts";
 import type { Deps } from "./deps.ts";
@@ -113,6 +113,21 @@ describe("a visit (#16)", () => {
     const busy = await app.request("/api/visit?repo=fictif-org/two");
     expect(busy.status).toBe(429);
     expect(await busy.json()).toMatchObject({ error: "busy" });
+  });
+
+  it("keeps a 'not public' answer, so asking for missing repositories again spends no read", async () => {
+    let asked = 0;
+    const app = createVisitApp(async () => { asked++; throw new RepoNotPublicError("no"); }, { readsPerHour: 1 });
+    for (let i = 0; i < 3; i++) expect((await app.request("/api/visit?repo=fictif-org/missing")).status).toBe(404);
+    expect(asked).toBe(1);
+  });
+
+  it("answers 'later' when GitHub refuses or does not answer, never a login hint", async () => {
+    for (const err of [new GitHubAuthError("403"), Object.assign(new Error("slow"), { name: "TimeoutError" })]) {
+      const res = await createVisitApp(async () => { throw err; }).request("/api/visit?repo=fictif-org/one");
+      expect(res.status).toBe(503);
+      expect(await res.json()).toEqual({ error: "busy", message: expect.any(String) });
+    }
   });
 
   it("has no route but the visit: the public server can write nothing", async () => {

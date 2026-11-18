@@ -52,7 +52,7 @@ describe("a visit's site", () => {
     const missing = (async (_q: string, v: Record<string, unknown>) => { asked.push(v); throw new BoardNotFoundError("not found"); }) as never;
     await expect(readRepo(missing, "fictif-org/nothing-here")).rejects.toThrow(RepoNotPublicError);
     await expect(readRepo(missing, "../../etc")).rejects.toThrow(RepoNotPublicError);
-    expect(asked).toEqual([{ owner: "fictif-org", name: "nothing-here" }]);
+    expect(asked).toEqual([{ owner: "fictif-org", name: "nothing-here", request: { signal: expect.any(AbortSignal) } }]);
   });
 
   it("accepts GitHub's owner/name shapes only", () => {

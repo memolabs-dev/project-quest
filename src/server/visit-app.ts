@@ -14,8 +14,9 @@ export function visitCache(read: (repo: string) => Promise<Visit>, { ttlMs = 10 
       const hit = kept.get(key);
       if (hit && now() - hit.at < ttlMs) return hit.visit;
       kept.delete(key);
-      // A failed read is forgotten at once: the next visitor asks GitHub again.
-      const visit = read(repo).catch((e: unknown) => { kept.delete(key); throw e; });
+      // A failed read is forgotten at once, so the next visitor asks GitHub again; "not public" is an answer and is kept,
+      // or asking for missing repositories one after another would spend the hour's reads.
+      const visit = read(repo).catch((e: unknown) => { if (!(e instanceof RepoNotPublicError)) kept.delete(key); throw e; });
       kept.set(key, { at: now(), visit });
       // The oldest visit leaves first (a Map keeps insertion order).
       while (kept.size > max) kept.delete(kept.keys().next().value!);
@@ -52,7 +53,11 @@ export function createVisitApp(read: (repo: string) => Promise<Visit>, { readsPe
     .onError((err, c) => {
       if (err instanceof RepoNotPublicError) return c.json({ error: "not-public" as const, message: err.message }, 404);
       if (err instanceof VisitBusyError) return c.json({ error: "busy" as const, message: err.message }, 429);
-      if (err instanceof GitHubAuthError) return c.json({ error: "github-auth" as const, hint: "gh auth login" }, 503);
+      // GitHub refusing (its rate limit answers 403) or not answering in time: the visitor hears "later", never a login hint.
+      if (err instanceof GitHubAuthError || err.name === "TimeoutError" || err.name === "AbortError") {
+        console.error("[project-quest] GitHub did not answer the visit:", err.name, err.message);
+        return c.json({ error: "busy" as const, message: "GitHub is not answering right now: try again in a few minutes" }, 503);
+      }
       console.error(err);
       return c.json({ error: "server" as const, message: "Something went wrong on the server" }, 500);
     })

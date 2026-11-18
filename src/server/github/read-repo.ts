@@ -96,7 +96,8 @@ export async function readRepo(gql: Gql, nameWithOwner: string): Promise<Visit> 
   const [owner, name] = nameWithOwner.split("/");
   let res: RepoResponse;
   try {
-    res = await gql<RepoResponse>(REPO_QUERY, { owner, name });
+    // A GitHub that never answers is given up after 15 s (octokit takes `request` as its own options, not a variable).
+    res = await gql<RepoResponse>(REPO_QUERY, { owner, name, request: { signal: AbortSignal.timeout(15_000) } });
   } catch (e) {
     // GitHub answers NOT_FOUND for a missing repository: the visitor hears the same as for a private one.
     if (e instanceof BoardNotFoundError) throw new RepoNotPublicError("This repository is not public, or does not exist");
