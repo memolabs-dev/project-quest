@@ -37,6 +37,7 @@ const deps = (apply: (p: PreparedMove) => Promise<ApplyResult>, extra: Partial<D
   teamName: "my-first-team",
   applyTeam: async () => ({ ok: true }),
   applyWarm: async () => ({ ok: true }),
+  applyTalk: async () => ({ ok: true }),
   readThanked: async () => false,
   readRepo: async () => visitOf(false),
   readNewcomers: async () => [],

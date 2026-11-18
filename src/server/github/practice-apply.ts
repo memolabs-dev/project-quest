@@ -3,12 +3,13 @@
 import type { PracticeMutationName, PreparedPractice } from "../../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../../shared/gestures/real.ts";
 import type { PreparedTeam } from "../../shared/gestures/team.ts";
+import type { PreparedTalk } from "../../shared/gestures/talk.ts";
 import type { PreparedWarm } from "../../shared/gestures/warm.ts";
 import type { Gql, Rest } from "./client.ts";
 
 export type { Rest };
 
-export type PracticeResult = { ok: true } | { ok: false; reason: "github"; message: string; applied: PracticeMutationName[] };
+export type PracticeResult = { ok: true; /** The URL of the comment a gesture left, when it left one. */ url?: string } | { ok: false; reason: "github"; message: string; applied: PracticeMutationName[] };
 
 const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContents" | "createMilestone" | "updateMilestone">, { inputType: string; returns: string }> = {
   createRepository: { inputType: "CreateRepositoryInput", returns: "repository { id }" },
@@ -16,7 +17,7 @@ const MUTATIONS: Record<Exclude<PracticeMutationName, "createOrUpdateFileContent
   createIssue: { inputType: "CreateIssueInput", returns: "issue { id }" },
   addProjectV2ItemById: { inputType: "AddProjectV2ItemByIdInput", returns: "item { id }" },
   addAssigneesToAssignable: { inputType: "AddAssigneesToAssignableInput", returns: "clientMutationId" },
-  addComment: { inputType: "AddCommentInput", returns: "clientMutationId" },
+  addComment: { inputType: "AddCommentInput", returns: "commentEdge { node { url } }" },
   addReaction: { inputType: "AddReactionInput", returns: "clientMutationId" },
   removeReaction: { inputType: "RemoveReactionInput", returns: "clientMutationId" },
   createRef: { inputType: "CreateRefInput", returns: "ref { id }" },
@@ -50,9 +51,10 @@ const fill = (input: Record<string, unknown>, ids: Record<string, string>) =>
     return [k, id];
   }));
 
-export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPractice | PreparedAsk | PreparedTeam | PreparedWarm): Promise<PracticeResult> {
+export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPractice | PreparedAsk | PreparedTeam | PreparedWarm | PreparedTalk): Promise<PracticeResult> {
   const ids: Record<string, string> = {};
   const applied: PracticeMutationName[] = [];
+  let url: string | undefined;
   for (const m of prepared.mutations) {
     let res: Record<string, Record<string, { id?: string } | undefined> | undefined>;
     try {
@@ -92,6 +94,7 @@ export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPrac
       return { ok: false, reason: "github", message, applied };
     }
     applied.push(m.name);
+    if (m.name === "addComment") url = (res?.addComment as { commentEdge?: { node?: { url?: string } } } | undefined)?.commentEdge?.node?.url ?? url;
     const out = res?.[m.name] as { repository?: { id?: string }; issue?: { id?: string }; projectV2?: { id?: string; field?: { id?: string } | null } } | undefined;
     if (out?.repository?.id) ids.repositoryId = out.repository.id;
     // closeIssue and updateIssue answer with the issue too: only a new issue becomes "$issueId".
@@ -99,5 +102,5 @@ export async function applyPractice(gql: Gql, rest: Rest, prepared: PreparedPrac
     if (out?.projectV2?.id) ids.projectId = out.projectV2.id;
     if (out?.projectV2?.field?.id) ids.statusFieldId = out.projectV2.field.id;
   }
-  return { ok: true };
+  return url ? { ok: true, url } : { ok: true };
 }

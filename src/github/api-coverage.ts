@@ -41,7 +41,7 @@ export const OPERATIONS: Record<string, Decision> = {
   ...all(m(["closeIssue"]), gesture("Lay the last floor: close as completed (the magic moment); or send a duplicate or a not-planned pallet back")),
   ...all(m(["reopenIssue"]), gesture("A crack in a floor: reopen a closed pallet")),
   ...all(m(["setIssueStatus"]), out("Same effect as closeIssue and reopenIssue, which the game uses")),
-  ...all(m(["addComment"]), gesture("A comment, read back before it is sent: ask for a good first issue, thank a worker in the player's own words, answer a question")),
+  ...all(m(["addComment"]), gesture("A comment, read back before it is sent: ask for a good first issue, thank a worker in the player's own words, answer someone who waits, welcome a first-time contributor")),
   ...all(m(["updateIssueComment"]), gesture("Fix what you said: edit your own comment")),
   ...all(m(["deleteIssueComment"]), out("Deleting a comment loses history; the game never deletes what people wrote")),
   ...all(m(["addAssigneesToAssignable"]), gesture("Hand a pallet to the worker who asked for it (\"je prends\"), or take it yourself")),

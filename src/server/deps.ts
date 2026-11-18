@@ -5,6 +5,7 @@ import type { PreparedMove } from "../shared/gestures/move.ts";
 import type { PreparedPractice } from "../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { PreparedTeam } from "../shared/gestures/team.ts";
+import type { PreparedTalk } from "../shared/gestures/talk.ts";
 import type { PreparedWarm } from "../shared/gestures/warm.ts";
 import type { Newcomer } from "../shared/people.ts";
 import type { PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
@@ -52,6 +53,8 @@ export interface Deps {
   applyAsk(p: PreparedAsk): Promise<PracticeResult>;
   /** Sends a warm gesture (a reaction, its removal, or a thank-you) on the configured project. */
   applyWarm(p: PreparedWarm): Promise<PracticeResult>;
+  /** Sends an answer or a welcome (one comment) on the configured project; the result carries the comment's URL. */
+  applyTalk(p: PreparedTalk): Promise<PracticeResult>;
   /** Whether the player already left words on this laid pallet (a comment of theirs since it was closed). */
   readThanked(issueNumber: number): Promise<boolean>;
   /** A public repository's recent issues, for a read-only visit (#16). */
@@ -93,6 +96,7 @@ export function liveDeps(config: QuestConfig): Deps {
     teamName: TEAM_NAME,
     applyTeam: async (p) => applyPractice(await client(), await restClient(), p),
     applyWarm: async (p) => applyPractice(await client(), await restClient(), p),
+    applyTalk: async (p) => applyPractice(await client(), await restClient(), p),
     readThanked: async (n) => readThanked(await client(), config, n),
     readRepo: async (n) => readRepo(await client(), n),
     readNewcomers: async () => readNewcomers(await client(), config),
@@ -104,6 +108,17 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
   const noGitHub = async (): Promise<never> => { throw new GitHubAuthError("The demo site has no GitHub access: run `gh auth login`"); };
   // The warm gestures play in memory: the player's reactions on the board, the pallets they thanked with words.
   const thanked = new Set<number>();
+  // Two invented newcomers: one whose first pull request closes an open pallet, one linked to no issue. A welcome drops one.
+  const newcomers: Newcomer[] = [
+    {
+      login: "fictif-lucas", avatarUrl: "", pallet: null, closes: [13], contributingUrl: null,
+      pr: { id: "PR_demo_1", number: 31, title: "FICTIF Light the reading room", url: "https://github.com/fictif-org/demo-site/pull/31" },
+    },
+    {
+      login: "fictif-sana", avatarUrl: "", pallet: null, closes: [], contributingUrl: null,
+      pr: { id: "PR_demo_2", number: 32, title: "FICTIF Fix a typo in the readme", url: "https://github.com/fictif-org/demo-site/pull/32" },
+    },
+  ];
   return {
     mode: "demo",
     demoReason: reason,
@@ -154,17 +169,18 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     },
     readThanked: async (n) => thanked.has(n),
     readRepo: noGitHub,
-    // Two invented newcomers: one whose first pull request closes an open pallet, one linked to no issue.
-    readNewcomers: async () => [
-      {
-        login: "fictif-lucas", avatarUrl: "", pallet: null, closes: [13], contributingUrl: null,
-        pr: { id: "PR_demo_1", number: 31, title: "FICTIF Light the reading room", url: "https://github.com/fictif-org/demo-site/pull/31" },
-      },
-      {
-        login: "fictif-sana", avatarUrl: "", pallet: null, closes: [], contributingUrl: null,
-        pr: { id: "PR_demo_2", number: 32, title: "FICTIF Fix a typo in the readme", url: "https://github.com/fictif-org/demo-site/pull/32" },
-      },
-    ],
+    readNewcomers: async () => [...newcomers],
+    // An answer clears the pallet's waiting comment, a welcome drops the newcomer: in memory, and never a real comment.
+    applyTalk: async (p) => {
+      if (p.kind === "answer") {
+        const item = board.items.find((i) => i.number === p.target.number);
+        if (item) item.lastComment = null;
+      } else {
+        const at = newcomers.findIndex((n) => n.pr.number === p.target.number);
+        if (at >= 0) newcomers.splice(at, 1);
+      }
+      return { ok: true, url: `https://example.org/FICTIF/comment/${p.target.number}` };
+    },
   };
 }
 

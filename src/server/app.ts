@@ -13,6 +13,7 @@ import {
 import type { PracticeSnapshot } from "../shared/levels/types.ts";
 import { prepareAsk, type PreparedAsk } from "../shared/gestures/real.ts";
 import { rebuildTeam, type PreparedTeam, type TeamArgs, type TeamKind } from "../shared/gestures/team.ts";
+import { prepareAnswer, prepareWelcome, type PreparedTalk, type TalkKind } from "../shared/gestures/talk.ts";
 import { prepareCheer, prepareThank, prepareUncheer, type PreparedWarm, type WarmKind } from "../shared/gestures/warm.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
 import { levelsOf } from "../shared/levels/index.ts";
@@ -165,23 +166,37 @@ async function practiceBoard(deps: Deps, site: "practice" | "team" = "practice")
 }
 
 /**
- * Who waits and who is new, for the people allowed to answer: the lead who holds the first rank on the real project,
- * and everyone on the demo (its people are invented). A failed read only hides the signs: the site still stands.
+ * Who may see the signs and play the two talking gestures: the lead who holds the first rank on the real project,
+ * and everyone on the demo (its people are invented). Stored stamps only: no GitHub read and no stamping.
  */
+async function mayTalk(deps: Deps, login: string) {
+  if (deps.mode !== "live") return true;
+  if ((await deps.progress.path(login)) !== "lead") return false;
+  const stamped = new Set((await deps.progress.stamps(login)).map((s) => s.levelId));
+  return rankReached(levelsOf("lead"), stamped) !== null;
+}
+
+/** Who waits and who is new, for the people allowed to answer. A failed read only hides the signs: the site still stands. */
 async function peopleFor(deps: Deps, board: BoardSnapshot, login: string) {
   try {
-    if (deps.mode === "live") {
-      // Stored stamps only: no GitHub read and no stamping on a site load.
-      if ((await deps.progress.path(login)) !== "lead") return null;
-      const stamped = new Set((await deps.progress.stamps(login)).map((s) => s.levelId));
-      if (rankReached(levelsOf("lead"), stamped) === null) return null;
-    }
+    if (!(await mayTalk(deps, login))) return null;
     return peopleOf(board, await deps.readNewcomers(), login, deps.now?.() ?? Date.now());
   } catch (err) {
     console.error(err);
     return null;
   }
 }
+
+const talkArgs = z.object({ number: z.number().int(), words: z.string().max(65_536) });
+
+/** Builds an answer or a welcome from a fresh read of the configured board or of its open first pull requests. */
+async function rebuildTalk(deps: Deps, kind: TalkKind, args: { number: number; words: string }, login: string): Promise<PreparedTalk> {
+  const repo = `${deps.config.owner}/${deps.config.repo}`;
+  if (kind === "welcome") return prepareWelcome(await deps.readNewcomers(), repo, args.number, args.words);
+  return prepareAnswer(await deps.readBoard(), repo, args.number, args.words, login, deps.now?.() ?? Date.now());
+}
+
+const TALK_LEAD_ONLY = { error: "gesture" as const, message: "Only a lead may answer or welcome: nothing was sent" };
 
 class PracticeBoardMismatch extends Error {}
 
@@ -406,6 +421,57 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
         site = null;
       }
       return c.json({ ok: true as const, site, levels: deps.mode === "live" ? await levelsAfterWrite() : null });
+    })
+    // ---------- Answer someone who waits, welcome a first pull request (the lead only; welcome and answer) ----------
+    .post("/api/talk/:kind{answer|welcome}/prepare", zValidator("json", talkArgs), async (c) => {
+      const deps = pick(c);
+      const { login } = await deps.viewer();
+      if (!(await mayTalk(deps, login))) return c.json(TALK_LEAD_ONLY, 403);
+      return c.json(await rebuildTalk(deps, c.req.param("kind") as TalkKind, c.req.valid("json"), login));
+    })
+    .post("/api/talk/:kind{answer|welcome}/apply", zValidator("json", z.looseObject({
+      kind: z.enum(["answer", "welcome"]), repo: z.string(), to: z.string(), words: z.string().max(65_536),
+      target: z.looseObject({ number: z.number().int() }), mutations,
+    })), async (c) => {
+      const deps = pick(c);
+      const claim = c.req.valid("json") as unknown as PreparedTalk;
+      const { login } = await deps.viewer();
+      // The lead's gate comes first, on the server: a page calling this route directly is refused before anything is read.
+      if (!(await mayTalk(deps, login))) return c.json(TALK_LEAD_ONLY, 403);
+      const home = `${deps.config.owner}/${deps.config.repo}`;
+      if (claim.kind !== c.req.param("kind") || claim.repo.toLowerCase() !== home.toLowerCase()) {
+        return c.json({ error: "gesture" as const, message: "A comment goes only to the project the game is set up for: nothing was sent" }, 409);
+      }
+      const rebuilt = await rebuildTalk(deps, claim.kind, { number: claim.target.number, words: claim.words }, login);
+      if (!isDeepStrictEqual(rebuilt, claim)) {
+        return c.json({ error: "gesture" as const, message: "This comment does not match the site: nothing was sent" }, 409);
+      }
+      const entry = { playerLogin: login, gesture: rebuilt.kind, target: `${home}#${rebuilt.target.number}`, payload: rebuilt.mutations };
+      let result: Awaited<ReturnType<Deps["applyTalk"]>>;
+      try {
+        result = await deps.applyTalk(rebuilt);
+      } catch (e) {
+        await record(deps, { ...entry, result: "failed", githubResponse: { message: e instanceof Error ? e.message : String(e) } });
+        throw e;
+      }
+      await record(deps, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
+      if (!result.ok) return c.json(result);
+      const url = result.url ?? rebuilt.target.url;
+      // The first real answer and the first real welcome stamp the skill book, the comment's URL as proof; the demo stamps nothing.
+      if (deps.mode === "live") {
+        try {
+          await deps.progress.stamp(login, rebuilt.kind === "answer" ? "talk-answer" : "talk-welcome", url);
+        } catch (err) {
+          console.error("[project-quest] the stamp could not be written", err);
+        }
+      }
+      let site: ReturnType<typeof buildSite> | null = null;
+      try {
+        site = buildSite(await deps.readBoard(), deps.config);
+      } catch {
+        site = null;
+      }
+      return c.json({ ok: true as const, site, levels: deps.mode === "live" ? await levelsAfterWrite() : null, url });
     })
     // ---------- The real project: ask for a good first issue (one comment, nothing else) ----------
     .post("/api/real/ask/prepare", zValidator("json", z.object({ issueNumber: z.number().int(), comment: z.string() })), async (c) => {
