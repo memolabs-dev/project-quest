@@ -70,9 +70,16 @@ const TEAM_NAME = process.env.QUEST_TEAM_REPO || "my-first-team";
 const root = new URL("../../", import.meta.url);
 const json = (path: string) => JSON.parse(readFileSync(new URL(path, root), "utf8")) as unknown;
 
-export function liveDeps(config: QuestConfig): Deps {
+/** `connect`: how the GitHub client is made (tests hand in their own). */
+export function liveDeps(config: QuestConfig, connect: () => Promise<Gql> = githubGql): Deps {
   let gql: Promise<Gql> | null = null;
-  const client = () => (gql ??= githubGql().catch((e) => { gql = null; throw e; }));
+  const client = () => (gql ??= connect().catch((e) => { gql = null; throw e; }));
+  // The token's viewer, read once for the server's life (every site load needs it first); a failed read is retried.
+  type Viewer = { id: string; login: string; avatarUrl: string };
+  let me: Promise<Viewer> | null = null;
+  const viewer = () => (me ??= client()
+    .then(async (q) => (await q<{ viewer: Viewer }>("query { viewer { id login avatarUrl } }", {})).viewer)
+    .catch((e) => { me = null; throw e; }));
   let rest: Promise<Rest> | null = null;
   const restClient = () => (rest ??= githubRest().catch((e) => { rest = null; throw e; }));
   const url = process.env.DATABASE_URL;
@@ -85,9 +92,11 @@ export function liveDeps(config: QuestConfig): Deps {
     readBoardFor: async (c) => readBoard(await client(), c),
     applyMoveFor: async (c, p) => applyMove(await client(), c, p),
     log: url ? pgActionLog(url) : memoryActionLog(),
-    viewer: async () =>
-      (await (await client())<{ viewer: { login: string; avatarUrl: string } }>("query { viewer { login avatarUrl } }", {})).viewer,
-    viewerId: async () => (await (await client())<{ viewer: { id: string } }>("query { viewer { id } }", {})).viewer.id,
+    viewer: async () => {
+      const { login, avatarUrl } = await viewer();
+      return { login, avatarUrl };
+    },
+    viewerId: async () => (await viewer()).id,
     progress: url ? pgProgress(url) : memoryProgress(),
     practiceName: PRACTICE_NAME,
     readPractice: async (owner, name) => readPractice(await client(), owner, name),
