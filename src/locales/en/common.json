@@ -153,7 +153,9 @@
     "warm": {
       "title": "Warm gestures",
       "warm-cheer": "Cheer someone on",
-      "warm-thank": "Thank someone for their work"
+      "warm-thank": "Thank someone for their work",
+      "talk-answer": "Answer someone who waits",
+      "talk-welcome": "Welcome a newcomer"
     }
   },
   "levels": {

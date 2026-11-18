@@ -82,7 +82,7 @@ export function SkillBook() {
           <section className="skill-page">
             <h2>{t("skills.warm.title")}</h2>
             <ol>
-              {(["warm-cheer", "warm-thank"] as const).map((id) => {
+              {(["warm-cheer", "warm-thank", "talk-answer", "talk-welcome"] as const).map((id) => {
                 const s = stamps.get(id);
                 return (
                   <li key={id} className={s ? "earned" : "outline"}>

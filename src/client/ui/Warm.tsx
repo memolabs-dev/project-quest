@@ -64,8 +64,8 @@ export function ConfirmWarm() {
       const greet = greetAfter(r, warm, 0);
       if (greet) {
         // The moment follows the fact: GitHub accepted it. The worker answers, the foreman raises a hand.
-        announce({ kind: greet.kind, pallet: greet.pallet });
-        greetWith({ pallet: greet.pallet, emoji: greet.emoji, kind: greet.kind });
+        announce({ kind: greet.kind, pallet: greet.pallet ?? undefined });
+        greetWith({ pallet: greet.pallet, login: null, emoji: greet.emoji, kind: greet.kind });
       }
       if (r.ok) {
         if (r.site) setSite(r.site);

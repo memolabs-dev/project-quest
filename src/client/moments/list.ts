@@ -5,7 +5,9 @@ export type SoundName = "thud" | "land" | "chime" | "stamp" | "rustle" | "bonk" 
 export type MomentKind =
   | "pallet-moved" | "floor-laid" | "parcel" | "cleared" | "stamp" | "refused" | "card-open" | "card-close" | "loaded" | "overloaded"
   /** A warm gesture GitHub accepted: the worker answers, the foreman raises a hand (people of the site, 7). */
-  | "cheered" | "thanked";
+  | "cheered" | "thanked"
+  /** A talk GitHub accepted: the person waves back (welcome and answer spec, 5). */
+  | "talked";
 
 export interface MomentSpec {
   sound: SoundName | null;
@@ -37,4 +39,5 @@ export const MOMENTS: Record<MomentKind, MomentSpec> = {
   overloaded: quiet("creak", { dust: "puff" }),
   cheered: quiet("cheer", { react: "lean" }),
   thanked: quiet("cheer", { react: "lean" }),
+  talked: quiet("cheer", { react: "cheer" }),
 };

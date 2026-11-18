@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { PreparedTalk, TalkKind } from "../../shared/gestures/talk.ts";
 import { ApiFailure, api } from "../api.ts";
+import { greetAfterTalk } from "../moments/greet.ts";
 import { useQuest } from "../store.ts";
 import { answerDraft, welcomeDraft } from "../talk.ts";
 import { Modal } from "./Modal.tsx";
@@ -96,6 +97,7 @@ export function ConfirmTalk() {
   const setLevels = useQuest((s) => s.setLevels);
   const announce = useQuest((s) => s.announce);
   const say = useQuest((s) => s.say);
+  const greetWith = useQuest((s) => s.greetWith);
   const busy = useRef(false);
   const [sending, setSending] = useState(false);
   const sendRef = useRef<HTMLButtonElement>(null);
@@ -111,6 +113,13 @@ export function ConfirmTalk() {
       const r = await api.applyTalk(p);
       if (r.ok) {
         if (r.levels) setLevels(r.levels);
+        // The moment follows the fact: GitHub accepted it. The person waves (read before the refresh takes them off the site).
+        const newcomer = useQuest.getState().site?.people?.newcomers.find((x) => x.pr.number === p.target.number);
+        const greet = greetAfterTalk(r, p, p.kind === "answer" ? p.target.number : newcomer?.pallet ?? null, 0);
+        if (greet) {
+          announce({ kind: "talked", pallet: greet.pallet ?? undefined });
+          greetWith({ pallet: greet.pallet, login: greet.login, emoji: greet.emoji, kind: greet.kind });
+        }
         setPrepared(null);
         openTalk(null);
         // The answer's site is built without the people: a full read brings them (and the bubble is gone).

@@ -84,8 +84,21 @@ test("E near a waiting pallet opens the draft, the confirmation shows the words,
   expect(await talks()).toHaveLength(1);
 });
 
-test("a newcomer with no pallet waits at the office and can be welcomed", async ({ page }) => {
+// The visitor sana is welcomed here, under reduced motion: the demo's people are used once each (shared in-memory state).
+test("reduced motion: the bubble goes, no wave", async ({ page }) => {
   await ready(page);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /^Reduced$/ }).check();
+  await page.getByRole("button", { name: "Settings" }).click();
+  // The sound player is the game's one: its calls are the proof the moment's sound was asked for.
+  await page.evaluate(async () => {
+    const { gameSound } = await import("/src/client/sound.ts");
+    const sound = await gameSound();
+    const w = window as unknown as { __played: string[] };
+    w.__played = [];
+    const play = sound.play.bind(sound);
+    sound.play = (name, opts) => { w.__played.push(name); play(name, opts); };
+  });
   await expect(page.locator(".talk-bubble", { hasText: "fictif-sana" })).toHaveCount(1);
   await walkTo(page, "worker-fictif-sana", /welcome fictif-sana/);
   await page.keyboard.press("KeyE");
@@ -96,11 +109,30 @@ test("a newcomer with no pallet waits at the office and can be welcomed", async 
   await expect(dialog.getByRole("textbox")).not.toHaveValue(/CONTRIBUTING|contributing guide/);
   await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
   await expect(confirmation(page)).toContainText("first contribution");
+  // Every clip the visitor plays from now until they leave the site is kept: none of them may be a wave.
+  await page.evaluate(async () => {
+    const urls = performance.getEntriesByType("resource").map((e) => e.name);
+    const fiber = await import(urls.find((u) => /\/deps\/@react-three_fiber\.js/.test(u))!);
+    const state = [...fiber._roots.values()][0].store.getState();
+    const seen = new Set<string>();
+    (window as unknown as { __clips: Set<string> }).__clips = seen;
+    setInterval(() => state.scene.traverse((o: { name: string; userData: { clip?: string } }) => {
+      if (o.name === "worker-fictif-sana" && o.userData.clip) seen.add(o.userData.clip);
+    }), 16);
+  });
   const applied = page.waitForResponse((r) => r.url().includes("/api/talk/welcome/apply"));
   await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
   expect((await applied).ok()).toBe(true);
+  // The bubble goes, there is no rising emoji, and the visitor does not wave: they keep the clip they had.
   await expect(page.locator(".talk-bubble", { hasText: "fictif-sana" })).toHaveCount(0);
   await expect(page.getByRole("status")).toContainText(/Welcome sent/);
+  await expect(page.locator(".greet-emoji")).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { __played: string[] }).__played)).toContain("cheer");
+  const clips = await page.evaluate(() => [...(window as unknown as { __clips: Set<string> }).__clips]);
+  expect(clips.length).toBeGreaterThan(0);
+  expect(clips).not.toContain("Interact");
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /Follow my system/ }).check();
 });
 
 test("Send twice sends one comment", async ({ page }) => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MOMENTS, type MomentKind } from "./list.ts";
 
-const KINDS: MomentKind[] = ["pallet-moved", "floor-laid", "parcel", "cleared", "stamp", "refused", "card-open", "card-close", "loaded", "overloaded", "cheered", "thanked"];
+const KINDS: MomentKind[] = ["pallet-moved", "floor-laid", "parcel", "cleared", "stamp", "refused", "card-open", "card-close", "loaded", "overloaded", "cheered", "thanked", "talked"];
 
 describe("the moments", () => {
   it("every moment has its reduced version", () => {
@@ -20,9 +20,9 @@ describe("the moments", () => {
     expect(r.kick).toBe(0);
     expect(r.sound).toBe("bonk");
   });
-  it("the floor laid is the one big moment", () => {
+  it("the floor laid is the one big moment with dust and a kick; talking cheers the foreman too", () => {
     const big = KINDS.filter((k) => MOMENTS[k].react === "cheer");
-    expect(big).toEqual(["floor-laid"]);
+    expect(big).toEqual(["floor-laid", "talked"]);
     expect(MOMENTS["floor-laid"]).toMatchObject({ sound: "chime", dust: "ring" });
     expect(MOMENTS["floor-laid"].reduced.text).toBe("site.newFloor");
   });
@@ -31,5 +31,9 @@ describe("the moments", () => {
       expect(MOMENTS[k]).toMatchObject({ sound: "cheer", dust: null, kick: 0, react: "lean" });
       expect(MOMENTS[k].reduced).toEqual({ sound: "cheer", text: null });
     }
+  });
+  it("talked has its sound and no reduced text", () => {
+    expect(MOMENTS.talked).toMatchObject({ sound: "cheer", dust: null, kick: 0, react: "cheer" });
+    expect(MOMENTS.talked.reduced).toEqual({ sound: "cheer", text: null });
   });
 });
