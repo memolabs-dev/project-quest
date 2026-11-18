@@ -39,5 +39,5 @@ export const MOMENTS: Record<MomentKind, MomentSpec> = {
   overloaded: quiet("creak", { dust: "puff" }),
   cheered: quiet("cheer", { react: "lean" }),
   thanked: quiet("cheer", { react: "lean" }),
-  talked: quiet("cheer", { react: "cheer" }),
+  talked: quiet("cheer", { react: "lean" }),
 };

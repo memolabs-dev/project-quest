@@ -20,9 +20,9 @@ describe("the moments", () => {
     expect(r.kick).toBe(0);
     expect(r.sound).toBe("bonk");
   });
-  it("the floor laid is the one big moment with dust and a kick; talking cheers the foreman too", () => {
+  it("the floor laid is the one big moment", () => {
     const big = KINDS.filter((k) => MOMENTS[k].react === "cheer");
-    expect(big).toEqual(["floor-laid", "talked"]);
+    expect(big).toEqual(["floor-laid"]);
     expect(MOMENTS["floor-laid"]).toMatchObject({ sound: "chime", dust: "ring" });
     expect(MOMENTS["floor-laid"].reduced.text).toBe("site.newFloor");
   });
@@ -33,7 +33,7 @@ describe("the moments", () => {
     }
   });
   it("talked has its sound and no reduced text", () => {
-    expect(MOMENTS.talked).toMatchObject({ sound: "cheer", dust: null, kick: 0, react: "cheer" });
+    expect(MOMENTS.talked).toMatchObject({ sound: "cheer", dust: null, kick: 0, react: "lean" });
     expect(MOMENTS.talked.reduced).toEqual({ sound: "cheer", text: null });
   });
 });
