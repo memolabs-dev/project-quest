@@ -1,5 +1,6 @@
 // Reads a Projects (v2) board: its status field and every issue on it, 100 items per page.
 import type { QuestConfig } from "../../shared/config.ts";
+import { excerptOf } from "../../shared/people.ts";
 import type { BoardItem, BoardSnapshot } from "../../shared/site.ts";
 import type { Gql } from "./client.ts";
 import { BoardNotFoundError } from "./errors.ts";
@@ -31,6 +32,7 @@ export const BOARD_QUERY = /* GraphQL */ `
                   labels(first: 20) { nodes { name } }
                   assignees(first: 10) { nodes { login avatarUrl } }
                   reactionGroups { content viewerHasReacted }
+                  comments(last: 1) { nodes { author { login } authorAssociation createdAt bodyText } }
                 }
               }
             }
@@ -52,6 +54,8 @@ interface IssueNode {
   assignees: { nodes: { login: string; avatarUrl: string }[] };
   /** Only the viewer's own reactions are kept: the game never counts anyone's. */
   reactionGroups?: { content: string; viewerHasReacted: boolean }[] | null;
+  /** The last comment, to tell who waits for an answer; absent in older fixtures. */
+  comments?: { nodes: { author: { login: string } | null; authorAssociation: string; createdAt: string; bodyText: string }[] } | null;
 }
 interface ItemNode {
   id: string;
@@ -70,6 +74,12 @@ interface BoardResponse {
   } | null;
 }
 
+
+/** The issue's last comment, or null when nobody has written. */
+function lastCommentOf(c: IssueNode): BoardItem["lastComment"] {
+  const n = c.comments?.nodes[0];
+  return n ? { author: n.author?.login ?? null, association: n.authorAssociation, createdAt: n.createdAt, excerpt: excerptOf(n.bodyText) } : null;
+}
 
 const isIssue = (c: ItemNode["content"]): c is IssueNode => c?.__typename === "Issue";
 
@@ -96,6 +106,7 @@ export async function readBoard(gql: Gql, config: QuestConfig): Promise<BoardSna
         isEpic: c.issueType?.name === "Epic" || c.subIssuesSummary.total > 0,
         labels: c.labels.nodes.map((l) => l.name), assignees: c.assignees.nodes, updatedAt: n.updatedAt,
         myReactions: (c.reactionGroups ?? []).filter((g) => g.viewerHasReacted).map((g) => g.content),
+        lastComment: lastCommentOf(c),
       });
     }
     after = p.items.pageInfo.hasNextPage ? p.items.pageInfo.endCursor : null;

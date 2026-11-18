@@ -1,5 +1,6 @@
 // From a Projects board to a building site: zones, buildings, pallets, workers. Pure functions.
 import type { QuestConfig } from "./config.ts";
+import type { LastComment, People } from "./people.ts";
 import { WARM_EMOJIS, type WarmEmoji } from "./gestures/warm.ts";
 
 export interface BoardItem {
@@ -20,6 +21,8 @@ export interface BoardItem {
   updatedAt: string;
   /** The reactions the player gave this issue (GitHub's content names); absent in older snapshots. */
   myReactions?: string[];
+  /** The issue's last comment, to tell who waits for an answer; absent in older snapshots and on a visit. */
+  lastComment?: LastComment | null;
 }
 
 export interface BoardSnapshot {
@@ -52,7 +55,11 @@ export interface Pallet {
   size: string | null;
 }
 export interface Worker { login: string; avatarUrl: string; carrying: number[] }
-export interface Site { zones: Zone[]; buildings: Building[]; pallets: Pallet[]; workers: Worker[] }
+export interface Site {
+  zones: Zone[]; buildings: Building[]; pallets: Pallet[]; workers: Worker[];
+  /** Who waits and who is new: only when the player may see them (the lead on the real project, everyone on the demo). */
+  people?: People;
+}
 
 export class SiteError extends Error {}
 

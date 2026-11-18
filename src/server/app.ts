@@ -15,6 +15,7 @@ import { prepareAsk, type PreparedAsk } from "../shared/gestures/real.ts";
 import { rebuildTeam, type PreparedTeam, type TeamArgs, type TeamKind } from "../shared/gestures/team.ts";
 import { prepareCheer, prepareThank, prepareUncheer, type PreparedWarm, type WarmKind } from "../shared/gestures/warm.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
+import { peopleOf } from "../shared/people.ts";
 import { SiteError, buildSite, type BoardSnapshot } from "../shared/site.ts";
 import type { Deps } from "./deps.ts";
 import { GitHubAuthError } from "./github/client.ts";
@@ -161,6 +162,23 @@ async function practiceBoard(deps: Deps, site: "practice" | "team" = "practice")
   return { config, read };
 }
 
+/**
+ * Who waits and who is new, for the people allowed to answer: the lead who holds the first rank on the real project,
+ * and everyone on the demo (its people are invented). A failed read only hides the signs: the site still stands.
+ */
+async function peopleFor(deps: Deps, board: BoardSnapshot, login: string) {
+  try {
+    if (deps.mode === "live") {
+      const v = await checkLevels(deps, login);
+      if (v.path !== "lead" || v.ranks.lead === null) return null;
+    }
+    return peopleOf(board, await deps.readNewcomers(), login, deps.now?.() ?? Date.now());
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
 class PracticeBoardMismatch extends Error {}
 
 const PRACTICE_MISSING = { error: "practice-missing" as const, message: "Your practice site is not founded yet" };
@@ -214,7 +232,9 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       }
       const deps = pick(c);
       const [board, viewer] = await Promise.all([deps.readBoard(), deps.viewer()]);
-      return c.json({ site: buildSite(board, deps.config), viewer, mode: deps.mode, demoReason: deps.demoReason ?? null });
+      const site = buildSite(board, deps.config);
+      const people = await peopleFor(deps, board, viewer.login);
+      return c.json({ site: people ? { ...site, people } : site, viewer, mode: deps.mode, demoReason: deps.demoReason ?? null });
     })
     // A public repository, visited read-only: nothing can be written from a visit (#16).
     .route("/", createVisitApp((repo) => live.readRepo(repo)))

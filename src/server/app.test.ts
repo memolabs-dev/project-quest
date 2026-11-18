@@ -2,13 +2,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../shared/config.ts";
 import { prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
-import type { BoardSnapshot } from "../shared/site.ts";
+import type { BoardSnapshot, Site } from "../shared/site.ts";
 import { createApp } from "./app.ts";
 import { createVisitApp, readBudget, visitCache } from "./visit-app.ts";
 import { RepoNotPublicError, repoToVisit } from "./github/read-repo.ts";
 import { memoryActionLog } from "./db/log.ts";
 import { memoryProgress } from "./db/progress.ts";
-import type { Deps } from "./deps.ts";
+import { demoDeps, type Deps } from "./deps.ts";
+import { levelsOf } from "../shared/levels/index.ts";
 import { GitHubAuthError } from "./github/client.ts";
 import type { ApplyResult } from "./github/move-item.ts";
 
@@ -38,6 +39,7 @@ const deps = (apply: (p: PreparedMove) => Promise<ApplyResult>, extra: Partial<D
   applyWarm: async () => ({ ok: true }),
   readThanked: async () => false,
   readRepo: async () => visitOf(false),
+  readNewcomers: async () => [],
   ...extra,
 });
 const visitOf = (isPrivate: boolean) => repoToVisit({
@@ -233,5 +235,50 @@ describe("API", () => {
     await d.log.record({ playerLogin: "fictif-lead", gesture: "move", target: "#1", payload: {}, result: "applied" });
     const res = await createApp(d).request("/api/log");
     expect(((await res.json()) as unknown[]).length).toBe(1);
+  });
+});
+
+describe("the people of the site (#18)", () => {
+  const NOW = Date.parse("2026-11-18T12:00:00Z");
+  const newcomer = {
+    login: "fictif-lucas", avatarUrl: "", pallet: null, closes: [13], contributingUrl: null,
+    pr: { id: "PR_1", number: 31, title: "FICTIF Light the reading room", url: "https://github.com/fictif-org/fictif-site/pull/31" },
+  };
+  const board = structuredClone(demo);
+  board.items.find((i) => i.number === 12)!.lastComment = {
+    author: "fictif-maria", association: "NONE", createdAt: "2026-11-16T09:30:00Z", excerpt: "FICTIF can I take this one",
+  };
+  const peopleDeps = (extra: Partial<Deps> = {}) =>
+    deps(async () => ({ ok: true, board }), { readBoard: async () => board, readNewcomers: async () => [newcomer], now: () => NOW, ...extra });
+  const siteOf = async (app: ReturnType<typeof createApp>, query = "") => ((await (await app.request(`/api/site${query}`)).json()) as { site: Site }).site;
+  const foreman = async (d: Deps) => {
+    await d.progress.setPath("fictif-lead", "lead");
+    for (const l of levelsOf("lead").filter((x) => x.rank === levelsOf("lead")[0].rank)) await d.progress.stamp("fictif-lead", l.id, "FICTIF proof");
+  };
+
+  it("a lead sees the people of the site, a volunteer does not", async () => {
+    const d = peopleDeps();
+    expect((await siteOf(createApp(d))).people).toBeUndefined();
+    await d.progress.setPath("fictif-lead", "lead");
+    expect((await siteOf(createApp(d))).people).toBeUndefined(); // on the path, but no rank yet
+    await foreman(d);
+    const people = (await siteOf(createApp(d))).people!;
+    expect(people.waiting.map((w) => [w.pallet, w.login])).toEqual([[12, "fictif-maria"]]);
+    expect(people.newcomers.map((n) => [n.login, n.pallet])).toEqual([["fictif-lucas", 13]]);
+  });
+
+  it("the demo shows its FICTIF people to everyone", async () => {
+    const d = peopleDeps();
+    const people = (await siteOf(createApp(d, demoDeps(config, "asked")), "?demo=1")).people!;
+    expect(people.waiting.map((w) => w.login)).toEqual(["fictif-maria"]);
+    expect(people.newcomers.map((n) => [n.login, n.pallet])).toEqual([["fictif-lucas", 13], ["fictif-sana", null]]);
+  });
+
+  it("the people's read failing never takes the site down", async () => {
+    const d = peopleDeps({ readNewcomers: async () => { throw new Error("FICTIF GitHub is down"); } });
+    await foreman(d);
+    const site = await siteOf(createApp(d));
+    expect(site.pallets.length).toBeGreaterThan(0);
+    expect(site.people).toBeUndefined();
   });
 });

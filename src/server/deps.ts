@@ -6,6 +6,7 @@ import type { PreparedPractice } from "../shared/gestures/practice.ts";
 import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { PreparedTeam } from "../shared/gestures/team.ts";
 import type { PreparedWarm } from "../shared/gestures/warm.ts";
+import type { Newcomer } from "../shared/people.ts";
 import type { PracticeSnapshot, RealSnapshot } from "../shared/levels/types.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { memoryActionLog, pgActionLog, type ActionLog } from "./db/log.ts";
@@ -16,6 +17,7 @@ import { applyPractice, type PracticeResult } from "./github/practice-apply.ts";
 import { readBoard } from "./github/read-board.ts";
 import { readPractice } from "./github/read-practice.ts";
 import { readGoodFirst } from "./github/read-real.ts";
+import { readNewcomers } from "./github/read-newcomers.ts";
 import { readRepo, type Visit } from "./github/read-repo.ts";
 import { readThanked } from "./github/read-thanked.ts";
 
@@ -43,6 +45,8 @@ export interface Deps {
   teamName: string;
   /** Today's date on the server, YYYY-MM-DD in UTC: sprints and due dates are judged by it. Tests set it. */
   today?: () => string;
+  /** The server's clock in milliseconds: who waits is judged by it. Tests set it. */
+  now?: () => number;
   applyTeam(p: PreparedTeam): Promise<PracticeResult>;
   /** Sends a prepared ask (one comment) on the real project. */
   applyAsk(p: PreparedAsk): Promise<PracticeResult>;
@@ -52,6 +56,8 @@ export interface Deps {
   readThanked(issueNumber: number): Promise<boolean>;
   /** A public repository's recent issues, for a read-only visit (#16). */
   readRepo(nameWithOwner: string): Promise<Visit>;
+  /** The open pull requests of first-time authors the player has not written to. */
+  readNewcomers(): Promise<Newcomer[]>;
 }
 
 const PRACTICE_NAME = process.env.QUEST_PRACTICE_REPO || "my-first-site";
@@ -89,6 +95,7 @@ export function liveDeps(config: QuestConfig): Deps {
     applyWarm: async (p) => applyPractice(await client(), await restClient(), p),
     readThanked: async (n) => readThanked(await client(), config, n),
     readRepo: async (n) => readRepo(await client(), n),
+    readNewcomers: async () => readNewcomers(await client(), config),
   };
 }
 
@@ -147,6 +154,17 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
     },
     readThanked: async (n) => thanked.has(n),
     readRepo: noGitHub,
+    // Two invented newcomers: one whose first pull request closes an open pallet, one linked to no issue.
+    readNewcomers: async () => [
+      {
+        login: "fictif-lucas", avatarUrl: "", pallet: null, closes: [13], contributingUrl: null,
+        pr: { id: "PR_demo_1", number: 31, title: "FICTIF Light the reading room", url: "https://github.com/fictif-org/demo-site/pull/31" },
+      },
+      {
+        login: "fictif-sana", avatarUrl: "", pallet: null, closes: [], contributingUrl: null,
+        pr: { id: "PR_demo_2", number: 32, title: "FICTIF Fix a typo in the readme", url: "https://github.com/fictif-org/demo-site/pull/32" },
+      },
+    ],
   };
 }
 
