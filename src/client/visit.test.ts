@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { refusalOf, repoFromInput } from "./api.ts";
-import { bandHeight, photoName } from "./photo.ts";
+import { bandHeight, photoName, wrapLines } from "./photo.ts";
 
 describe("a visit (#16)", () => {
   it("takes a repository as owner/name or as any of its GitHub addresses", () => {
@@ -25,5 +25,14 @@ describe("a refusal in front of the server", () => {
   it("reads 429 as busy and anything else as the server's problem", () => {
     expect(refusalOf(429)).toMatchObject({ error: "busy" });
     expect(refusalOf(502)).toMatchObject({ error: "server" });
+  });
+});
+
+describe("a label's lines on the photo", () => {
+  const measure = (t: string) => t.length;
+  it("wraps words at the label's width, keeps a too-long word whole, and never returns nothing", () => {
+    expect(wrapLines("p2 edge case", 7, measure)).toEqual(["p2 edge", "case"]);
+    expect(wrapLines("p2-edge-case", 4, measure)).toEqual(["p2-edge-case"]);
+    expect(wrapLines("  ", 4, measure)).toEqual([""]);
   });
 });
