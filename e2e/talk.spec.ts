@@ -87,6 +87,12 @@ test("E near a waiting pallet opens its card, Answer first and focused, then the
     .filter((r) => r.gesture === "answer" && r.target.endsWith("#12"));
   expect(await talks()).toHaveLength(0);
   await expect(bubble).toHaveCount(1);
+  // The network fails once: back to the words, kept, and the player shows them again.
+  await page.route("**/api/talk/answer/apply*", (r) => r.abort(), { times: 1 });
+  await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
+  await expect(dialog.getByRole("textbox")).toHaveValue(/ask @fictif-tom if you get stuck\.$/);
+  await expect(confirmation(page)).toHaveCount(0);
+  await dialog.getByRole("button", { name: /Show what will be sent/ }).click();
   const applied = page.waitForResponse((r) => r.url().includes("/api/talk/answer/apply"));
   await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
   expect((await applied).ok()).toBe(true);

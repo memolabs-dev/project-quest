@@ -8,6 +8,7 @@ import { easing } from "maath";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { greets } from "../moments/greet.ts";
 import { playerPosition } from "../moments/player.ts";
 import { useQuest } from "../store.ts";
 import { WarmPicker } from "../ui/Warm.tsx";
@@ -81,7 +82,7 @@ export function Worker({ spot, lively, reduceMotion, visitor }: {
   const clips = useRef<ClipPlan>({ step: 0, left: idleOffset(spot.login) * 4, gesture: null, wave: 0 });
   const plan = useRef({ clip: "" as string, nameLeft: 0, yaw: 0 });
   // A warm gesture for the pallet they stand by: they answer it (people of the site spec, section 7).
-  const greet = useQuest((s) => (s.greet && (s.greet.pallet === spot.pallet || (s.greet.login !== null && s.greet.login === spot.login)) ? s.greet : null));
+  const greet = useQuest((s) => (greets(s.greet, spot) ? s.greet : null));
   const [shown, setShown] = useState<{ emoji: string; at: number } | null>(null);
   // Only answers given after they appeared: an old one is never replayed (a motion setting changed, a new place).
   const answered = useRef(useQuest.getState().greet?.at ?? 0);

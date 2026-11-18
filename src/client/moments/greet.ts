@@ -15,3 +15,9 @@ export function greetAfterTalk(result: { ok: boolean }, prepared: PreparedTalk, 
   if (!result.ok) return null;
   return { pallet, login: prepared.to, emoji: null, kind: "talked", at };
 }
+
+/** Whether this worker answers the greet: a talk is for one person, by login; a warm gesture, for the pallet's workers. */
+export function greets(greet: Greet | null, spot: { login: string; pallet: number | null }): boolean {
+  if (!greet) return false;
+  return greet.kind === "talked" ? greet.login === spot.login : greet.pallet === spot.pallet;
+}

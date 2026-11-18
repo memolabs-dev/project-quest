@@ -6,7 +6,7 @@ import type { PreparedTalk, TalkKind } from "../../shared/gestures/talk.ts";
 import { ApiFailure, api } from "../api.ts";
 import { greetAfterTalk } from "../moments/greet.ts";
 import { useQuest } from "../store.ts";
-import { answerDraft, welcomeDraft } from "../talk.ts";
+import { answerDraft, keepsWords, welcomeDraft } from "../talk.ts";
 import { Modal } from "./Modal.tsx";
 
 /** What the dialog is about: the person, what they wrote or their pull request, and the draft to start from. */
@@ -131,9 +131,11 @@ export function ConfirmTalk() {
         setPrepared(null);
       }
     } catch (e) {
-      // Refused by the server (not a lead, the team spoke meanwhile): its message says why, and the site is read again.
       say(e instanceof ApiFailure ? e.message : t("errors.generic"));
+      // Back to the words either way; a network error or a server in trouble keeps them, to send again.
       setPrepared(null);
+      if (keepsWords(e instanceof ApiFailure ? e.status : null)) return;
+      // Refused by the server (not a lead, the team spoke meanwhile): its message says why, and the site is read again.
       openTalk(null);
       void refresh();
     } finally {

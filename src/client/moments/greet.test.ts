@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PreparedWarm } from "../../shared/gestures/warm.ts";
 import type { PreparedTalk } from "../../shared/gestures/talk.ts";
-import { greetAfter, greetAfterTalk } from "./greet.ts";
+import { greetAfter, greetAfterTalk, greets } from "./greet.ts";
 
 const prepared = (kind: PreparedWarm["kind"]): PreparedWarm => ({
   kind, repo: "o/r", issueNumber: 6, title: "FICTIF", content: "HOORAY", words: null, mentions: [], mutations: [],
@@ -30,5 +30,19 @@ describe("greetAfterTalk", () => {
   });
   it("a refusal never greets", () => {
     expect(greetAfterTalk({ ok: false }, talk("answer"), 9, 1)).toBeNull();
+  });
+});
+
+describe("who answers a greet", () => {
+  it("a warm gesture greets the pallet's workers, a talk greets the person it was for, by login only", () => {
+    const cheer = greetAfter({ ok: true }, prepared("cheer"), 1)!;
+    expect(greets(cheer, { login: "fictif-tom", pallet: 6 })).toBe(true);
+    expect(greets(cheer, { login: "fictif-tom", pallet: 7 })).toBe(false);
+    const talked = greetAfterTalk({ ok: true }, talk("answer"), 9, 1)!;
+    expect(greets(talked, { login: "fictif-ana", pallet: 9 })).toBe(true);
+    expect(greets(talked, { login: "fictif-ana", pallet: null })).toBe(true);
+    // Another worker on the answered pallet does not wave for fictif-ana.
+    expect(greets(talked, { login: "fictif-tom", pallet: 9 })).toBe(false);
+    expect(greets(null, { login: "fictif-ana", pallet: 9 })).toBe(false);
   });
 });

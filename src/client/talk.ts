@@ -55,3 +55,9 @@ export const waitedDays = (since: string, now: number) => Math.max(1, Math.floor
 
 export const sameTarget = (a: TalkTarget | null, b: TalkTarget | null) =>
   a?.kind === b?.kind && a?.number === b?.number && a?.login === b?.login && a?.pallet === b?.pallet;
+
+/**
+ * After a send that failed: the dialog and the player's words stay (`true`), unless the server refused them for good
+ * (400 the team spoke or the newcomer was welcomed, 403 not a lead, 409 the claim does not match). `status` null: no answer.
+ */
+export const keepsWords = (status: number | null) => status !== 400 && status !== 403 && status !== 409;

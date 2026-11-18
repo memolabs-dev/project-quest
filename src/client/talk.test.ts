@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { prepareAnswer } from "../shared/gestures/talk.ts";
 import type { Newcomer, People } from "../shared/people.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
-import { actionAt, answerDraft, talkAt, talkPrompt, waitedDays, welcomeDraft } from "./talk.ts";
+import { actionAt, answerDraft, keepsWords, talkAt, talkPrompt, waitedDays, welcomeDraft } from "./talk.ts";
 
 // A stand-in for the player's language: the key and the values, readable in a test.
 const say = (key: string, o?: Record<string, unknown>) => `<${key}${o ? ` ${JSON.stringify(o)}` : ""}>`;
@@ -103,5 +103,19 @@ describe("who the player can talk to", () => {
   it("counts whole days, never less than one", () => {
     expect(waitedDays("2026-11-16T09:30:00Z", Date.parse("2026-11-18T14:00:00Z"))).toBe(2);
     expect(waitedDays("2026-11-18T09:30:00Z", Date.parse("2026-11-18T14:00:00Z"))).toBe(1);
+  });
+});
+
+describe("a send that fails", () => {
+  it("keeps the dialog and the words, unless the server refused them (400, 403, 409)", () => {
+    // No answer at all (the network) or a server in trouble: the player's words are kept, to send again.
+    expect(keepsWords(null)).toBe(true);
+    expect(keepsWords(500)).toBe(true);
+    expect(keepsWords(502)).toBe(true);
+    expect(keepsWords(503)).toBe(true);
+    // A refusal that sending again cannot change (the team spoke, not a lead, the claim does not match): the talk closes.
+    expect(keepsWords(400)).toBe(false);
+    expect(keepsWords(403)).toBe(false);
+    expect(keepsWords(409)).toBe(false);
   });
 });
