@@ -100,7 +100,7 @@ export function Player({ pallets, workers, visitors, reduceMotion, body, arrival
     let talkD = NEAR_DISTANCE;
     for (const v of visitors) {
       const d = Math.hypot(v.spot.x - pos.x, v.spot.z - pos.z);
-      if (d < talkD) { talkD = d; talk = { kind: "welcome", number: v.number, login: v.spot.login }; }
+      if (d < talkD) { talkD = d; talk = { kind: "welcome", number: v.number, login: v.spot.login, pallet: null }; }
     }
     // Else the nearest pallet within reach that shows a sign (a neighbour without one never hides it).
     if (!talk) {

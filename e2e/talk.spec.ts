@@ -50,13 +50,21 @@ const walkTo = async (page: Page, name: string, stopAt: RegExp) => {
   await expect(prompt).toHaveText(stopAt);
 };
 
-test("E near a waiting pallet opens the draft, the confirmation shows the words, nothing leaves, the bubble goes", async ({ page }) => {
+test("E near a waiting pallet opens its card, Answer first and focused, then the draft; nothing leaves before Send, the bubble goes", async ({ page }) => {
   await ready(page);
   const bubble = page.locator(".talk-bubble", { hasText: "fictif-maria" });
   await expect(bubble).toHaveCount(1);
   await expect(bubble).toContainText(/\d+ d/);
-  await walkTo(page, "crate-12", /answer fictif-maria/);
+  await walkTo(page, "crate-12", /fictif-maria waits for an answer/);
+  await expect(page.locator(".prompt")).toContainText("E: #12 · fictif-maria waits for an answer");
+  // E opens the pallet's card, never the talk directly: its first button is the answer, and it has the focus.
   await page.keyboard.press("KeyE");
+  const card = page.locator(".card");
+  await expect(card).toBeVisible();
+  const answerButton = card.getByRole("button", { name: "Answer fictif-maria" });
+  await expect(answerButton).toBeFocused();
+  expect(await card.locator("button").first().textContent()).toBe("Answer fictif-maria");
+  await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog", { name: /Answer fictif-maria/ });
   // What the person wrote, quoted in the draft; the caret waits under it.
   await expect(dialog).toContainText("Can I take this one?");

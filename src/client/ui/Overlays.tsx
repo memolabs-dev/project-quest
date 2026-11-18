@@ -36,9 +36,12 @@ function PalletCard({ number }: { number: number }) {
   const visiting = useQuest((s) => s.siteKind === "visit");
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => { closeRef.current?.focus(); sendEvent("card-opened"); }, [sendEvent]);
+  const talkRef = useRef<HTMLButtonElement>(null);
+  // Someone waits or arrived here: the talk is the card's first button and takes the focus (Enter answers), else Close.
+  useEffect(() => { (talkRef.current ?? closeRef.current)?.focus(); sendEvent("card-opened"); }, [sendEvent]);
   const pallet = site?.pallets.find((p) => p.number === number);
   if (!site || !pallet) return null;
+  const talks = talkAt(people, pallet.number);
   const gestures = leading ? cardGestures(leading, pallet.number) : [];
   const workers = site.workers.filter((w) => w.carrying.includes(pallet.number));
   const zoneIndex = site.zones.find((z) => z.name === pallet.zone)?.index ?? 0;
@@ -56,6 +59,14 @@ function PalletCard({ number }: { number: number }) {
     <div className="card" role="dialog" aria-labelledby={titleId} style={{ borderTopColor: zoneColor(zoneIndex) }}>
       <p className="card-num">#{pallet.number}</p>
       <h2 id={titleId} dir="auto">{pallet.title}</h2>
+      {talks.length > 0 && (
+        <div className="talk-actions">
+          {talks.map((x, i) => (
+            <button key={`${x.kind}:${x.number}`} ref={i === 0 ? talkRef : undefined} type="button" className="got-it"
+              onClick={() => openTalk({ kind: x.kind, number: x.number })}>{t(`talk.${x.kind}`, { login: x.login })}</button>
+          ))}
+        </div>
+      )}
       <dl>
         <dt>{t("card.zone")}</dt>
         <dd>{zoneLabel(pallet.zone)}</dd>
@@ -89,9 +100,6 @@ function PalletCard({ number }: { number: number }) {
           <WarmPicker pallet={pallet.number} login={null} />
         </div>
       )}
-      {talkAt(people, pallet.number).map((x) => (
-        <button key={x.kind} type="button" className="got-it" onClick={() => openTalk({ kind: x.kind, number: x.number })}>{t(`talk.${x.kind}`, { login: x.login })}</button>
-      ))}
       {error && <p className="error" role="alert">{error}</p>}
       {reading && <button type="button" className="got-it" onClick={() => sendEvent("card-read")}>{t("card.gotIt")}</button>}
       {gestures.length > 0 && !pallet.closed && (

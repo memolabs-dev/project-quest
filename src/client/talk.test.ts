@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { prepareAnswer } from "../shared/gestures/talk.ts";
 import type { Newcomer, People } from "../shared/people.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
-import { answerDraft, talkAt, waitedDays, welcomeDraft } from "./talk.ts";
+import { actionAt, answerDraft, talkAt, talkPrompt, waitedDays, welcomeDraft } from "./talk.ts";
 
 // A stand-in for the player's language: the key and the values, readable in a test.
 const say = (key: string, o?: Record<string, unknown>) => `<${key}${o ? ` ${JSON.stringify(o)}` : ""}>`;
@@ -74,9 +74,30 @@ describe("who the player can talk to", () => {
 
   it("a pallet offers its answer first, then its welcome", () => {
     expect(talkAt(people, 12).map((t) => `${t.kind}:${t.login}`)).toEqual(["answer:maria", "welcome:lucas"]);
-    expect(talkAt(people, 13)).toEqual([{ kind: "welcome", number: 32, login: "sana" }]);
+    expect(talkAt(people, 13)).toEqual([{ kind: "welcome", number: 32, login: "sana", pallet: 13 }]);
     expect(talkAt(people, 14)).toEqual([]);
     expect(talkAt(undefined, 12)).toEqual([]);
+  });
+
+  it("E near a pallet with someone always opens its card; only a visitor, who has no card, opens the welcome", () => {
+    const [maria] = talkAt(people, 12);
+    expect(actionAt(12, maria)).toEqual({ card: 12 });
+    // The sign's pallet wins over a nearer pallet without one: the prompt named it.
+    expect(actionAt(11, maria)).toEqual({ card: 12 });
+    expect(actionAt(13, talkAt(people, 13)[0])).toEqual({ card: 13 });
+    const visitor = { kind: "welcome" as const, number: 33, login: "visitor", pallet: null };
+    expect(actionAt(null, visitor)).toEqual({ talk: visitor });
+    expect(actionAt(14, null)).toEqual({ card: 14 });
+    expect(actionAt(null, null)).toBeNull();
+  });
+
+  it("the prompt names the pallet and who waits there, or the visitor to welcome", () => {
+    expect(talkPrompt(talkAt(people, 12)[0], false)).toEqual({ key: "talk.nearAnswer", values: { number: 12, login: "maria" } });
+    expect(talkPrompt(talkAt(people, 13)[0], false)).toEqual({ key: "talk.nearWelcome", values: { number: 13, login: "sana" } });
+    expect(talkPrompt(talkAt(people, 12)[0], true).key).toBe("talk.nearAnswerTouch");
+    const visitor = { kind: "welcome" as const, number: 33, login: "visitor", pallet: null };
+    expect(talkPrompt(visitor, false)).toEqual({ key: "talk.nearVisitor", values: { number: 33, login: "visitor" } });
+    expect(talkPrompt(visitor, true).key).toBe("talk.nearVisitorTouch");
   });
 
   it("counts whole days, never less than one", () => {

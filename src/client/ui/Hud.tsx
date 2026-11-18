@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ACTION_CODE, CHEER_CODE, MOVE_CODES, keyLetters } from "../keys.ts";
 import { useQuest } from "../store.ts";
+import { talkPrompt } from "../talk.ts";
 import { isTouch } from "../touch.ts";
 import { VisitBar } from "./Visit.tsx";
 
@@ -15,6 +16,7 @@ export function Hud() {
   const worker = useQuest((s) => (s.siteKind === "main" || s.siteKind === "demo" ? s.nearWorker : null));
   const talk = useQuest((s) => s.nearTalk);
   const openTalk = useQuest((s) => s.openTalk);
+  const open = useQuest((s) => s.open);
   const picking = useQuest((s) => s.picker !== null);
   const visiting = useQuest((s) => s.siteKind === "visit");
   const site = useQuest((s) => s.site !== null);
@@ -30,9 +32,14 @@ export function Hud() {
       )}
       {card === null && (near !== null || talk || (worker && !picking)) && (
         <div className="prompt">
-          {talk && (isTouch()
-            ? <button type="button" className="prompt-talk" onClick={() => openTalk({ kind: talk.kind, number: talk.number })}>{t(talk.kind === "answer" ? "talk.nearAnswerTouch" : "talk.nearWelcomeTouch", { login: talk.login })}</button>
-            : <span>{t(talk.kind === "answer" ? "talk.nearAnswer" : "talk.nearWelcome", { key: letters.action, login: talk.login })}</span>)}
+          {talk && (() => {
+            const p = talkPrompt(talk, isTouch());
+            const text = t(p.key, { ...p.values, key: letters.action });
+            // A tap does what E does: the pallet's card, or a visitor's welcome.
+            return isTouch()
+              ? <button type="button" className="prompt-talk" onClick={() => (talk.pallet === null ? openTalk({ kind: talk.kind, number: talk.number }) : open(talk.pallet))}>{text}</button>
+              : <span>{text}</span>;
+          })()}
           {!talk && near !== null && <span>{t(isTouch() ? "site.nearTouch" : "site.near", { number: near, action: letters.action })}</span>}
           {worker && !picking && <span>{t("warm.near", { login: worker.login, key: letters.cheer })}</span>}
         </div>

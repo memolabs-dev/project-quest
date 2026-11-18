@@ -615,10 +615,12 @@
     "show": "Voir ce qui partira"
   },
   "talk": {
-    "nearAnswer": "{{key}} : répondre à {{login}}",
-    "nearWelcome": "{{key}} : accueillir {{login}}",
-    "nearAnswerTouch": "Touche pour répondre à {{login}}",
-    "nearWelcomeTouch": "Touche pour accueillir {{login}}",
+    "nearAnswer": "{{key}} : n°{{number}} · {{login}} attend une réponse",
+    "nearWelcome": "{{key}} : n°{{number}} · {{login}} a fait une première pull request",
+    "nearVisitor": "{{key}} : accueillir {{login}}",
+    "nearAnswerTouch": "Touche : n°{{number}} · {{login}} attend une réponse",
+    "nearWelcomeTouch": "Touche : n°{{number}} · {{login}} a fait une première pull request",
+    "nearVisitorTouch": "Touche pour accueillir {{login}}",
     "days": "{{count}} j",
     "answer": "Répondre à {{login}}",
     "welcome": "Accueillir {{login}}",

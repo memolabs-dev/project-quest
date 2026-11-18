@@ -217,7 +217,7 @@
 .skill-paths button { min-height: 44px; padding: 0 10px; border: var(--line); border-radius: 999px; background: #fff; font-weight: 800; cursor: pointer; }
 .skill-paths button[aria-selected="true"] { background: var(--accent); }
 .follow-path { min-height: 44px; margin-bottom: 8px; padding: 0 12px; border: var(--line); border-radius: 10px; background: var(--accent); font-weight: 800; cursor: pointer; }
-.lead-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lead-actions, .talk-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .parcel-list { margin: 0 0 10px; padding-left: 18px; }
 .skill-panel h2 { margin: 0 0 8px; font-size: 17px; }
 .skill-panel ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }

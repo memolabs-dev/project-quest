@@ -4,6 +4,7 @@ import { visitedRepo } from "./client/api.ts";
 import { ACTION_CODE, CHEER_CODE } from "./client/keys.ts";
 import { useReducedMotion } from "./client/scene/motion.ts";
 import { useQuest } from "./client/store.ts";
+import { actionAt } from "./client/talk.ts";
 import { Hud } from "./client/ui/Hud.tsx";
 import { Overlays } from "./client/ui/Overlays.tsx";
 import { TouchControls } from "./client/ui/Touch.tsx";
@@ -41,14 +42,15 @@ export default function App() {
       const dialog = s.warm !== null || s.thanking !== null || s.pending !== null || s.practiceDialog !== null || s.teamDialog !== null
         || s.talk !== null || s.talkPrepared !== null;
       if (dialog) return;
-      // Someone waits or arrived here: E opens the talk (the pallet's card is one click away).
-      if (e.code === ACTION_CODE && s.nearTalk && s.openCard === null) {
+      // E opens the pallet's card (where someone waits, its first button is the talk); a visitor has no card: E welcomes.
+      const act = e.code === ACTION_CODE && s.openCard === null ? actionAt(s.nearPallet, s.nearTalk) : null;
+      if (act && "talk" in act) {
         // The key opens the dialog and must not be typed into its field.
         e.preventDefault();
-        s.openTalk({ kind: s.nearTalk.kind, number: s.nearTalk.number });
+        s.openTalk({ kind: act.talk.kind, number: act.talk.number });
         return;
       }
-      if (e.code === ACTION_CODE && s.nearPallet !== null && s.openCard === null) s.open(s.nearPallet);
+      if (act) s.open(act.card);
       // R opens the warm signs above the worker within reach (the configured site and the demo only).
       if (e.code === CHEER_CODE && s.nearWorker && s.openCard === null && (s.siteKind === "main" || s.siteKind === "demo")) {
         s.openPicker(s.picker?.login === s.nearWorker.login ? null : { ...s.nearWorker });

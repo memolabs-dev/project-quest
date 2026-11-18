@@ -615,10 +615,12 @@
     "show": "Show what will be sent"
   },
   "talk": {
-    "nearAnswer": "{{key}}: answer {{login}}",
-    "nearWelcome": "{{key}}: welcome {{login}}",
-    "nearAnswerTouch": "Tap to answer {{login}}",
-    "nearWelcomeTouch": "Tap to welcome {{login}}",
+    "nearAnswer": "{{key}}: #{{number}} · {{login}} waits for an answer",
+    "nearWelcome": "{{key}}: #{{number}} · {{login}} made a first pull request",
+    "nearVisitor": "{{key}}: welcome {{login}}",
+    "nearAnswerTouch": "Tap: #{{number}} · {{login}} waits for an answer",
+    "nearWelcomeTouch": "Tap: #{{number}} · {{login}} made a first pull request",
+    "nearVisitorTouch": "Tap to welcome {{login}}",
     "days": "{{count}} d",
     "answer": "Answer {{login}}",
     "welcome": "Welcome {{login}}",
