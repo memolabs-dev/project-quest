@@ -200,7 +200,9 @@ test("a project director writes the evening bulletin from the radio's draft, and
   await expect(mentor).toContainText("The site radio");
   await mentor.getByRole("button", { name: /Write the evening bulletin/ }).click();
   const dialog = page.getByRole("dialog", { name: /The evening bulletin/ });
-  await expect(dialog.getByLabel("The bulletin")).toHaveValue("FICTIF Evening bulletin, 2026-11-17.\nSprint 1: 2 of 3 points loaded.");
+  // The draft is dated by the page's clock (UTC day), as in PracticeDialogs.
+  const today = await page.evaluate(() => new Date().toISOString().slice(0, 10));
+  await expect(dialog.getByLabel("The bulletin")).toHaveValue(`FICTIF Evening bulletin, ${today}.\nSprint 1: 2 of 3 points loaded.`);
   for (const s of ["On track", "At risk", "Off track", "Complete", "Inactive"]) await expect(dialog.getByLabel(s)).toBeVisible();
   await expect(dialog.getByRole("button", { name: /Send to GitHub/ })).toHaveCount(0);
   await page.screenshot({ path: "e2e/screenshots/lead-bulletin.png" });
