@@ -5,6 +5,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { githubGql, githubToken } from "./github/client.ts";
 import { readRepo } from "./github/read-repo.ts";
+import { EXAMPLE_REPOS } from "../shared/visit.ts";
 import { createVisitApp } from "./visit-app.ts";
 
 if (!process.env.GITHUB_TOKEN) {
@@ -28,3 +29,9 @@ const app = new Hono()
   .get("*", serveStatic({ path: "./dist/index.html" }));
 
 serve({ fetch: app.fetch, port }, () => console.log(`[project-quest] public visit on port ${port}, ${readsPerHour} GitHub reads per hour at most`));
+
+// The landing site and the offered examples are kept warm, so a stranger's first visit never waits for GitHub:
+// 4 reads every 9 minutes, under the 10-minute cache (27 of the hour's reads).
+const warm = () => { for (const repo of EXAMPLE_REPOS) void Promise.resolve(app.request(`/api/visit?repo=${repo}`)).catch(() => undefined); };
+warm();
+setInterval(warm, 9 * 60_000).unref();

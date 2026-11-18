@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { visitedRepo } from "./client/api.ts";
 import { ACTION_CODE, CHEER_CODE } from "./client/keys.ts";
 import { useReducedMotion } from "./client/scene/motion.ts";
 import { useQuest } from "./client/store.ts";
@@ -7,7 +8,10 @@ import { Hud } from "./client/ui/Hud.tsx";
 import { Overlays } from "./client/ui/Overlays.tsx";
 import "./client/ui/ui.css";
 
-const SiteCanvas = lazy(() => import("./client/scene/Site.tsx").then((m) => ({ default: m.SiteCanvas })));
+// The 3D scene (its libraries are most of the download) starts loading with the page, while the site is read:
+// waiting for the site first made a visitor wait for both one after the other (#17).
+const scene = import("./client/scene/Site.tsx");
+const SiteCanvas = lazy(() => scene.then((m) => ({ default: m.SiteCanvas })));
 
 export default function App() {
   const { t } = useTranslation();
@@ -15,6 +19,9 @@ export default function App() {
   const site = useQuest((s) => s.site);
   const refresh = useQuest((s) => s.refresh);
   const refreshLevels = useQuest((s) => s.refreshLevels);
+  // A visit says what it waits for: GitHub first, then the scene.
+  const visiting = useQuest((s) => s.siteKind === "visit");
+  const waiting = visiting && visitedRepo() ? t("visit.loading", { repo: visitedRepo() }) : t("site.loading");
 
   useEffect(() => { void refresh(); void refreshLevels(); }, [refresh, refreshLevels]);
 
@@ -45,9 +52,9 @@ export default function App() {
 
   return (
     <div className="app">
-      {load.status === "loading" && <div className="loading" role="status">{t("site.loading")}</div>}
+      {load.status === "loading" && <div className="loading" role="status">{waiting}</div>}
       {site && (
-        <Suspense fallback={<div className="loading" role="status">{t("site.loading")}</div>}>
+        <Suspense fallback={<div className="loading" role="status">{waiting}</div>}>
           <SiteCanvas site={site} />
         </Suspense>
       )}

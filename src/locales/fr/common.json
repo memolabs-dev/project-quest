@@ -25,6 +25,7 @@
     "examples": "Ou essaie :",
     "behind": "En fond : le chantier de {{repo}}",
     "code": "Le code du jeu sur GitHub",
+    "loading": "On lit les issues de {{repo}} sur GitHub, puis on décharge les camions…",
     "busy": "Beaucoup de visites en ce moment. Attends une minute, puis recharge la page.",
     "notPublic": "Ce dépôt n'est pas public, ou n'existe pas. Vérifie son nom et réessaie."
   },
