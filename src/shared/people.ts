@@ -49,6 +49,7 @@ export function peopleOf(board: BoardSnapshot, newcomers: Newcomer[], viewer: st
   const waiting = board.items.flatMap((i) => (i.isEpic ? [] : [waitingOn(i, viewer, now)]).filter((w): w is Waiting => w !== null));
   return {
     waiting,
-    newcomers: newcomers.map((n) => ({ ...n, pallet: (n.closes ?? (n.pallet === null ? [] : [n.pallet])).find((k) => pallets.has(k)) ?? null })),
+    // `closes` is the reader's own field: it stops here, the client never sees it.
+    newcomers: newcomers.map(({ closes, ...n }) => ({ ...n, pallet: (closes ?? (n.pallet === null ? [] : [n.pallet])).find((k) => pallets.has(k)) ?? null })),
   };
 }

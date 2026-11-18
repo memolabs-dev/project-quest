@@ -15,6 +15,8 @@ import { prepareAsk, type PreparedAsk } from "../shared/gestures/real.ts";
 import { rebuildTeam, type PreparedTeam, type TeamArgs, type TeamKind } from "../shared/gestures/team.ts";
 import { prepareCheer, prepareThank, prepareUncheer, type PreparedWarm, type WarmKind } from "../shared/gestures/warm.ts";
 import { TUTORIAL_EVENTS } from "../shared/levels/types.ts";
+import { levelsOf } from "../shared/levels/index.ts";
+import { rankReached } from "../shared/levels/progress.ts";
 import { peopleOf } from "../shared/people.ts";
 import { SiteError, buildSite, type BoardSnapshot } from "../shared/site.ts";
 import type { Deps } from "./deps.ts";
@@ -169,8 +171,10 @@ async function practiceBoard(deps: Deps, site: "practice" | "team" = "practice")
 async function peopleFor(deps: Deps, board: BoardSnapshot, login: string) {
   try {
     if (deps.mode === "live") {
-      const v = await checkLevels(deps, login);
-      if (v.path !== "lead" || v.ranks.lead === null) return null;
+      // Stored stamps only: no GitHub read and no stamping on a site load.
+      if ((await deps.progress.path(login)) !== "lead") return null;
+      const stamped = new Set((await deps.progress.stamps(login)).map((s) => s.levelId));
+      if (rankReached(levelsOf("lead"), stamped) === null) return null;
     }
     return peopleOf(board, await deps.readNewcomers(), login, deps.now?.() ?? Date.now());
   } catch (err) {

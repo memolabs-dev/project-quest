@@ -267,6 +267,38 @@ describe("the people of the site (#18)", () => {
     expect(people.newcomers.map((n) => [n.login, n.pallet])).toEqual([["fictif-lucas", 13]]);
   });
 
+  it("a volunteer pays nothing: no people, no newcomers read, no levels read", async () => {
+    let reads = 0;
+    const d = peopleDeps({
+      readNewcomers: async () => { reads++; return [newcomer]; },
+      readPractice: async () => { reads++; return null; }, readGoodFirst: async () => { reads++; return { repo: "x/y", issues: [] }; },
+    });
+    await d.progress.setPath("fictif-lead", "volunteer");
+    expect((await siteOf(createApp(d))).people).toBeUndefined();
+    expect(reads).toBe(0);
+  });
+
+  it("a lead without a lead rank sees no people", async () => {
+    let reads = 0;
+    const d = peopleDeps({ readNewcomers: async () => { reads++; return [newcomer]; } });
+    await d.progress.setPath("fictif-lead", "lead");
+    expect((await siteOf(createApp(d))).people).toBeUndefined();
+    expect(reads).toBe(0);
+  });
+
+  it("a lead with a rank gets people from stored stamps alone, with no closes in the payload", async () => {
+    let other = 0;
+    const d = peopleDeps({
+      readPractice: async () => { other++; return null; }, readGoodFirst: async () => { other++; return { repo: "x/y", issues: [] }; },
+    });
+    await foreman(d);
+    const people = (await siteOf(createApp(d))).people!;
+    expect(people.newcomers).toHaveLength(1);
+    expect(people.newcomers[0]).not.toHaveProperty("closes");
+    expect(other).toBe(0);
+    expect(await d.progress.stamps("fictif-lead")).toHaveLength(levelsOf("lead").filter((x) => x.rank === levelsOf("lead")[0].rank).length);
+  });
+
   it("the demo shows its FICTIF people to everyone", async () => {
     const d = peopleDeps();
     const people = (await siteOf(createApp(d, demoDeps(config, "asked")), "?demo=1")).people!;
