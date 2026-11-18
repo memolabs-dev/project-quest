@@ -8,6 +8,8 @@
 
 État : première tranche jouable. On se promène sur le chantier, on ouvre une palette, on la déplace pour de vrai, on garde un carnet de chantier. En anglais et en français.
 
+**Visite n'importe quel dépôt public en ligne : https://project-quest.memolabs.dev** (lecture seule, rien à installer).
+
 ## Essayer en 30 secondes (sans compte)
 
 ```bash

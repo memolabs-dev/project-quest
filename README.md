@@ -8,6 +8,8 @@
 
 Status: first playable slice. Walk the site, open a pallet, move it for real, keep a logbook. English and French.
 
+**Visit any public repository online: https://project-quest.memolabs.dev** (read-only, nothing to install).
+
 ## Try it in 30 seconds (no account)
 
 ```bash
