@@ -8,9 +8,11 @@ export interface Settings {
   miniature: boolean;
   /** "system" follows the operating system's reduced-motion setting. */
   motion: "system" | "reduce" | "full";
+  /** The site radio speaks by itself when the site opens; off, it only answers E. */
+  radio: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { sound: true, volume: 0.7, miniature: true, motion: "system" };
+export const DEFAULT_SETTINGS: Settings = { sound: true, volume: 0.7, miniature: true, motion: "system", radio: true };
 
 const KEY = "project-quest.settings";
 
@@ -36,6 +38,7 @@ export function loadSettings(storage: Storage | null = storageOrNull()): Setting
     volume: typeof raw.volume === "number" && raw.volume >= 0 && raw.volume <= 1 ? raw.volume : d.volume,
     miniature: typeof raw.miniature === "boolean" ? raw.miniature : d.miniature,
     motion: raw.motion === "system" || raw.motion === "reduce" || raw.motion === "full" ? raw.motion : d.motion,
+    radio: typeof raw.radio === "boolean" ? raw.radio : d.radio,
   };
 }
 

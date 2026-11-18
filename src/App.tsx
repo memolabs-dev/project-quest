@@ -1,9 +1,10 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { visitedRepo } from "./client/api.ts";
+import { RADIO_DELAY_MS, chooseLines, radioSiteKey } from "./client/radio.ts";
 import { ACTION_CODE, CHEER_CODE } from "./client/keys.ts";
 import { useReducedMotion } from "./client/scene/motion.ts";
-import { useQuest } from "./client/store.ts";
+import { EMPTY_PLOT, holdsKeys, radioMayStart, useQuest } from "./client/store.ts";
 import { actionAt } from "./client/talk.ts";
 import { Hud } from "./client/ui/Hud.tsx";
 import { Overlays } from "./client/ui/Overlays.tsx";
@@ -32,6 +33,27 @@ export default function App() {
   const reduce = useReducedMotion();
   useEffect(() => { document.documentElement.dataset.motion = reduce ? "reduce" : "full"; }, [reduce]);
 
+  // The radio speaks once per page load, a second after the fly-over, on a fully loaded site and with nothing open.
+  const radioDone = useRef(false);
+  const loaded = useQuest((s) => s.load.status === "ready" && s.site !== null && s.site !== EMPTY_PLOT && (s.siteKind !== "visit" || visitedRepo() !== ""));
+  const mayStart = useQuest(radioMayStart);
+  useEffect(() => {
+    if (radioDone.current || !loaded || !mayStart) return;
+    const timer = setTimeout(() => {
+      const s = useQuest.getState();
+      if (radioDone.current || !s.site || !radioMayStart(s)) return;
+      radioDone.current = true;
+      const visit = s.siteKind === "visit" ? s.visitRepo?.nameWithOwner ?? visitedRepo() : null;
+      const name = visit ?? (s.siteKind === "demo" ? t("onAir.demoSite") : t("onAir.yourSite"));
+      const date = new Date();
+      const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      const lines = chooseLines(radioSiteKey(s.siteKind, visit), s.site, day, name);
+      // Muted, the radio keeps its lines for E and does not start by itself.
+      if (s.settings.radio) s.playRadio(lines); else s.keepRadio(lines);
+    }, RADIO_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [loaded, mayStart, t]);
+
   // E opens the pallet in front of the player
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -39,9 +61,14 @@ export default function App() {
       // A key typed in a field is the player's words, never a gesture.
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select")) return;
       // A dialog over the site has the keys: no card or signs open behind it.
-      const dialog = s.warm !== null || s.thanking !== null || s.pending !== null || s.practiceDialog !== null || s.teamDialog !== null
-        || s.talk !== null || s.talkPrepared !== null;
-      if (dialog) return;
+      if (holdsKeys({ ...s, openCard: null })) return;
+      // Escape silences the radio.
+      if (e.code === "Escape" && s.radio) s.skipRadio();
+      // E by the radio set, nearer than any pallet or visitor, tells its lines again.
+      if (e.code === ACTION_CODE && s.openCard === null && s.nearRadio) {
+        s.replayRadio();
+        return;
+      }
       // E opens the pallet's card (where someone waits, its first button is the talk); a visitor has no card: E welcomes.
       const act = e.code === ACTION_CODE && s.openCard === null ? actionAt(s.nearPallet, s.nearTalk) : null;
       if (act && "talk" in act) {

@@ -3,6 +3,7 @@ import { Html, KeyboardControls, PerformanceMonitor } from "@react-three/drei";
 import { QUALITY_START, nextQuality, quality } from "./quality.ts";
 import { SiteLight } from "./Light.tsx";
 import { TeamRewards } from "./Rewards.tsx";
+import { RadioSet } from "./RadioSet.tsx";
 import { Director } from "./Director.tsx";
 import { useReducedMotion } from "./motion.ts";
 import { Canvas } from "@react-three/fiber";
@@ -162,6 +163,8 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
   const newcomers = site.people?.newcomers;
   const openTalk = useQuest((s) => s.openTalk);
   const visitors = useMemo(() => visitorSpots(newcomers, width), [newcomers, width]);
+  // The radio set stands in front of the site office.
+  const radioAt: [number, number] = [-width / 2 + 3, YARD_Z - 2];
   const body = useRef<EcctrlHandle>(null);
   // The drone flies over once, when the site first opens; never with reduced motion.
   const arrival = useRef(reduceMotion ? 0 : ARRIVAL_SECONDS);
@@ -212,9 +215,10 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
         {visitors.map((v) => (
           <Worker key={`visitor:${v.spot.login}`} spot={v.spot} lively reduceMotion={reduceMotion} visitor={{ welcome: () => openTalk({ kind: "welcome", number: v.number }) }} />
         ))}
+        <RadioSet position={[radioAt[0], 0, radioAt[1]]} reduceMotion={reduceMotion} />
         <GateSign x={-width / 2 + 1.5} />
         <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
-        <Player pallets={solid} workers={spots} visitors={visitors} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
+        <Player pallets={solid} workers={spots} visitors={visitors} radioAt={radioAt} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
       <Effects aoHalf={aoHalf} tiltShift={tiltShift} />

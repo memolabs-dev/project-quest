@@ -6,7 +6,7 @@ const INK = "#1c1c1c";
 const PAPER = "#fffaf0";
 const ACCENT = "#f08a24";
 /** The labels laid over the 3D scene; anything else over the canvas (banner, buttons) stays out of the picture. */
-const LABELS = ".sign-label, .building-label, .worker-name, .near-tag, .talk-bubble";
+const LABELS = ".sign-label, .building-label, .worker-name, .near-tag, .talk-bubble, .radio-bubble";
 
 type Box = { x: number; y: number; w: number; h: number };
 

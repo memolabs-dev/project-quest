@@ -16,12 +16,20 @@ const blocked: Storage = {
 describe("settings", () => {
   it("defaults when nothing is stored", () => {
     expect(loadSettings(memory())).toEqual(DEFAULT_SETTINGS);
-    expect(DEFAULT_SETTINGS).toEqual({ sound: true, volume: 0.7, miniature: true, motion: "system" });
+    expect(DEFAULT_SETTINGS).toEqual({ sound: true, volume: 0.7, miniature: true, motion: "system", radio: true });
   });
   it("keeps what was saved", () => {
     const s = memory();
     saveSettings({ ...DEFAULT_SETTINGS, sound: false, volume: 0.3, motion: "reduce" }, s);
-    expect(loadSettings(s)).toEqual({ sound: false, volume: 0.3, miniature: true, motion: "reduce" });
+    expect(loadSettings(s)).toEqual({ sound: false, volume: 0.3, miniature: true, motion: "reduce", radio: true });
+  });
+  it("the radio setting defaults to on and survives a reload", () => {
+    const s = memory();
+    expect(loadSettings(s).radio).toBe(true);
+    saveSettings({ ...DEFAULT_SETTINGS, radio: false }, s);
+    expect(loadSettings(s).radio).toBe(false);
+    s.setItem("project-quest.settings", JSON.stringify({ radio: "no" }));
+    expect(loadSettings(s).radio).toBe(true);
   });
   it("settings survive a blocked storage", () => {
     expect(loadSettings(blocked)).toEqual(DEFAULT_SETTINGS);

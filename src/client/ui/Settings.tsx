@@ -26,6 +26,9 @@ export function Settings() {
           <label className="field-inline">
             <input type="checkbox" checked={settings.miniature} onChange={(e) => set({ miniature: e.target.checked })} /> {t("settings.miniature")}
           </label>
+          <label className="field-inline">
+            <input type="checkbox" checked={settings.radio} onChange={(e) => set({ radio: e.target.checked })} /> {t("settings.radio")}
+          </label>
           <fieldset className="choice">
             <legend>{t("settings.motion")}</legend>
             {MOTIONS.map((m) => (

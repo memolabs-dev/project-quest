@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Pallet, Site } from "../shared/site.ts";
-import { useQuest } from "./store.ts";
+import { RADIO_LINE_MS } from "./radio.ts";
+import { radioMayStart, useQuest } from "./store.ts";
 
 const pallet = (number: number, zone = "Backlog"): Pallet => ({
   number, itemId: `I${number}`, title: "FICTIF", url: "", zone, closed: false, discarded: false,
@@ -89,5 +90,40 @@ describe("the thank offer's memory", () => {
     expect(useQuest.getState().toThank).toEqual([41]);
     useQuest.setState({ toThank: [] });
     useQuest.getState().takeMoments();
+  });
+});
+
+describe("the radio", () => {
+  const lines = [{ key: "onAir.calm", values: { variant: 0 } }, { key: "onAir.more", values: { variant: 0 } }];
+  it("the radio waits for an open card", () => {
+    useQuest.setState({ arrived: false, openCard: null });
+    expect(radioMayStart(useQuest.getState())).toBe(false); // the fly-over is not done
+    useQuest.getState().setArrived();
+    expect(radioMayStart(useQuest.getState())).toBe(true);
+    useQuest.getState().open(3);
+    expect(radioMayStart(useQuest.getState())).toBe(false);
+    useQuest.getState().open(null);
+    expect(radioMayStart(useQuest.getState())).toBe(true);
+    useQuest.getState().openTalk({ kind: "answer", number: 4 });
+    expect(radioMayStart(useQuest.getState())).toBe(false);
+    useQuest.getState().openTalk(null);
+    useQuest.getState().takeMoments();
+  });
+  it("plays line after line, then falls silent; replay tells the same lines again", () => {
+    expect(RADIO_LINE_MS).toBeGreaterThan(0);
+    useQuest.getState().playRadio(lines);
+    expect(useQuest.getState().radio).toEqual({ lines, at: 0 });
+    useQuest.getState().nextRadioLine();
+    expect(useQuest.getState().radio?.at).toBe(1);
+    useQuest.getState().nextRadioLine();
+    expect(useQuest.getState().radio).toBeNull();
+    useQuest.getState().replayRadio();
+    expect(useQuest.getState().radio).toEqual({ lines, at: 0 });
+    useQuest.getState().skipRadio();
+  });
+  it("skip silences the radio", () => {
+    useQuest.getState().playRadio(lines);
+    useQuest.getState().skipRadio();
+    expect(useQuest.getState().radio).toBeNull();
   });
 });

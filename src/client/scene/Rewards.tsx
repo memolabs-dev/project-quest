@@ -7,7 +7,7 @@ import { useQuest } from "../store.ts";
 
 const NONE = { truck: null, ribbon: null, mast: null };
 
-function Box({ size, position, color }: { size: [number, number, number]; position: [number, number, number]; color: string }) {
+export function Box({ size, position, color }: { size: [number, number, number]; position: [number, number, number]; color: string }) {
   return (
     <mesh position={position} castShadow receiveShadow>
       <boxGeometry args={size} />

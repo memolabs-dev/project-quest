@@ -1,7 +1,7 @@
 // The moments: what answers each gesture that matters. Data only; the director plays them (living site spec, 3).
 // The reduced version keeps the sound and the words, and removes motion: no dust, no camera kick.
 
-export type SoundName = "thud" | "land" | "chime" | "stamp" | "rustle" | "bonk" | "poof" | "step" | "creak" | "cheer";
+export type SoundName = "thud" | "land" | "chime" | "stamp" | "rustle" | "bonk" | "poof" | "step" | "creak" | "cheer" | "radio";
 export type MomentKind =
   | "pallet-moved" | "floor-laid" | "parcel" | "cleared" | "stamp" | "refused" | "card-open" | "card-close" | "loaded" | "overloaded"
   /** A warm gesture GitHub accepted: the worker answers, the foreman raises a hand (people of the site, 7). */

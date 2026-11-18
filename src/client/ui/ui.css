@@ -32,6 +32,12 @@
   white-space: nowrap; box-shadow: var(--shadow); pointer-events: none;
 }
 .talk-bubble b { font-weight: 900; }
+/* The site radio's line, over the set in front of the office. */
+.radio-bubble {
+  background: var(--paper); border: var(--line); border-radius: 12px; padding: 4px 12px; font-weight: 800; font-size: 13px;
+  max-width: 260px; text-align: center; box-shadow: var(--shadow); cursor: pointer;
+}
+.radio-pallet { font: inherit; font-weight: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
 .worker-badge {
   width: 32px; height: 32px; border-radius: 50%; border: 3px solid; background: var(--paper);
   display: grid; place-items: center; overflow: hidden; box-shadow: var(--shadow); pointer-events: none;

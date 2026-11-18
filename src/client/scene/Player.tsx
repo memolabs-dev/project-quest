@@ -5,7 +5,7 @@ import { Ecctrl, type EcctrlHandle } from "ecctrl";
 import { useJoystickStore } from "ecctrl/input";
 import { useRef, type RefObject } from "react";
 import * as THREE from "three";
-import { useQuest } from "../store.ts";
+import { holdsKeys, useQuest } from "../store.ts";
 import { Foreman } from "./Foreman.tsx";
 import { badgeInitial } from "./show.ts";
 import { CAMERA_OFFSET as CAMERA_OFFSET_XYZ, LOOK_AHEAD as LOOK_AHEAD_XYZ, SPAWN } from "./layout.ts";
@@ -25,12 +25,14 @@ const CAMERA_OFFSET = new THREE.Vector3(...CAMERA_OFFSET_XYZ);
 /** The camera looks a little ahead of the player, so the yards and buildings stay in view. */
 const LOOK_AHEAD = new THREE.Vector3(...LOOK_AHEAD_XYZ);
 
-export function Player({ pallets, workers, visitors, reduceMotion, body, arrival, look }: {
+export function Player({ pallets, workers, visitors, radioAt, reduceMotion, body, arrival, look }: {
   pallets: { number: number; x: number; z: number }[];
   /** The workers' spots: the nearest within reach can be cheered. */
   workers: { login: string; x: number; z: number; pallet: number }[];
   /** Newcomers waiting at the office: one within reach can be welcomed. */
   visitors: Visitor[];
+  /** The radio set's spot on the ground (x, z). */
+  radioAt: [number, number];
   reduceMotion: boolean;
   body: RefObject<EcctrlHandle | null>;
   /** Seconds left of the arrival fly-over; the camera is the drone's until it reaches zero. */
@@ -47,8 +49,9 @@ export function Player({ pallets, workers, visitors, reduceMotion, body, arrival
   const setNearWorker = useQuest((s) => s.setNearWorker);
   const setNearTalk = useQuest((s) => s.setNearTalk);
   // A card or a dialog over the site holds the keys: the foreman stands still (typed words never walk him).
-  const cardOpen = useQuest((s) => s.openCard !== null || s.warm !== null || s.thanking !== null || s.pending !== null
-    || s.practiceDialog !== null || s.teamDialog !== null || s.talk !== null || s.talkPrepared !== null);
+  const cardOpen = useQuest(holdsKeys);
+  const setNearRadio = useQuest((s) => s.setNearRadio);
+  const setArrived = useQuest((s) => s.setArrived);
   const sendEvent = useQuest((s) => s.sendEvent);
   // The Apprentice's first reward: their initial on the helmet.
   const helmet = useQuest((s) => (s.levels?.unlocks.helmet ? badgeInitial(s.levels.login) : null));
@@ -77,6 +80,7 @@ export function Player({ pallets, workers, visitors, reduceMotion, body, arrival
     if (h.isMoving && h.moveSpeed > 0.4) sendEvent("walked"); // the store sends it once
     const pos = h.currPos;
     if (arrival.current <= 0) {
+      setArrived(); // the store keeps it once
       const k = reduceMotion ? 1 : 1 - Math.exp(-4 * delta);
       follow.current ??= camera.position.clone();
       follow.current.lerp(target.current.copy(pos).add(CAMERA_OFFSET), k);
@@ -113,6 +117,9 @@ export function Player({ pallets, workers, visitors, reduceMotion, body, arrival
       }
     }
     setNearTalk(talk);
+    // The radio set: it takes the E key only when it is nearer than any pallet or visitor.
+    const radioD = Math.hypot(radioAt[0] - pos.x, radioAt[1] - pos.z);
+    setNearRadio(radioD < NEAR_DISTANCE && radioD < Math.min(bestD, talkD));
   });
 
   return (

@@ -10,6 +10,7 @@ import { ApiFailure, LANDING_REPO, api, pageSearch, visitedRepo } from "./api.ts
 import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
 import { laidBetween, momentsBetween, type Moment } from "./moments/diff.ts";
 import type { Greet } from "./moments/greet.ts";
+import type { RadioLine } from "./radio.ts";
 import { loadSettings, saveSettings, type Settings } from "./settings.ts";
 import { sameTarget, type TalkTarget } from "./talk.ts";
 
@@ -92,7 +93,32 @@ interface QuestState {
   /** The latest warm gesture GitHub accepted: the pallet's worker answers it; `at` grows so a repeat replays. */
   greet: Greet | null;
   greetWith(g: Omit<Greet, "at">): void;
+  /** The site radio: the lines it is saying (`at` is the one shown), and the lines chosen this visit, for E to replay. */
+  radio: { lines: RadioLine[]; at: number } | null;
+  radioLines: RadioLine[];
+  /** Says the lines from the first one. */
+  playRadio(lines: RadioLine[]): void;
+  /** Keeps the lines chosen this visit without saying them (the radio is muted). */
+  keepRadio(lines: RadioLine[]): void;
+  /** The next line, or silence after the last. */
+  nextRadioLine(): void;
+  skipRadio(): void;
+  replayRadio(): void;
+  /** The foreman stands by the radio set, and it is nearer than any pallet or visitor: E replays it. */
+  nearRadio: boolean;
+  setNearRadio(n: boolean): void;
+  /** The arrival fly-over is done: the scene says so once. */
+  arrived: boolean;
+  setArrived(): void;
 }
+
+/** A card or a dialog is open over the site: it holds the keys, and the radio waits for it to close. */
+export const holdsKeys = (s: Pick<QuestState, "openCard" | "warm" | "thanking" | "pending" | "practiceDialog" | "teamDialog" | "talk" | "talkPrepared">) =>
+  s.openCard !== null || s.warm !== null || s.thanking !== null || s.pending !== null
+  || s.practiceDialog !== null || s.teamDialog !== null || s.talk !== null || s.talkPrepared !== null;
+
+/** The radio's turn: the fly-over is done and nothing is open over the site. The mentor's panel does not hold it back. */
+export const radioMayStart = (s: QuestState) => s.arrived && !holdsKeys(s);
 
 export type PracticeDialog = "found" | "write" | "take" | "edit" | "pull" | "merge" | "mayor" | "ask";
 
@@ -253,5 +279,16 @@ export const useQuest = create<QuestState>((set, get) => ({
   setNearTalk: (t) => set((s) => (sameTarget(s.nearTalk, t) ? s : { nearTalk: t })),
   greet: null,
   greetWith: (g) => set((s) => ({ greet: { ...g, at: (s.greet?.at ?? 0) + 1 } })),
+  radio: null,
+  radioLines: [],
+  playRadio: (lines) => set({ radio: lines.length ? { lines, at: 0 } : null, radioLines: lines }),
+  keepRadio: (radioLines) => set({ radioLines }),
+  nextRadioLine: () => set((s) => (!s.radio ? s : s.radio.at + 1 < s.radio.lines.length ? { radio: { ...s.radio, at: s.radio.at + 1 } } : { radio: null })),
+  skipRadio: () => set((s) => (s.radio ? { radio: null } : s)),
+  replayRadio: () => set((s) => (s.radioLines.length ? { radio: { lines: s.radioLines, at: 0 } } : s)),
+  nearRadio: false,
+  setNearRadio: (nearRadio) => set((s) => (s.nearRadio === nearRadio ? s : { nearRadio })),
+  arrived: false,
+  setArrived: () => set((s) => (s.arrived ? s : { arrived: true })),
   openThank: (thanking) => set((s) => ({ thanking, toThank: thanking === null ? s.toThank : s.toThank.filter((x) => x !== thanking) })),
 }));

@@ -631,12 +631,16 @@
     "calm_1": "Not a breath of wind, the whole site is taking a breather.",
     "calm_2": "Quiet as a Sunday, the cranes are enjoying the view.",
     "demoSite": "the demo site",
-    "yourSite": "your site"
+    "yourSite": "your site",
+    "label": "The site radio",
+    "listen": "{{key}}: listen to the radio again",
+    "listenTouch": "Tap the radio"
   },
   "settings": {
     "title": "Settings",
     "sound": "Sound",
     "volume": "Volume",
+    "radio": "Site radio speaks by itself",
     "miniature": "Miniature effect",
     "motion": "Motion",
     "motions": {

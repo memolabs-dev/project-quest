@@ -11,7 +11,7 @@ export interface HowlLike {
 
 const FILES: Record<SoundName, string[]> = {
   thud: ["thud"], land: ["land"], chime: ["chime"], stamp: ["stamp"], rustle: ["rustle"], bonk: ["bonk"], poof: ["poof"],
-  creak: ["creak"], step: ["step1", "step2", "step3", "step4"], cheer: ["cheer"],
+  creak: ["creak"], step: ["step1", "step2", "step3", "step4"], cheer: ["cheer"], radio: ["radio"],
 };
 const HOLD_MS = 60;
 

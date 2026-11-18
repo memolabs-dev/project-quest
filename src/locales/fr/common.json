@@ -631,12 +631,16 @@
     "calm_1": "Pas un souffle de vent, tout le chantier reprend haleine.",
     "calm_2": "Tranquille comme un dimanche, les grues profitent de la vue.",
     "demoSite": "le chantier de démonstration",
-    "yourSite": "votre chantier"
+    "yourSite": "votre chantier",
+    "label": "La radio du chantier",
+    "listen": "{{key}} : réécouter la radio",
+    "listenTouch": "Touchez la radio"
   },
   "settings": {
     "title": "Réglages",
     "sound": "Son",
     "volume": "Volume",
+    "radio": "La radio parle toute seule",
     "miniature": "Effet maquette",
     "motion": "Mouvement",
     "motions": {

@@ -16,3 +16,4 @@ Downloaded on 2026-11-17 from kenney.nl, with the owner's approval.
 | `cheer.ogg` | Interface Sounds | `confirmation_001.ogg` |
 | `rustle.ogg` | RPG Audio (https://kenney.nl/assets/rpg-audio) | `bookFlip1.ogg` |
 | `creak.ogg` | RPG Audio | `creak1.ogg` |
+| `radio.ogg` | Interface Sounds | `glitch_002.ogg` |
