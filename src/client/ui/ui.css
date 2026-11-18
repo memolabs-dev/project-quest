@@ -269,3 +269,31 @@
 .greet-emoji { display: block; text-align: center; font-size: 28px; line-height: 1; }
 .greet-emoji.rising { animation: greet-rise 1.2s ease-out forwards; }
 @keyframes greet-rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-48px); opacity: 0; } }
+
+/* A visit of a public repository (#16): its banner, the question before it, the form */
+.visit-bar { display: grid; gap: 8px; justify-items: center; width: min(560px, calc(100% - 32px)); }
+.visit-bar p { margin: 0; overflow-wrap: anywhere; }
+.visit-bar a { color: var(--accent-ink); font-weight: 900; }
+.visit-bar .stars { white-space: nowrap; }
+.visit-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.visit-actions button, .visit-form button {
+  min-height: 44px; padding: 0 14px; border: var(--line); border-radius: 10px; background: #fff;
+  font-weight: 800; font-size: 15px; cursor: pointer; transition: transform 0.12s var(--ease);
+}
+.visit-actions button:active, .visit-form button:active { transform: scale(0.97); }
+.visit-form button.primary { background: var(--accent); }
+.visit-form { display: grid; gap: 6px; width: 100%; text-align: left; }
+.visit-form label { font-weight: 800; }
+.visit-form > div { display: flex; gap: 8px; }
+.visit-form input {
+  flex: 1; min-width: 0; font: inherit; font-weight: 600; font-size: 16px; min-height: 44px; padding: 8px 10px;
+  border: var(--line); border-radius: 10px; background: #fff; color: var(--ink);
+}
+.visit-intro {
+  position: absolute; z-index: 30; inset: 0; margin: auto; height: fit-content; width: min(520px, calc(100% - 32px));
+  display: grid; gap: 10px; background: var(--paper); border: var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 20px;
+}
+.visit-intro h1 { margin: 0; font-size: 1.5rem; line-height: 1.2; }
+.visit-intro p { margin: 0; }
+.error-screen .visit-form { width: min(520px, calc(100vw - 32px)); margin: 0 auto; }

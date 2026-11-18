@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { loadConfig } from "../shared/config.ts";
 import { prepareMove, type PreparedMove } from "../shared/gestures/move.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
-import { createApp } from "./app.ts";
+import { createApp, visitCache } from "./app.ts";
+import { repoToVisit } from "./github/read-repo.ts";
 import { memoryActionLog } from "./db/log.ts";
 import { memoryProgress } from "./db/progress.ts";
 import type { Deps } from "./deps.ts";
@@ -35,9 +36,67 @@ const deps = (apply: (p: PreparedMove) => Promise<ApplyResult>, extra: Partial<D
   applyTeam: async () => ({ ok: true }),
   applyWarm: async () => ({ ok: true }),
   readThanked: async () => false,
+  readRepo: async () => visitOf(false),
   ...extra,
 });
+const visitOf = (isPrivate: boolean) => repoToVisit({
+  repository: {
+    isPrivate, nameWithOwner: "fictif-org/fictif-site", url: "https://github.com/fictif-org/fictif-site", stargazerCount: 7,
+    issues: { nodes: [{
+      id: "I_1", number: 1, title: "FICTIF issue", url: "https://github.com/fictif-org/fictif-site/issues/1", state: "OPEN", stateReason: null,
+      updatedAt: "2026-11-18T10:00:00Z", issueType: null, parent: null, subIssuesSummary: { total: 0 }, labels: { nodes: [] },
+      assignees: { nodes: [] }, closedByPullRequestsReferences: { totalCount: 0 },
+    }] },
+  },
+}, "2026-11-18T10:00:00Z");
 const post = (body: unknown) => ({ method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json" } });
+
+describe("a visit (#16)", () => {
+  it("serves a public repository's site, with no viewer and nothing to write", async () => {
+    const res = await createApp(deps(async () => ({ ok: true, board: demo }))).request("/api/visit?repo=fictif-org/fictif-site");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { site: { pallets: { zone: string }[] }; repo: { stars: number } };
+    expect(body.repo.stars).toBe(7);
+    expect(body.site.pallets.map((p) => p.zone)).toEqual(["Backlog"]);
+    expect(body).not.toHaveProperty("viewer");
+  });
+
+  it("refuses a malformed name without asking GitHub, and a private repository with the same answer as a missing one", async () => {
+    let asked = 0;
+    const malformed = await createApp(deps(async () => ({ ok: true, board: demo }), { readRepo: async () => { asked++; return visitOf(false); } }))
+      .request("/api/visit?repo=not-a-repo");
+    expect(malformed.status).toBe(400);
+    expect(asked).toBe(0);
+    const hidden = await createApp(deps(async () => ({ ok: true, board: demo }), { readRepo: async () => visitOf(true) }))
+      .request("/api/visit?repo=fictif-org/secret");
+    expect(hidden.status).toBe(404);
+    expect(await hidden.json()).toMatchObject({ error: "not-public" });
+  });
+
+  it("asks GitHub once per repository within ten minutes, whatever the case, and again after", async () => {
+    let t = 0;
+    const asked: string[] = [];
+    const cache = visitCache(async (r) => { asked.push(r); return visitOf(false); }, { now: () => t });
+    await cache.read("Fictif-Org/Fictif-Site");
+    await cache.read("fictif-org/fictif-site");
+    t = 10 * 60_000;
+    await cache.read("fictif-org/fictif-site");
+    expect(asked).toEqual(["Fictif-Org/Fictif-Site", "fictif-org/fictif-site"]);
+  });
+
+  it("forgets a failed read, and keeps at most `max` repositories", async () => {
+    let fail = true;
+    const asked: string[] = [];
+    const cache = visitCache(async (r) => { asked.push(r); if (fail) throw new Error("GitHub down"); return visitOf(false); }, { max: 2 });
+    await expect(cache.read("a/one")).rejects.toThrow("GitHub down");
+    fail = false;
+    await cache.read("a/one");
+    await cache.read("a/two");
+    await cache.read("a/three");
+    await cache.read("a/one");
+    expect(asked).toEqual(["a/one", "a/one", "a/two", "a/three", "a/one"]);
+  });
+});
 
 describe("API", () => {
   it("serves the site with its zones in order", async () => {

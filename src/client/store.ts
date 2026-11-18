@@ -1,11 +1,11 @@
 // Game state: the site, what the player is near, the open card and the move waiting for confirmation.
 import type { PreparedWarm } from "../shared/gestures/warm.ts";
 import { create } from "zustand";
-import type { LevelsView, PreparedMove, SiteResponse } from "../shared/api.ts";
+import type { LevelsView, PreparedMove, RepoInfo, SiteResponse } from "../shared/api.ts";
 import type { TeamKind } from "../shared/gestures/team.ts";
 import type { TutorialEvent } from "../shared/levels/types.ts";
 import type { Pallet, Site } from "../shared/site.ts";
-import { ApiFailure, api, pageSearch } from "./api.ts";
+import { ApiFailure, api, pageSearch, visitedRepo } from "./api.ts";
 import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
 import { laidBetween, momentsBetween, type Moment } from "./moments/diff.ts";
 import type { Greet } from "./moments/greet.ts";
@@ -24,6 +24,8 @@ interface QuestState {
   pending: PreparedMove | null;
   /** Which site is played, from the page address. */
   siteKind: SiteKind;
+  /** The public repository being visited, once read (#16). */
+  visitRepo: RepoInfo | null;
   levels: LevelsView | null;
   /** The previous levels view, so the mentor can cheer what was just stamped. */
   levelsBefore: LevelsView | null;
@@ -127,6 +129,7 @@ export const useQuest = create<QuestState>((set, get) => ({
   openCard: null,
   pending: null,
   siteKind: siteKindFromUrl(pageSearch()),
+  visitRepo: null,
   settings: loadSettings(),
   moments: [],
   reaction: null,
@@ -160,6 +163,8 @@ export const useQuest = create<QuestState>((set, get) => ({
   askIssue: null,
   ask: (askIssue) => set({ askIssue, practiceDialog: "ask", openCard: null }),
   async refreshLevels(check = false) {
+    // A visitor has no levels: the visit reads a stranger's repository.
+    if (get().siteKind === "visit") return;
     try {
       const v = await (check ? api.checkLevels() : api.levels());
       set((s) => ({ levelsBefore: s.levels, levels: laterView(s.levels, v) }));
@@ -174,6 +179,18 @@ export const useQuest = create<QuestState>((set, get) => ({
     void api.levelEvent(e).then((v) => get().setLevels(v)).catch(() => sent.delete(e));
   },
   async refresh() {
+    if (get().siteKind === "visit") {
+      const repo = visitedRepo();
+      // No repository named yet: the visit page asks for one.
+      if (!repo) { set({ site: null, visitRepo: null, load: { status: "ready" } }); return; }
+      try {
+        const r = await api.visit(repo);
+        set({ site: r.site, visitRepo: r.repo, load: { status: "ready" } });
+      } catch (e) {
+        set({ load: { status: "error", failure: e instanceof Error ? e : new Error(String(e)) } });
+      }
+      return;
+    }
     try {
       const r = await api.site();
       get().announce(...momentsBetween(shown(get().site), r.site));

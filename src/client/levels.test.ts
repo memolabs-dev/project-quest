@@ -236,6 +236,10 @@ describe("siteKindFromUrl", () => {
     expect(siteKindFromUrl("?site=practice")).toBe("practice");
     expect(siteKindFromUrl("?demo=1&site=practice")).toBe("demo");
     expect(siteKindFromUrl("?site=team")).toBe("team");
+    expect(siteKindFromUrl("?visit=vitejs/vite")).toBe("visit");
+    expect(siteKindFromUrl("?visit")).toBe("visit");
+    // The demo still wins: nothing is ever sent from it.
+    expect(siteKindFromUrl("?demo=1&visit=vitejs/vite")).toBe("demo");
   });
 });
 

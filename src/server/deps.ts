@@ -16,6 +16,7 @@ import { applyPractice, type PracticeResult } from "./github/practice-apply.ts";
 import { readBoard } from "./github/read-board.ts";
 import { readPractice } from "./github/read-practice.ts";
 import { readGoodFirst } from "./github/read-real.ts";
+import { readRepo, type Visit } from "./github/read-repo.ts";
 import { readThanked } from "./github/read-thanked.ts";
 
 export interface Deps {
@@ -49,6 +50,8 @@ export interface Deps {
   applyWarm(p: PreparedWarm): Promise<PracticeResult>;
   /** Whether the player already left words on this laid pallet (a comment of theirs since it was closed). */
   readThanked(issueNumber: number): Promise<boolean>;
+  /** A public repository's recent issues, for a read-only visit (#16). */
+  readRepo(nameWithOwner: string): Promise<Visit>;
 }
 
 const PRACTICE_NAME = process.env.QUEST_PRACTICE_REPO || "my-first-site";
@@ -85,6 +88,7 @@ export function liveDeps(config: QuestConfig): Deps {
     applyTeam: async (p) => applyPractice(await client(), await restClient(), p),
     applyWarm: async (p) => applyPractice(await client(), await restClient(), p),
     readThanked: async (n) => readThanked(await client(), config, n),
+    readRepo: async (n) => readRepo(await client(), n),
   };
 }
 
@@ -142,6 +146,7 @@ export function demoDeps(config: QuestConfig, reason: Deps["demoReason"]): Deps 
       return { ok: true };
     },
     readThanked: async (n) => thanked.has(n),
+    readRepo: noGitHub,
   };
 }
 

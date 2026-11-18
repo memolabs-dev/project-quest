@@ -221,8 +221,10 @@ export function SiteCanvas({ site }: { site: SiteModel }) {
   // A weak machine lowers the quality one step per drop of the frame rate, and raises it back when it holds.
   const [level, setLevel] = useState(QUALITY_START);
   const q = quality(level.level, miniature);
+  // A visit's photo reads the canvas after the frame: it must keep its last frame (#16).
+  const keepFrame = useQuest((s) => s.siteKind === "visit");
   return (
-    <Canvas shadows={{ type: THREE.PCFShadowMap }} dpr={q.dpr} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
+    <Canvas shadows={{ type: THREE.PCFShadowMap }} gl={{ preserveDrawingBuffer: keepFrame }} dpr={q.dpr} camera={{ position: [0, 10, 13], fov: 45 }} data-testid="site-canvas">
       <PerformanceMonitor onDecline={() => setLevel((s) => nextQuality(s, "decline"))} onIncline={() => setLevel((s) => nextQuality(s, "incline"))} />
       <KeyboardControls map={KEY_MAP}>
         <Suspense fallback={null}>

@@ -30,6 +30,7 @@ const live = (sent: PreparedWarm[], board = fresh()): Deps => ({
     return { ok: true };
   },
   readThanked: async () => false,
+  readRepo: async () => { throw new Error("no visit in this test"); },
 });
 
 describe("warm gestures through the API", () => {

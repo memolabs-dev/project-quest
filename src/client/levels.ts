@@ -5,8 +5,9 @@ import type { PreparedAsk } from "../shared/gestures/real.ts";
 import type { PreparedTeam, TeamKind } from "../shared/gestures/team.ts";
 import { LEVELS } from "../shared/levels/index.ts";
 
-/** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site; team: the lead's. */
-export type SiteKind = "main" | "demo" | "practice" | "team";
+/** main: the configured board; demo: the fictitious site (the tutorial); practice: the player's own site; team: the lead's;
+ * visit: any public repository, read-only (#16). */
+export type SiteKind = "main" | "demo" | "practice" | "team" | "visit";
 export type MentorAction =
   | "to-tutorial" | "to-practice" | "to-main" | "to-team" | "found" | "write" | "take" | "move" | "edit" | "pull" | "merge" | "mayor"
   | "commands" | "found-team" | "parcels" | "sprint-field" | "capacity" | "milestone"
@@ -16,6 +17,8 @@ export function siteKindFromUrl(search: string): SiteKind {
   const q = new URLSearchParams(search);
   // A page marked demo is the demo, whatever else it asks for: nothing is ever sent from it.
   if (q.has("demo")) return "demo";
+  // A visit is read-only: no gesture, no level, no logbook.
+  if (q.has("visit")) return "visit";
   const site = q.get("site");
   return site === "practice" || site === "team" ? site : "main";
 }

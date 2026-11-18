@@ -17,6 +17,10 @@ npm run dev:demo
 
 Ouvre http://localhost:5173. Le chantier de démo est un projet inventé : rien n'est envoyé à GitHub.
 
+## Visiter n'importe quel dépôt public
+
+Avec une connexion GitHub sur la machine (`gh auth login`), lance `npm run dev` puis ouvre http://localhost:5173/?visit=vitejs/vite. Les 100 issues les plus récemment modifiées deviennent des palettes : fermée = posée, une pull request ouverte = au contrôle, assignée = en pose, sinon au stock. La visite est en lecture seule, refuse les dépôts privés, et le bouton « Photo » enregistre une image du chantier à partager.
+
 ## Jouer sur ton propre tableau
 
 1. Connecte-toi à GitHub avec la ligne de commande et donne-lui le droit `project` : `gh auth login`, puis `gh auth refresh -s project` (le jeu utilise ta connexion sur ta machine ; aucun jeton n'arrive dans le navigateur).

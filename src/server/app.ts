@@ -21,6 +21,7 @@ import { GitHubAuthError } from "./github/client.ts";
 import { BoardNotFoundError, GitHubScopeError } from "./github/errors.ts";
 import type { ApplyResult } from "./github/move-item.ts";
 import { practiceConfig } from "./github/read-practice.ts";
+import { REPO_PATTERN, RepoNotPublicError, visitConfig, type Visit } from "./github/read-repo.ts";
 import { checkLevels, practiceNameOf, todayOf } from "./levels.ts";
 
 const prepareBody = z.object({ itemId: z.string().min(1), toZone: z.string().min(1) });
@@ -166,7 +167,27 @@ const PRACTICE_MISSING = { error: "practice-missing" as const, message: "Your pr
 
 /** `demo` answers requests that carry ?demo=1, so a player without GitHub access can still visit the demo site. */
 /** settleMs: how long to wait between rereads while GitHub links a new pull request to its issue. */
+/** One read per repository per ten minutes, whoever visits: a busy day never spends the token's quota. */
+export function visitCache(read: (repo: string) => Promise<Visit>, { ttlMs = 10 * 60_000, max = 200, now = Date.now } = {}) {
+  const kept = new Map<string, { at: number; visit: Promise<Visit> }>();
+  return {
+    read(repo: string): Promise<Visit> {
+      const key = repo.toLowerCase();
+      const hit = kept.get(key);
+      if (hit && now() - hit.at < ttlMs) return hit.visit;
+      kept.delete(key);
+      // A failed read is forgotten at once: the next visitor asks GitHub again.
+      const visit = read(repo).catch((e: unknown) => { kept.delete(key); throw e; });
+      kept.set(key, { at: now(), visit });
+      // The oldest visit leaves first (a Map keeps insertion order).
+      while (kept.size > max) kept.delete(kept.keys().next().value!);
+      return visit;
+    },
+  };
+}
+
 export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settleMs?: number } = {}) {
+  const visits = visitCache((repo) => live.readRepo(repo));
   // A page marked demo is the demo, whatever the value: "?demo=" too (the client reads it the same way).
   const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") !== undefined ? demo : live);
   // Levels always belong to the real player, even while they play the tutorial on the demo site.
@@ -200,6 +221,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       if (err instanceof BoardNotFoundError || err instanceof SiteError) return c.json({ error: "board", message: err.message }, 502);
       if (err instanceof GestureError) return c.json({ error: "gesture", message: err.message }, 400);
       if (err instanceof PracticeBoardMismatch) return c.json({ error: "gesture", message: err.message }, 409);
+      if (err instanceof RepoNotPublicError) return c.json({ error: "not-public", message: err.message }, 404);
       console.error(err);
       return c.json({ error: "server", message: "Something went wrong on the server" }, 500);
     })
@@ -214,6 +236,13 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       const deps = pick(c);
       const [board, viewer] = await Promise.all([deps.readBoard(), deps.viewer()]);
       return c.json({ site: buildSite(board, deps.config), viewer, mode: deps.mode, demoReason: deps.demoReason ?? null });
+    })
+    // A public repository, visited read-only: nothing can be written from a visit (#16).
+    .get("/api/visit", async (c) => {
+      const repo = (c.req.query("repo") ?? "").trim();
+      if (!REPO_PATTERN.test(repo)) return c.json({ error: "not-public" as const, message: "Write the repository as owner/name" }, 400);
+      const visit = await visits.read(repo);
+      return c.json({ site: buildSite(visit.board, visitConfig(visit.repo.nameWithOwner)), repo: visit.repo });
     })
     .post("/api/moves/prepare", zValidator("json", prepareBody), async (c) => {
       const { itemId, toZone } = c.req.valid("json");

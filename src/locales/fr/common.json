@@ -12,6 +12,18 @@
     "banner": "Chantier de démo : un projet inventé, rien n'est envoyé à GitHub.",
     "noAccess": "Pas d'accès à GitHub trouvé, tu es donc sur le chantier de démo. Pour jouer sur ton tableau, lance"
   },
+  "visit": {
+    "title": "Visite le chantier d'un dépôt public",
+    "intro": "Chaque épique est un bâtiment, chaque issue une palette sur le chantier. Rien ne peut être modifié pendant une visite.",
+    "label": "Dépôt public (propriétaire/nom ou son adresse GitHub)",
+    "go": "Visiter",
+    "banner": "Visite en lecture seule de",
+    "photo": "Photo",
+    "photoFailed": "La photo n'a pas pu être prise dans ce navigateur.",
+    "signature": "project-quest · ton projet devient un jeu vidéo",
+    "other": "Visiter un autre dépôt",
+    "notPublic": "Ce dépôt n'est pas public, ou n'existe pas. Vérifie son nom et réessaie."
+  },
   "zones": {
     "Backlog": "Stock",
     "Ready": "Prête à poser",

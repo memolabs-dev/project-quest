@@ -17,6 +17,10 @@ npm run dev:demo
 
 Open http://localhost:5173. The demo site is an invented project: nothing is sent to GitHub.
 
+## Visit any public repository
+
+With a GitHub login on the machine (`gh auth login`), run `npm run dev` and open http://localhost:5173/?visit=vitejs/vite. Its 100 most recently updated issues become pallets: closed = laid, an open pull request = at inspection, assigned = being laid, otherwise in stock. A visit is read-only, refuses private repositories, and the "Photo" button saves a picture of the site to share.
+
 ## Play your own board
 
 1. Log in to GitHub with the CLI and give it the `project` scope: `gh auth login`, then `gh auth refresh -s project` (the game uses your login on your machine; no token ever reaches the browser).

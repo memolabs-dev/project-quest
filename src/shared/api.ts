@@ -12,6 +12,10 @@ export interface SiteResponse {
   demoReason: "asked" | "no-github-access" | null;
 }
 
+/** A public repository, visited read-only (#16). */
+export interface RepoInfo { nameWithOwner: string; url: string; stars: number }
+export interface VisitResponse { site: Site; repo: RepoInfo }
+
 export type ApplyResponse =
   /** site is null when the move landed on GitHub but the site could not be rebuilt; the game reloads it. */
   | { ok: true; site: Site | null }
@@ -29,7 +33,7 @@ export interface LoggedActionView {
 
 export type ApiError =
   | { error: "github-auth" | "github-scope"; hint: string }
-  | { error: "board" | "gesture" | "server" | "practice-missing"; message: string };
+  | { error: "board" | "gesture" | "server" | "practice-missing" | "not-public"; message: string };
 
 /** Where the player stands in the levels. Only ever the viewer's own. */
 export interface LevelsView {

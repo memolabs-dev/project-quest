@@ -12,6 +12,7 @@ import { Mentor } from "./Mentor.tsx";
 import { PracticeDialogs } from "./PracticeDialogs.tsx";
 import { Settings } from "./Settings.tsx";
 import { SkillBook } from "./SkillBook.tsx";
+import { VisitForm } from "./Visit.tsx";
 import { ConfirmWarm, Notice, ThankDialog, ThankOffer, WarmPicker } from "./Warm.tsx";
 
 function PalletCard({ number }: { number: number }) {
@@ -28,6 +29,7 @@ function PalletCard({ number }: { number: number }) {
   // The warm gestures go to the configured project only (and play on the demo site).
   const warmSite = useQuest((s) => s.siteKind === "main" || s.siteKind === "demo");
   const openThank = useQuest((s) => s.openThank);
+  const visiting = useQuest((s) => s.siteKind === "visit");
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { closeRef.current?.focus(); sendEvent("card-opened"); }, [sendEvent]);
@@ -61,7 +63,8 @@ function PalletCard({ number }: { number: number }) {
         </dd>
       </dl>
       {pallet.isBug && <p className="bug">{t("card.bug")}</p>}
-      {pallet.closed ? <p className="move-label">{t("card.closed")}</p> : (
+      {/* A visit reads a stranger's repository: no move is offered, only the way to GitHub. */}
+      {visiting ? (pallet.closed && <p className="move-label">{t("card.closed")}</p>) : pallet.closed ? <p className="move-label">{t("card.closed")}</p> : (
         <>
           <p className="move-label">{t("card.moveTo")}</p>
           <div className="zones">
@@ -210,6 +213,7 @@ function LanguageSwitch() {
 function ErrorScreen() {
   const { t } = useTranslation();
   const load = useQuest((s) => s.load);
+  const visiting = useQuest((s) => s.siteKind === "visit");
   if (load.status !== "error") return null;
   const f = load.failure;
   const access = f instanceof ApiFailure && "hint" in f.body ? f.body : null;
@@ -221,10 +225,12 @@ function ErrorScreen() {
           <p>{t("errors.githubAuthBody")}</p>
           <pre>{access.hint}</pre>
         </>
+      ) : f instanceof ApiFailure && f.body.error === "not-public" ? (
+        <p>{t("visit.notPublic")}</p>
       ) : (
         <p>{f instanceof ApiFailure && f.body.error === "board" ? t("errors.board", { message: f.message }) : t("errors.generic")}</p>
       )}
-      <a href="?demo=1">{t("errors.openDemo")}</a>
+      {visiting ? <VisitForm /> : <a href="?demo=1">{t("errors.openDemo")}</a>}
     </div>
   );
 }
@@ -232,13 +238,14 @@ function ErrorScreen() {
 export function Overlays() {
   const openCard = useQuest((s) => s.openCard);
   const thanking = useQuest((s) => s.thanking);
+  const visiting = useQuest((s) => s.siteKind === "visit");
   return (
     <>
       <div className="top-right">
         <LanguageSwitch />
         <Settings />
-        <SkillBook />
-        <Logbook />
+        {!visiting && <SkillBook />}
+        {!visiting && <Logbook />}
       </div>
       <Mentor />
       {openCard !== null && <PalletCard key={openCard} number={openCard} />}

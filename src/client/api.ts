@@ -1,6 +1,7 @@
 // The game's calls to its own server. The server alone talks to GitHub.
 import type {
-  ApiError, ApplyResponse, LevelsView, LoggedActionView, PracticeApplyResponse, PreparedMove, PreparedPractice, SiteResponse, WarmApplyResponse,
+  ApiError, ApplyResponse, LevelsView, LoggedActionView, PracticeApplyResponse, PreparedMove, PreparedPractice, SiteResponse, VisitResponse,
+  WarmApplyResponse,
 } from "../shared/api.ts";
 import type {
   PreparedEdit, PreparedFound, PreparedIssue, PreparedMayor, PreparedMerge, PreparedPull, PreparedTake,
@@ -40,7 +41,16 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
 const own = () => { const k = siteKindFromUrl(pageSearch()); return k === "practice" || k === "team" ? k : null; };
 const moves = () => (own() ? `/api/${own()}/moves` : "/api/moves");
 
+/** The public repository a visit is about (?visit=owner/name), or "" when none is named yet. */
+export const visitedRepo = () => (new URLSearchParams(pageSearch()).get("visit") ?? "").trim();
+
+/** Pasted addresses are welcome: https://github.com/owner/name/issues becomes owner/name. */
+export const repoFromInput = (text: string) =>
+  text.trim().replace(/^https?:\/\/(www\.)?github\.com\//i, "").split(/[?#]/)[0].split("/").filter(Boolean).slice(0, 2).join("/")
+    .replace(/\.git$/i, "");
+
 export const api = {
+  visit: (repo: string) => call<VisitResponse>(`/api/visit?repo=${encodeURIComponent(repo)}`),
   site: () => call<SiteResponse>(own() ? `/api/site?site=${own()}` : "/api/site"),
   choosePath: (path: "volunteer" | "lead") => call<LevelsView>("/api/levels/path", { path }),
   /** The game's rule, kept with the player's progress: nothing goes to GitHub. */

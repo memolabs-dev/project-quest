@@ -46,6 +46,7 @@ const make = (practice: PracticeSnapshot | null, extra: Partial<Deps> & { progre
     applyTeam: async (p) => { sent.push(p as never); return { ok: true }; },
     applyWarm: async () => ({ ok: true }),
     readThanked: async () => false,
+    readRepo: async () => { throw new Error("no visit in this test"); },
     ...extra,
   };
   return { app: createApp(deps), deps, sent };

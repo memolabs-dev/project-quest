@@ -12,6 +12,18 @@
     "banner": "Demo site: an invented project, nothing is sent to GitHub.",
     "noAccess": "No GitHub access found, so you are on the demo site. To play your own board, run"
   },
+  "visit": {
+    "title": "Visit the building site of a public repository",
+    "intro": "Every epic is a building, every issue a pallet on the site. Nothing can be changed during a visit.",
+    "label": "Public repository (owner/name or its GitHub address)",
+    "go": "Visit",
+    "banner": "Read-only visit of",
+    "photo": "Photo",
+    "photoFailed": "The photo could not be taken in this browser.",
+    "signature": "project-quest · turn your project into a video game",
+    "other": "Visit another",
+    "notPublic": "This repository is not public, or does not exist. Check its name and try again."
+  },
   "zones": {
     "Backlog": "Stock",
     "Ready": "Ready to lay",

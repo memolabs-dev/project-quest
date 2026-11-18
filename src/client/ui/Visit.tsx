@@ -1,0 +1,103 @@
+// A visit of any public repository, read-only (#16): the repository's name, a photo to share, another visit.
+import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
+import { repoFromInput, visitedRepo } from "../api.ts";
+import { bandHeight, photoName } from "../photo.ts";
+import { useQuest } from "../store.ts";
+
+/** Draws the site's canvas with a caption band under it and returns the picture as a PNG data address.
+ * The site canvas keeps its last frame on a visit (preserveDrawingBuffer), or the picture would come out empty. */
+function sitePhoto(site: HTMLCanvasElement, repo: string, signature: string): string {
+  const band = bandHeight(site.height);
+  const out = document.createElement("canvas");
+  out.width = site.width;
+  out.height = site.height + band;
+  const g = out.getContext("2d");
+  if (!g) throw new Error("No 2D drawing in this browser");
+  g.drawImage(site, 0, 0);
+  // The game's own ink, paper and accent (index.css).
+  g.fillStyle = "#1c1c1c";
+  g.fillRect(0, site.height, out.width, band);
+  const pad = Math.round(band * 0.4);
+  g.textBaseline = "middle";
+  g.fillStyle = "#fffaf0";
+  g.font = `800 ${Math.round(band * 0.45)}px Nunito, system-ui, sans-serif`;
+  g.fillText(repo, pad, site.height + band / 2);
+  g.textAlign = "right";
+  g.fillStyle = "#f08a24";
+  g.font = `700 ${Math.round(band * 0.32)}px Nunito, system-ui, sans-serif`;
+  g.fillText(signature, out.width - pad, site.height + band / 2);
+  return out.toDataURL("image/png");
+}
+
+export function VisitForm({ autoFocus = false }: { autoFocus?: boolean }) {
+  const { t } = useTranslation();
+  const [text, setText] = useState(visitedRepo());
+  const go = (e: FormEvent) => {
+    e.preventDefault();
+    const repo = repoFromInput(text);
+    // The slash stays readable: the address is meant to be shared.
+    if (repo) location.search = `?visit=${encodeURIComponent(repo).replace("%2F", "/")}`;
+  };
+  return (
+    <form className="visit-form" onSubmit={go}>
+      <label htmlFor="visit-repo">{t("visit.label")}</label>
+      <div>
+        <input
+          id="visit-repo" value={text} onChange={(e) => setText(e.target.value)} placeholder="owner/name"
+          autoComplete="off" autoCapitalize="off" spellCheck={false} autoFocus={autoFocus}
+        />
+        <button type="submit" className="primary">{t("visit.go")}</button>
+      </div>
+    </form>
+  );
+}
+
+function PhotoButton({ repo }: { repo: string }) {
+  const { t } = useTranslation();
+  const say = useQuest((s) => s.say);
+  const take = () => {
+    const canvas = document.querySelector<HTMLCanvasElement>("[data-testid=site-canvas] canvas");
+    if (!canvas) return;
+    try {
+      const a = document.createElement("a");
+      a.href = sitePhoto(canvas, repo, t("visit.signature"));
+      a.download = photoName(repo);
+      a.click();
+    } catch {
+      say(t("visit.photoFailed"));
+    }
+  };
+  return <button type="button" onClick={take}>{t("visit.photo")}</button>;
+}
+
+/** The visit's banner, or, before any repository is named, the question. */
+export function VisitBar() {
+  const { t, i18n } = useTranslation();
+  const repo = useQuest((s) => s.visitRepo);
+  const load = useQuest((s) => s.load);
+  const [other, setOther] = useState(false);
+  if (load.status === "ready" && !repo) {
+    return (
+      <div className="visit-intro" role="region" aria-labelledby="visit-title">
+        <h1 id="visit-title">{t("visit.title")}</h1>
+        <p>{t("visit.intro")}</p>
+        <VisitForm autoFocus />
+      </div>
+    );
+  }
+  if (!repo) return null;
+  return (
+    <div className="banner visit-bar" role="note">
+      <p>
+        {t("visit.banner")} <a href={repo.url} target="_blank" rel="noreferrer">{repo.nameWithOwner}</a>
+        {" "}<span className="stars">★ {repo.stars.toLocaleString(i18n.resolvedLanguage)}</span>
+      </p>
+      <div className="visit-actions">
+        <PhotoButton repo={repo.nameWithOwner} />
+        <button type="button" aria-expanded={other} onClick={() => setOther((v) => !v)}>{t("visit.other")}</button>
+      </div>
+      {other && <VisitForm autoFocus />}
+    </div>
+  );
+}
