@@ -69,7 +69,7 @@ const workerLife = (page: Page, login: string) => page.evaluate(async (who) => {
   const fiber = await import(urls.find((u) => /\/deps\/@react-three_fiber\.js/.test(u))!);
   const state = [...fiber._roots.values()][0].store.getState();
   const group = state.scene.getObjectsByProperty("name", `worker-${who}`).find((o: { userData: { clip?: string } }) => o.userData.clip !== undefined);
-  return group ? { yaw: group.userData.yaw as number, waving: group.userData.waving as boolean } : null;
+  return group ? { yaw: group.userData.yaw as number, waving: group.userData.waving as boolean, waves: (group.userData.waves as number | undefined) ?? 0 } : null;
 }, login);
 
 /** Walks forward until a worker's name shows; returns their login. */
@@ -83,10 +83,11 @@ const walkToAWorker = async (page: Page) => {
 test("near a worker, their head turns toward the foreman and they wave once, then go back to work", async ({ page }) => {
   await ready(page);
   const login = await walkToAWorker(page);
-  // The wave starts with the name and lasts one clip: seen while it plays, then over.
-  await expect.poll(async () => (await workerLife(page, login))?.waving, { timeout: 2000, intervals: [50] }).toBe(true);
+  // One wave, started with the name; it lasts one clip, then they go back to what they were doing.
+  await expect.poll(async () => (await workerLife(page, login))?.waves, { timeout: 5000 }).toBe(1);
   await expect.poll(async () => Math.abs((await workerLife(page, login))?.yaw ?? 0), { timeout: 5000 }).toBeGreaterThan(0.05);
   await expect.poll(async () => (await workerLife(page, login))?.waving, { timeout: 8000 }).toBe(false);
+  expect((await workerLife(page, login))?.waves).toBe(1);
 });
 
 test("with reduced motion a worker shows their name only: no wave, no head turn", async ({ page }) => {
@@ -97,7 +98,7 @@ test("with reduced motion a worker shows their name only: no wave, no head turn"
   await page.getByRole("button", { name: "Settings" }).click();
   const login = await walkToAWorker(page);
   for (let i = 0; i < 6; i++) {
-    expect(await workerLife(page, login)).toEqual({ yaw: 0, waving: false });
+    expect(await workerLife(page, login)).toEqual({ yaw: 0, waving: false, waves: 0 });
     await page.waitForTimeout(250);
   }
   await page.getByRole("button", { name: "Settings" }).click();

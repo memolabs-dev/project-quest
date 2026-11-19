@@ -25,6 +25,8 @@ test("R near a worker opens the emojis and the confirmation shows the reaction",
   const applied = page.waitForResponse((r) => r.url().includes("/api/warm/cheer/apply"));
   await confirmation(page).getByRole("button", { name: /Send to GitHub/ }).click();
   expect((await applied).ok()).toBe(true);
+  // The answer is handled once the confirmation is gone: R before that goes to the dialog, not the site.
+  await expect(confirmation(page)).toHaveCount(0);
   await page.keyboard.press("KeyR");
   await expect(page.getByRole("group", { name: /Cheer maria-fictif/ }).getByRole("button", { name: /🎉/ })).toHaveAttribute("aria-pressed", "true");
 });

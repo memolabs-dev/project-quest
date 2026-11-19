@@ -120,7 +120,11 @@ export function Worker({ spot, lively, reduceMotion, visitor }: {
     // Near the foreman: the name (and once per visit a wave), the head turned toward him.
     const distance = Math.hypot(playerPosition.x - spot.x, playerPosition.z - spot.z);
     const greet = lively ? greeting(visit, spot.login, distance, reduceMotion) : null;
-    if (greet === "wave" && actions.Interact) clips.current.wave = actions.Interact.getClip().duration;
+    if (greet === "wave" && actions.Interact) {
+      clips.current.wave = actions.Interact.getClip().duration;
+      // Read by the browser tests: how many waves this worker gave.
+      if (group.current) group.current.userData.waves = ((group.current.userData.waves as number | undefined) ?? 0) + 1;
+    }
     if (greet) p.nameLeft = NAME_SECONDS;
     else p.nameLeft = Math.max(0, p.nameLeft - delta);
     const show = p.nameLeft > 0;
