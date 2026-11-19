@@ -10,6 +10,8 @@
 
 **Visite n'importe quel dépôt public en ligne : https://project-quest.memolabs.dev** (lecture seule, rien à installer).
 
+**Tu l'essaies en bénévole ?** Suis [ONBOARDING.fr.md](ONBOARDING.fr.md) : le parcours du bénévole sur ton propre compte, en une heure environ.
+
 ## Essayer en 30 secondes (sans compte)
 
 ```bash

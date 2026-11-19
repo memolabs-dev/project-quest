@@ -10,6 +10,8 @@ Status: first playable slice. Walk the site, open a pallet, move it for real, ke
 
 **Visit any public repository online: https://project-quest.memolabs.dev** (read-only, nothing to install).
 
+**Trying it as a volunteer?** Follow [ONBOARDING.md](ONBOARDING.md): the volunteer's path on your own account, in about an hour.
+
 ## Try it in 30 seconds (no account)
 
 ```bash
