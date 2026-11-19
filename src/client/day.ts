@@ -71,7 +71,9 @@ export function dayJobs(site: Site, toThank: number[]): Job[] {
   const jobs: Job[] = [];
   const taken = new Set<string>();
   const take = (j: Job) => {
-    const keys = [j.kind === "welcome" ? `pr:${j.pr}` : `pallet:${j.pallet}`, ...("login" in j ? [`login:${j.login}`] : [])];
+    const keys = [
+      ...(j.kind === "welcome" ? [`pr:${j.pr}`] : []), ...(j.pallet !== null ? [`pallet:${j.pallet}`] : []), ...("login" in j ? [`login:${j.login}`] : []),
+    ];
     if (jobs.length === MAX_JOBS || keys.some((k) => taken.has(k)) || (j.kind === "unstick" && jobs.some((x) => x.kind === "unstick"))) return;
     keys.forEach((k) => taken.add(k));
     jobs.push(j);

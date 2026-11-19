@@ -162,3 +162,10 @@ describe("a job's words", () => {
     expect(jobWords({ kind: "unstick", pallet: 5 })).toEqual(["day.job.unstick", { pallet: 5 }]);
   });
 });
+
+describe("one job per pallet, a welcome included", () => {
+  it("a newcomer's pallet still in the stock is not also the stuck pallet", () => {
+    const s = site([pallet(5), pallet(6)], { waiting: [], newcomers: [newcomer("sana", 40, 5)] });
+    expect(dayJobs(s, [])).toEqual([{ kind: "welcome", pr: 40, login: "sana", pallet: 5 }, { kind: "unstick", pallet: 6 }]);
+  });
+});

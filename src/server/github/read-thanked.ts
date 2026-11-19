@@ -22,6 +22,7 @@ export async function readThanked(gql: Gql, config: QuestConfig, number: number)
   const res = await gql<ThankedResponse>(THANKED_QUERY, { owner: config.owner, name: config.repo, number });
   const issue = res.repository?.issue;
   if (!issue?.closedAt) return false;
-  // After the close, strictly: a comment of the same second is the one that closed it ("Closing as done"), not a thank-you.
-  return issue.comments.nodes.some((c) => c.viewerDidAuthor && c.createdAt > issue.closedAt!);
+  // From the close's second on: "Close with comment" gives both the same second. Counting it may miss one offer, which
+  // is better than a second public thank-you.
+  return issue.comments.nodes.some((c) => c.viewerDidAuthor && c.createdAt >= issue.closedAt!);
 }

@@ -10,8 +10,8 @@ describe("readThanked", () => {
   it("a comment of the player's after the close is a thank-you", async () => {
     expect(await readThanked(answer("2026-11-19T10:00:00Z", [{ createdAt: "2026-11-19T10:05:00Z", viewerDidAuthor: true }]), config, 1)).toBe(true);
   });
-  it("the comment of the very second it closed is the closing one, not a thank-you", async () => {
-    expect(await readThanked(answer("2026-11-19T10:00:00Z", [{ createdAt: "2026-11-19T10:00:00Z", viewerDidAuthor: true }]), config, 1)).toBe(false);
+  it("a comment of the very second it closed counts (Close with comment): never a second thank-you", async () => {
+    expect(await readThanked(answer("2026-11-19T10:00:00Z", [{ createdAt: "2026-11-19T10:00:00Z", viewerDidAuthor: true }]), config, 1)).toBe(true);
   });
   it("someone else's comment, or an open issue, is no thank-you", async () => {
     expect(await readThanked(answer("2026-11-19T10:00:00Z", [{ createdAt: "2026-11-19T10:05:00Z", viewerDidAuthor: false }]), config, 1)).toBe(false);

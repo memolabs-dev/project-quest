@@ -192,6 +192,18 @@ describe("API", () => {
     expect((await d.log.latest(1))[0].result).toBe("applied");
   });
 
+  it("logs a move whose send failed on the way, before answering the error", async () => {
+    const d = deps(async () => { throw new Error("GitHub timed out"); });
+    const res = await createApp(d).request("/api/moves/apply", post(prepareMove(demo, item.itemId, "Ready")));
+    expect(res.status).toBe(500);
+    expect((await d.log.latest(1))[0]).toMatchObject({ result: "failed", target: `#${item.number}` });
+  });
+
+  it("refuses a malformed Origin as a foreign page, not as a server error", async () => {
+    const res = await createApp(deps(async () => ({ ok: true, board: demo }))).request("/api/moves/apply", { ...post(prepareMove(demo, item.itemId, "Ready")), headers: { "content-type": "application/json", origin: "not a url" } });
+    expect(res.status).toBe(403);
+  });
+
   it("does not fail the move when the log cannot be written", async () => {
     const d = deps(async () => ({ ok: true, board: demo }));
     d.log = { record: async () => { throw new Error("postgres down"); }, latest: async () => [] };

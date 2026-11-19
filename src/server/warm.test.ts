@@ -85,11 +85,13 @@ describe("warm gestures through the API", () => {
     expect(await demo.progress.stamps("you")).toEqual([]);
   });
 
-  it("a page marked demo on a server without the demo sends nothing", async () => {
+  it("a page marked demo on a server without the demo sends nothing, whatever the gesture", async () => {
     const sent: PreparedWarm[] = [];
-    const res = await createApp(live(sent)).request("/api/warm/cheer/apply?demo=1", post(prepareCheer(fresh(), HOME, open.number, "HOORAY")));
+    const app = createApp(live(sent));
+    const res = await app.request("/api/warm/cheer/apply?demo=1", post(prepareCheer(fresh(), HOME, open.number, "HOORAY")));
     expect(res.status).toBe(409);
     expect(sent).toHaveLength(0);
+    for (const route of ["/api/moves/apply", "/api/talk/answer/apply"]) expect((await app.request(`${route}?demo=1`, post({}))).status).toBe(409);
   });
 
   it("two thank-yous for one pallet at once: only the first leaves", async () => {

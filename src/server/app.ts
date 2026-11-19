@@ -108,11 +108,16 @@ async function applyClaimedMove(
   if (!isDeepStrictEqual(move.mutation, claim.mutation) || move.optionId !== claim.optionId || move.fieldId !== claim.fieldId) {
     return c.json({ error: "gesture" as const, message: "This move does not match the board: nothing was sent" }, 409);
   }
-  const result = await apply(move);
-  await record(deps, {
-    playerLogin: login, gesture: "move", target: `#${move.issueNumber}`, payload: move.mutation,
-    result: result.ok ? "applied" : result.reason === "stale" ? "stale" : "failed", githubResponse: result.ok ? null : result,
-  });
+  const entry = { playerLogin: login, gesture: "move", target: `#${move.issueNumber}`, payload: move.mutation };
+  let result: ApplyResult;
+  try {
+    result = await apply(move);
+  } catch (e) {
+    // It may or may not have landed on GitHub: the attempt is logged either way.
+    await record(deps, { ...entry, result: "failed", githubResponse: { message: e instanceof Error ? e.message : String(e) } });
+    throw e;
+  }
+  await record(deps, { ...entry, result: result.ok ? "applied" : result.reason === "stale" ? "stale" : "failed", githubResponse: result.ok ? null : result });
   if (!result.ok) return c.json(result);
   let site: ReturnType<typeof buildSite> | null = null;
   try {
@@ -241,7 +246,17 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       const origin = c.req.header("origin");
       if (c.req.method !== "GET" && origin) {
         const host = c.req.header("host") ?? new URL(c.req.url).host;
-        if (origin === "null" || new URL(origin).host !== host) return c.json({ error: "gesture" as const, message: "Writes come only from the game's own page" }, 403);
+        let from: string | null = null;
+        try {
+          from = origin === "null" ? null : new URL(origin).host;
+        } catch {
+          from = null;
+        }
+        if (from !== host) return c.json({ error: "gesture" as const, message: "Writes come only from the game's own page" }, 403);
+      }
+      // A page marked demo on a server without the demo: no write may reach the live project, whatever the route.
+      if (c.req.method === "POST" && c.req.path.endsWith("/apply") && demoMissing(c)) {
+        return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       }
       await next();
     })
@@ -397,7 +412,6 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       kind: z.enum(["cheer", "uncheer", "thank"]), repo: z.string(), issueNumber: z.number().int(), content: z.string(),
       words: z.string().max(65_536).nullable(), mutations,
     })), async (c) => {
-      if (demoMissing(c)) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       const deps = pick(c);
       const claim = c.req.valid("json") as unknown as PreparedWarm;
       const home = `${deps.config.owner}/${deps.config.repo}`;
@@ -457,7 +471,6 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       kind: z.enum(["answer", "welcome"]), repo: z.string(), to: z.string(), words: z.string().max(65_536),
       target: z.looseObject({ number: z.number().int() }), mutations,
     })), async (c) => {
-      if (demoMissing(c)) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       const deps = pick(c);
       const claim = c.req.valid("json") as unknown as PreparedTalk;
       const { login } = await deps.viewer();
