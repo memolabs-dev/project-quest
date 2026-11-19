@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ACTION_CODE, CHEER_CODE, MOVE_CODES, keyLetters } from "../keys.ts";
-import { radioTakesE, useQuest } from "../store.ts";
+import { officeTakesE, radioTakesE, useQuest } from "../store.ts";
 import { talkPrompt } from "../talk.ts";
 import { isTouch } from "../touch.ts";
 import { VisitBar } from "./Visit.tsx";
@@ -19,6 +19,8 @@ export function Hud() {
   const open = useQuest((s) => s.open);
   const nearRadio = useQuest(radioTakesE);
   const replayRadio = useQuest((s) => s.replayRadio);
+  const nearOffice = useQuest((s) => !radioTakesE(s) && officeTakesE(s));
+  const endDay = useQuest((s) => s.endDay);
   const picking = useQuest((s) => s.picker !== null);
   const visiting = useQuest((s) => s.siteKind === "visit");
   const site = useQuest((s) => s.site !== null);
@@ -32,12 +34,15 @@ export function Hud() {
       {!visiting && mode === "demo" && (
         <div className="banner" role="note">{demoReason === "no-github-access" ? <>{t("demo.noAccess")} <code>gh auth login</code></> : t("demo.banner")}</div>
       )}
-      {card === null && (near !== null || talk || nearRadio || (worker && !picking)) && (
+      {card === null && (near !== null || talk || nearRadio || nearOffice || (worker && !picking)) && (
         <div className="prompt">
+          {nearOffice && (isTouch()
+            ? <button type="button" className="prompt-talk" onClick={endDay}>{t("day.nearOfficeTouch")}</button>
+            : <span>{t("day.nearOffice", { key: letters.action })}</span>)}
           {nearRadio && (isTouch()
             ? <button type="button" className="prompt-talk" onClick={replayRadio}>{t("onAir.listenTouch")}</button>
             : <span>{t("onAir.listen", { key: letters.action })}</span>)}
-          {!nearRadio && talk && (() => {
+          {!nearRadio && !nearOffice && talk && (() => {
             const p = talkPrompt(talk, isTouch());
             const text = t(p.key, { ...p.values, key: letters.action });
             // A tap does what E does: the pallet's card, or a visitor's welcome.
@@ -45,7 +50,7 @@ export function Hud() {
               ? <button type="button" className="prompt-talk" onClick={() => (talk.pallet === null ? openTalk({ kind: talk.kind, number: talk.number }) : open(talk.pallet))}>{text}</button>
               : <span>{text}</span>;
           })()}
-          {!nearRadio && !talk && near !== null && <span>{t(isTouch() ? "site.nearTouch" : "site.near", { number: near, action: letters.action })}</span>}
+          {!nearRadio && !nearOffice && !talk && near !== null && <span>{t(isTouch() ? "site.nearTouch" : "site.near", { number: near, action: letters.action })}</span>}
           {worker && !picking && <span>{t("warm.near", { login: worker.login, key: letters.cheer })}</span>}
         </div>
       )}

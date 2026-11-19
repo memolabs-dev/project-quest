@@ -1,10 +1,11 @@
 import { Suspense, lazy, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { visitedRepo } from "./client/api.ts";
-import { RADIO_DELAY_MS, chooseLines, radioKey } from "./client/radio.ts";
+import { laidSince } from "./client/day.ts";
+import { RADIO_DELAY_MS, chooseLines, loadSnapshot, localDate, radioKey } from "./client/radio.ts";
 import { ACTION_CODE, CHEER_CODE } from "./client/keys.ts";
 import { useReducedMotion } from "./client/scene/motion.ts";
-import { EMPTY_PLOT, holdsKeys, radioMayStart, radioTakesE, useQuest } from "./client/store.ts";
+import { EMPTY_PLOT, holdsKeys, officeTakesE, radioMayStart, radioTakesE, useQuest } from "./client/store.ts";
 import { actionAt } from "./client/talk.ts";
 import { Hud } from "./client/ui/Hud.tsx";
 import { Overlays } from "./client/ui/Overlays.tsx";
@@ -45,9 +46,13 @@ export default function App() {
       radioDone.current = true;
       const visit = s.siteKind === "visit" ? s.visitRepo?.nameWithOwner ?? visitedRepo() : null;
       const name = visit ?? (s.siteKind === "demo" || s.mode === "demo" ? t("onAir.demoSite") : t("onAir.yourSite"));
-      const date = new Date();
-      const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      const lines = chooseLines(radioKey(s.siteKind, s.mode, visit), s.site, day, name);
+      const day = localDate(new Date());
+      const key = radioKey(s.siteKind, s.mode, visit);
+      // A day on the site: on the demo and the configured board, the morning line follows the news (slice 8).
+      const dayOn = s.siteKind === "demo" || s.siteKind === "main";
+      const laid = dayOn ? laidSince(loadSnapshot(key), s.site) : [];
+      const news = chooseLines(key, s.site, day, name);
+      const lines = dayOn ? [...news, s.beginDay(key, day, laid)] : news;
       // Muted, the radio keeps its lines for E and does not start by itself.
       if (s.settings.radio) s.playRadio(lines); else s.keepRadio(lines);
     }, RADIO_DELAY_MS);
@@ -67,6 +72,11 @@ export default function App() {
       // E by the radio set, nearer than any pallet or visitor, tells its lines again.
       if (e.code === ACTION_CODE && s.openCard === null && radioTakesE(s)) {
         s.replayRadio();
+        return;
+      }
+      // E by the site office closes the day.
+      if (e.code === ACTION_CODE && s.openCard === null && officeTakesE(s)) {
+        s.endDay();
         return;
       }
       // E opens the pallet's card (where someone waits, its first button is the talk); a visitor has no card: E welcomes.

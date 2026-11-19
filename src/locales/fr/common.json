@@ -68,7 +68,8 @@
     "empty": "Rien d'envoyé aujourd'hui.",
     "applied": "envoyé",
     "stale": "arrêté, plus à jour",
-    "failed": "refusé par GitHub"
+    "failed": "refusé par GitHub",
+    "sent": "Envoyé à GitHub"
   },
   "errors": {
     "githubAuthTitle": "Le bureau de chantier n'a pas la clé de GitHub",
@@ -634,7 +635,31 @@
     "yourSite": "votre chantier",
     "label": "La radio du chantier",
     "listen": "{{key}} : réécouter la radio",
-    "listenTouch": "Touchez la radio"
+    "listenTouch": "Touchez la radio",
+    "dayJobs_0_one": "Un travail aujourd'hui, il est au tableau près de la baraque !",
+    "dayJobs_0_other": "{{count}} travaux aujourd'hui, ils sont au tableau près de la baraque !",
+    "dayJobs_1_one": "Au menu du jour : un travail, écrit à la craie !",
+    "dayJobs_1_other": "Au menu du jour : {{count}} travaux, écrits à la craie !",
+    "dayJobs_2_one": "On retrousse les manches : un travail au tableau du jour !",
+    "dayJobs_2_other": "On retrousse les manches : {{count}} travaux au tableau du jour !",
+    "dayFree_0": "Le chantier est en ordre : journée libre, profitez-en !",
+    "dayFree_1": "Personne n'attend, rien n'est coincé : journée libre sur le chantier !",
+    "dayFree_2": "Pas un seul travail au tableau aujourd'hui, quel chantier !",
+    "dayResumed_0_one": "On reprend : encore un travail au tableau !",
+    "dayResumed_0_other": "On reprend : encore {{count}} travaux au tableau !",
+    "dayResumed_1_one": "On repart où on s'était arrêtés : plus qu'un travail !",
+    "dayResumed_1_other": "On repart où on s'était arrêtés : plus que {{count}} travaux !",
+    "dayResumed_2_one": "La journée continue : un travail attend encore !",
+    "dayResumed_2_other": "La journée continue : {{count}} travaux attendent encore !",
+    "dayResumedDone_0": "Tout est fait : clôturez la journée à la baraque quand vous voulez !",
+    "dayResumedDone_1": "Le tableau est tout coché : la baraque attend pour clore la journée !",
+    "dayResumedDone_2": "Plus rien au tableau : la journée peut finir à la baraque !",
+    "dayEvening_0": "Fin de journée ! {{done}} travaux faits sur {{total}}. À demain !",
+    "dayEvening_1": "Coup de sifflet : {{done}} travaux faits sur {{total}} aujourd'hui. Bien joué !",
+    "dayEvening_2": "On éteint le chantier : {{done}} travaux faits sur {{total}}. Reposez-vous bien !",
+    "dayEveningFree_0": "Fin de journée sur un chantier en ordre. À demain !",
+    "dayEveningFree_1": "Une journée calme s'achève, le chantier est en ordre. Reposez-vous bien !",
+    "dayEveningFree_2": "Coup de sifflet sur une journée tranquille. À demain !"
   },
   "settings": {
     "title": "Réglages",
@@ -709,5 +734,27 @@
     },
     "welcomeDraft": "Bonjour {{login}}, merci pour cette première contribution ! Quelqu'un de l'équipe la relira bientôt.",
     "welcomeGuide": "Pour savoir comment on travaille, notre guide de contribution est ici : {{url}}"
+  },
+  "day": {
+    "title": "Le travail du jour",
+    "count": "{{done}} sur {{total}}",
+    "fold": "Replier le tableau du jour",
+    "unfold": "Déplier le tableau du jour",
+    "free": "Le chantier est en ordre : journée libre.",
+    "done": "fait",
+    "close": "Clore la journée",
+    "nearOffice": "{{key}} : clore la journée",
+    "nearOfficeTouch": "Touchez pour clore la journée",
+    "pages": "Journées",
+    "page": "Jour {{n}}, {{date}}",
+    "freePage": "journée libre",
+    "job": {
+      "answer": "Répondre à {{login}} sur #{{pallet}}",
+      "welcome": "Accueillir {{login}} (pull request #{{pr}})",
+      "thank": "Remercier pour #{{pallet}}",
+      "unstick": "Sortir #{{pallet}} du stock"
+    },
+    "closedTitle": "Fin du jour {{n}}",
+    "closedOk": "À demain"
   }
 }

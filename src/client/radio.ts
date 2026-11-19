@@ -10,7 +10,7 @@ export const RADIO_LINE_MS = 3000;
 export const RADIO_DELAY_MS = 1000;
 
 /** Every kind of line has this many variants in the locales (`onAir.<kind>_0`, `_1`, `_2`). */
-const VARIANTS = 3;
+export const VARIANTS = 3;
 
 export interface SiteSnapshot {
   v: 1;
@@ -39,6 +39,9 @@ export function snapshotOf(site: Site, at: string): SiteSnapshot {
   for (const p of site.pallets) pallets[p.number] = { zone: p.zone, closed: p.closed, discarded: p.discarded, bug: p.isBug };
   return { v: RADIO_VERSION, at, pallets, workers: site.workers.map((w) => w.login) };
 }
+
+/** A date as the player's calendar shows it (YYYY-MM-DD, local time). */
+export const localDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 /** The variant of a line: the day's number modulo the count, never chance. */
 export function variantOf(date: string, count: number): number {

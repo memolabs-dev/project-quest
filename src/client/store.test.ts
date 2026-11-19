@@ -167,3 +167,40 @@ describe("E by the radio set", () => {
     useQuest.setState({ radioLines: [] });
   });
 });
+
+describe("a day on the site", () => {
+  const zones = ["Backlog", "Ready", "Done"].map((name, index) => ({ name, index }));
+  const yard = (pallets: Pallet[]): Site => ({ zones, pallets, buildings: [], workers: [] });
+  it("the morning gives the jobs, a move ticks one, the evening sums up and keeps a page", () => {
+    useQuest.setState({ site: yard([pallet(5), pallet(6, "Ready")]), day: null, days: [], thanked: [] });
+    const morning = useQuest.getState().beginDay("store-test", "2026-11-19", []);
+    expect(morning).toMatchObject({ key: "onAir.dayJobs", values: { count: 1 } });
+    expect(useQuest.getState().day?.jobs).toEqual([{ kind: "unstick", pallet: 5 }]);
+    useQuest.getState().setSite(yard([pallet(5, "Ready"), pallet(6, "Ready")]));
+    expect(useQuest.getState().day?.done).toEqual([true]);
+    useQuest.getState().endDay();
+    expect(useQuest.getState().day).toBeNull();
+    expect(useQuest.getState().days).toHaveLength(1);
+    // Written where the player stands until folded away.
+    expect(useQuest.getState().closedDay).toBe(useQuest.getState().days[0]);
+    useQuest.getState().dismissClosedDay();
+    expect(useQuest.getState().closedDay).toBeNull();
+    const lines = useQuest.getState().radio!.lines;
+    expect(lines[lines.length - 1]).toMatchObject({ key: "onAir.dayEvening", values: { done: 1, total: 1 } });
+    useQuest.getState().skipRadio();
+    useQuest.getState().takeMoments();
+  });
+  it("a thank-you set aside settles its job", () => {
+    useQuest.setState({ site: yard([{ ...pallet(7, "Done"), closed: true }]), day: null, thanked: [], toThank: [7] });
+    useQuest.getState().beginDay("store-test-2", "2026-11-19", [7]);
+    expect(useQuest.getState().day?.jobs).toEqual([{ kind: "thank", pallet: 7 }]);
+    useQuest.getState().dismissThank(7);
+    expect(useQuest.getState().day?.done).toEqual([true]);
+    useQuest.setState({ day: null, toThank: [] });
+  });
+  it("a site in order is a free day", () => {
+    useQuest.setState({ site: yard([{ ...pallet(8, "Done"), closed: true }]), day: null, thanked: [] });
+    expect(useQuest.getState().beginDay("store-test-3", "2026-11-19", []).key).toBe("onAir.dayFree");
+    useQuest.setState({ day: null });
+  });
+});

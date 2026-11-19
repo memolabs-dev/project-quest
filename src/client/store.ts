@@ -10,7 +10,8 @@ import { ApiFailure, LANDING_REPO, api, pageSearch, visitedRepo } from "./api.ts
 import { laterView, siteKindFromUrl, type SiteKind } from "./levels.ts";
 import { laidBetween, momentsBetween, type Moment } from "./moments/diff.ts";
 import type { Greet } from "./moments/greet.ts";
-import type { RadioLine } from "./radio.ts";
+import { type DayPage, type OpenDay, closeDay, loadDay, loadDays, newDay, saveDay, tick } from "./day.ts";
+import { type RadioLine, VARIANTS, localDate, radioLines, variantOf } from "./radio.ts";
 import { loadSettings, saveSettings, type Settings } from "./settings.ts";
 import { sameTarget, type TalkTarget } from "./talk.ts";
 
@@ -114,12 +115,34 @@ interface QuestState {
   /** The arrival fly-over is done: the scene says so once. */
   arrived: boolean;
   setArrived(): void;
+  /** The day on the site (slice 8): the open day, its storage key, the logbook's days, the pallets thanked today. */
+  day: OpenDay | null;
+  dayKey: string | null;
+  days: DayPage[];
+  thanked: number[];
+  /** Takes up the day left open on this site, or starts one; returns the radio's morning line. */
+  beginDay(key: string, date: string, laid: number[]): RadioLine;
+  /** Ticks the jobs whose fact the site now shows. */
+  tickDay(): void;
+  /** A thank-you GitHub accepted, or set aside ("not now"): its job is done. */
+  markThanked(n: number): void;
+  /** Closes the day: the radio sums it up, its page joins the logbook. */
+  endDay(): void;
+  /** The day just closed, shown on screen until the player folds it away: the radio stands far from the office. */
+  closedDay: DayPage | null;
+  dismissClosedDay(): void;
+  /** The foreman stands by the site office, nearer than anything else: E closes the day there. */
+  nearOffice: boolean;
+  setNearOffice(n: boolean): void;
 }
 
 /** A card or a dialog is open over the site: it holds the keys, and the radio waits for it to close. */
 export const holdsKeys = (s: Pick<QuestState, "openCard" | "warm" | "thanking" | "pending" | "practiceDialog" | "teamDialog" | "talk" | "talkPrepared">) =>
   s.openCard !== null || s.warm !== null || s.thanking !== null || s.pending !== null
   || s.practiceDialog !== null || s.teamDialog !== null || s.talk !== null || s.talkPrepared !== null;
+
+/** E closes the day only by the office, with a day open (the demo and the configured board). */
+export const officeTakesE = (s: Pick<QuestState, "nearOffice" | "day">) => s.nearOffice && s.day !== null;
 
 /** E tells the radio again only when the foreman is by it and it has lines; otherwise E falls through to the pallet. */
 export const radioTakesE = (s: Pick<QuestState, "nearRadio" | "radioLines">) => s.nearRadio && s.radioLines.length > 0;
@@ -261,6 +284,7 @@ export const useQuest = create<QuestState>((set, get) => ({
       get().announce(...momentsBetween(shown(get().site), r.site));
       set({ toThank: offerThanks(get().siteKind, get().toThank, laidOn(r.site, laidBetween(shown(get().site), r.site))) });
       set({ site: r.site, viewer: r.viewer, mode: r.mode, demoReason: r.demoReason, load: { status: "ready" } });
+      get().tickDay();
     } catch (e) {
       // Before founding, the practice site is an empty plot: the mentor offers to found it.
       if (e instanceof ApiFailure && e.body.error === "practice-missing") {
@@ -273,6 +297,7 @@ export const useQuest = create<QuestState>((set, get) => ({
   setSite(site) {
     get().announce(...momentsBetween(shown(get().site), site));
     set({ site, toThank: offerThanks(get().siteKind, get().toThank, laidOn(site, laidBetween(shown(get().site), site))) });
+    get().tickDay();
   },
   setNear: (nearPallet) => set((s) => (s.nearPallet === nearPallet ? s : { nearPallet })),
   open(openCard) {
@@ -294,7 +319,11 @@ export const useQuest = create<QuestState>((set, get) => ({
   noticeAt: 0,
   say: (notice) => set((s) => ({ notice, noticeAt: s.noticeAt + 1 })),
   toThank: [],
-  dismissThank: (n) => set((s) => ({ toThank: s.toThank.filter((x) => x !== n) })),
+  dismissThank(n) {
+    set((s) => ({ toThank: s.toThank.filter((x) => x !== n) }));
+    // "Not now" is the player's choice: the day's thank-you for it is settled.
+    get().markThanked(n);
+  },
   thanking: null,
   talk: null,
   openTalk(talk) {
@@ -318,5 +347,57 @@ export const useQuest = create<QuestState>((set, get) => ({
   setNearRadio: (nearRadio) => set((s) => (s.nearRadio === nearRadio ? s : { nearRadio })),
   arrived: false,
   setArrived: () => set((s) => (s.arrived ? s : { arrived: true })),
+  day: null,
+  dayKey: null,
+  days: [],
+  thanked: [],
+  beginDay(key, date, laid) {
+    const site = get().site;
+    const kept = loadDay(key);
+    const day = kept ?? (site ? newDay(site, laid, date) : null);
+    if (day && !kept) saveDay(key, day);
+    set({ day, dayKey: key, days: loadDays(key) });
+    get().tickDay();
+    const now = get().day;
+    const variant = variantOf(date, VARIANTS);
+    const line = (key: string, values: Record<string, number> = {}): RadioLine => ({ key: `onAir.${key}`, values: { ...values, variant } });
+    if (!now || now.jobs.length === 0) return line("dayFree");
+    const left = now.done.filter((d) => !d).length;
+    if (!kept) return line("dayJobs", { count: now.jobs.length });
+    return left === 0 ? line("dayResumedDone") : line("dayResumed", { count: left });
+  },
+  tickDay() {
+    const { day, dayKey, site, thanked } = get();
+    if (!day || !dayKey || !site) return;
+    const next = tick(day, site, new Set(thanked));
+    if (next === day) return;
+    saveDay(dayKey, next);
+    set({ day: next });
+  },
+  markThanked(n) {
+    set((s) => (s.thanked.includes(n) ? s : { thanked: [...s.thanked, n] }));
+    get().tickDay();
+  },
+  endDay() {
+    get().tickDay();
+    const { day, dayKey, site } = get();
+    if (!day || !dayKey || !site) return;
+    const date = localDate(new Date());
+    const variant = variantOf(date, VARIANTS);
+    // What moved since the morning, as the radio tells it; then the day's jobs, kindly, whatever their count.
+    const moved = radioLines(day.morning, site, date, "");
+    const done = day.done.filter(Boolean).length;
+    const evening: RadioLine = day.jobs.length === 0
+      ? { key: "onAir.dayEveningFree", values: { variant } }
+      : { key: "onAir.dayEvening", values: { done, total: day.jobs.length, variant } };
+    const lines = [...moved, evening];
+    const days = closeDay(dayKey, day, lines);
+    set({ day: null, days, nearOffice: false, closedDay: days[0] ?? null });
+    get().playRadio(lines);
+  },
+  closedDay: null,
+  dismissClosedDay: () => set({ closedDay: null }),
+  nearOffice: false,
+  setNearOffice: (nearOffice) => set((s) => (s.nearOffice === nearOffice ? s : { nearOffice })),
   openThank: (thanking) => set((s) => ({ thanking, toThank: thanking === null ? s.toThank : s.toThank.filter((x) => x !== thanking) })),
 }));

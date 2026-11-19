@@ -33,6 +33,8 @@ import { groundTexture, paintedNumber } from "./textures.ts";
 import { Worker } from "./Worker.tsx";
 
 const YARD_DEPTH = 6;
+/** The office's door, this far toward the site from the office's middle (the side the foreman walks up to). */
+const OFFICE_DOOR = 2.6;
 const GROUND_SIZE = 400;
 
 const dash = new THREE.Object3D();
@@ -144,6 +146,7 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
   const zoneIndex = new Map(site.zones.map((z) => [z.name, z.index]));
   const width = site.zones.length * ZONE_SPACING + 10;
   const truckAt: [number, number, number] = [-width / 2 + 5, 0, YARD_Z - 5];
+  const officeSpot: [number, number, number] = [-width / 2 + 1, 0, YARD_Z - 4];
   const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
   const fence = useMemo(() => fenceAt(width), [width]);
   // The twelve workers nearest the foreman live fully; refreshed four times a second (a running foreman passes a
@@ -204,8 +207,9 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
           }
           return null;
         }} />
-        <RigidBody type="fixed" colliders="cuboid" position={[-width / 2 + 1, 0, YARD_Z - 4]}>
-          <Piece name="site_office" rotation-y={Math.PI / 2} />
+        <RigidBody type="fixed" colliders="cuboid" position={officeSpot}>
+          {/* A click on the office closes the day, as E does by its door. */}
+          <Piece name="site_office" rotation-y={Math.PI / 2} onClick={(e) => { e.stopPropagation(); if (useQuest.getState().day) useQuest.getState().endDay(); }} />
         </RigidBody>
         <PieceRow name="fence" xs={fence} z={6} outline={0.02} />
         {/* Keyed by colour too: a new jacket means a new skeleton, which the animations must bind to. */}
@@ -225,7 +229,7 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
         <TruckHop truckAt={truckAt} reduceMotion={reduceMotion}
           fromOf={(n) => { const p = layout.pallets.find((x) => x.number === n); return p ? [p.x, p.z] : null; }}
           colorOf={(n) => zoneColor(zoneIndex.get(site.pallets.find((x) => x.number === n)?.zone ?? "") ?? 0)} />
-        <Player pallets={solid} workers={spots} visitors={visitors} radioAt={RADIO_AT} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
+        <Player pallets={solid} workers={spots} visitors={visitors} radioAt={RADIO_AT} officeAt={[officeSpot[0] + OFFICE_DOOR, officeSpot[2]]} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />
       <Effects aoHalf={aoHalf} tiltShift={tiltShift} />

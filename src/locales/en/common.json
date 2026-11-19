@@ -68,7 +68,8 @@
     "empty": "Nothing sent yet today.",
     "applied": "sent",
     "stale": "stopped, out of date",
-    "failed": "refused by GitHub"
+    "failed": "refused by GitHub",
+    "sent": "Sent to GitHub"
   },
   "errors": {
     "githubAuthTitle": "The site office has no key to GitHub",
@@ -634,7 +635,31 @@
     "yourSite": "your site",
     "label": "The site radio",
     "listen": "{{key}}: listen to the radio again",
-    "listenTouch": "Tap the radio"
+    "listenTouch": "Tap the radio",
+    "dayJobs_0_one": "One job today, it is on the board by the office!",
+    "dayJobs_0_other": "{{count}} jobs today, they are on the board by the office!",
+    "dayJobs_1_one": "Today's menu: one job, chalked on the board!",
+    "dayJobs_1_other": "Today's menu: {{count}} jobs, chalked on the board!",
+    "dayJobs_2_one": "Sleeves up, folks: one job on today's board!",
+    "dayJobs_2_other": "Sleeves up, folks: {{count}} jobs on today's board!",
+    "dayFree_0": "The site is in order: a free day, enjoy it!",
+    "dayFree_1": "Nobody waiting, nothing stuck: a free day on the site!",
+    "dayFree_2": "Not a single job on the board today, what a site!",
+    "dayResumed_0_one": "Back to work: one job left on the board!",
+    "dayResumed_0_other": "Back to work: {{count}} jobs left on the board!",
+    "dayResumed_1_one": "We pick up where we left off: one job to go!",
+    "dayResumed_1_other": "We pick up where we left off: {{count}} jobs to go!",
+    "dayResumed_2_one": "The day goes on: one job still waiting!",
+    "dayResumed_2_other": "The day goes on: {{count}} jobs still waiting!",
+    "dayResumedDone_0": "Every job is done: close the day at the office whenever you like!",
+    "dayResumedDone_1": "The board is all ticked: the office waits to close the day!",
+    "dayResumedDone_2": "Nothing left on the board: the day can end at the office!",
+    "dayEvening_0": "Day over! {{done}} of {{total}} jobs done. See you tomorrow!",
+    "dayEvening_1": "That's the whistle: {{done}} of {{total}} jobs done today. Well played!",
+    "dayEvening_2": "Lights out on the site: {{done}} of {{total}} jobs done. Rest well!",
+    "dayEveningFree_0": "Day over on a site in order. See you tomorrow!",
+    "dayEveningFree_1": "A calm day ends, the site is in order. Rest well!",
+    "dayEveningFree_2": "That's the whistle on a quiet day. See you tomorrow!"
   },
   "settings": {
     "title": "Settings",
@@ -709,5 +734,27 @@
     },
     "welcomeDraft": "Hi {{login}}, thank you for this first contribution! Someone from the team will review it soon.",
     "welcomeGuide": "If you want to know how we work, our contributing guide is here: {{url}}"
+  },
+  "day": {
+    "title": "Today's jobs",
+    "count": "{{done}} of {{total}}",
+    "fold": "Fold the day's board",
+    "unfold": "Open the day's board",
+    "free": "The site is in order: a free day.",
+    "done": "done",
+    "close": "Close the day",
+    "nearOffice": "{{key}}: close the day",
+    "nearOfficeTouch": "Tap to close the day",
+    "pages": "Days",
+    "page": "Day {{n}}, {{date}}",
+    "freePage": "a free day",
+    "job": {
+      "answer": "Answer {{login}} on #{{pallet}}",
+      "welcome": "Welcome {{login}} (pull request #{{pr}})",
+      "thank": "Thank for #{{pallet}}",
+      "unstick": "Get #{{pallet}} out of the stock"
+    },
+    "closedTitle": "Day {{n}} is over",
+    "closedOk": "See you tomorrow"
   }
 }

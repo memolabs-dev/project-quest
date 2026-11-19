@@ -9,6 +9,8 @@ import { momentsAfterMove } from "../moments/diff.ts";
 import { REFUSAL_SECONDS } from "../moments/pallet.ts";
 import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
+import { DayBoard } from "./DayBoard.tsx";
+import { jobWords } from "../day.ts";
 import { Mentor } from "./Mentor.tsx";
 import { PracticeDialogs } from "./PracticeDialogs.tsx";
 import { Settings } from "./Settings.tsx";
@@ -196,12 +198,30 @@ function Logbook() {
   const [openLog, setOpenLog] = useState(false);
   const [rows, setRows] = useState<LoggedActionView[]>([]);
   const site = useQuest((s) => s.site);
+  const days = useQuest((s) => s.days);
   useEffect(() => { if (openLog) void api.log().then(setRows).catch(() => setRows([])); }, [openLog, site]);
   return (
     <div className="logbook">
       <button type="button" aria-expanded={openLog} onClick={() => setOpenLog((v) => !v)}>{t("log.title")}</button>
       {openLog && (
         <section aria-label={t("log.title")} className="log-panel">
+          {days.length > 0 && (
+            <>
+              <h3>{t("day.pages")}</h3>
+              <ol className="day-pages" reversed>
+                {days.map((d) => (
+                  <li key={d.n}>
+                    <b>{t("day.page", { n: d.n, date: d.date })}</b>
+                    {d.jobs.length > 0 ? <> · {t("day.count", { done: d.done.filter(Boolean).length, total: d.jobs.length })}</> : <> · {t("day.freePage")}</>}
+                    {d.jobs.length > 0 && (
+                      <ul>{d.jobs.map((j, i) => <li key={i}>{d.done[i] ? "✓ " : "· "}{t(...jobWords(j))}</li>)}</ul>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              <h3>{t("log.sent")}</h3>
+            </>
+          )}
           {rows.length === 0 ? <p>{t("log.empty")}</p> : (
             <ol>
               {rows.map((r) => (
@@ -270,6 +290,7 @@ export function Overlays() {
         {!visiting && <Logbook />}
       </div>
       <Mentor />
+      {!visiting && <DayBoard />}
       {openCard !== null && <PalletCard key={openCard} number={openCard} />}
       <ConfirmMove />
       <ThankOffer />

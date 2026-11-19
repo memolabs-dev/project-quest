@@ -76,8 +76,11 @@ export function ConfirmWarm() {
         say(t(`warm.done.${warm.kind}`, { sign: GLYPH[warm.content] }));
         setWarm(null);
         openPicker(null);
-        // The thank-you is done: its words go with it.
-        if (warm.kind === "thank") openThank(null);
+        // The thank-you is done: its words go with it, and the day's job for it.
+        if (warm.kind === "thank") {
+          openThank(null);
+          useQuest.getState().markThanked(warm.issueNumber);
+        }
       } else {
         announce({ kind: "refused", pallet: warm.issueNumber });
         say(t("confirm.github", { message: r.message }));

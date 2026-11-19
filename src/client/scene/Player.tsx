@@ -25,7 +25,7 @@ const CAMERA_OFFSET = new THREE.Vector3(...CAMERA_OFFSET_XYZ);
 /** The camera looks a little ahead of the player, so the yards and buildings stay in view. */
 const LOOK_AHEAD = new THREE.Vector3(...LOOK_AHEAD_XYZ);
 
-export function Player({ pallets, workers, visitors, radioAt, reduceMotion, body, arrival, look }: {
+export function Player({ pallets, workers, visitors, radioAt, officeAt, reduceMotion, body, arrival, look }: {
   pallets: { number: number; x: number; z: number }[];
   /** The workers' spots: the nearest within reach can be cheered. */
   workers: { login: string; x: number; z: number; pallet: number }[];
@@ -33,6 +33,8 @@ export function Player({ pallets, workers, visitors, radioAt, reduceMotion, body
   visitors: Visitor[];
   /** The radio set's spot on the ground (x, z). */
   radioAt: [number, number];
+  /** The site office's door (x, z): E closes the day there. */
+  officeAt: [number, number];
   reduceMotion: boolean;
   body: RefObject<EcctrlHandle | null>;
   /** Seconds left of the arrival fly-over; the camera is the drone's until it reaches zero. */
@@ -51,6 +53,7 @@ export function Player({ pallets, workers, visitors, radioAt, reduceMotion, body
   // A card or a dialog over the site holds the keys: the foreman stands still (typed words never walk him).
   const cardOpen = useQuest(holdsKeys);
   const setNearRadio = useQuest((s) => s.setNearRadio);
+  const setNearOffice = useQuest((s) => s.setNearOffice);
   const setArrived = useQuest((s) => s.setArrived);
   const sendEvent = useQuest((s) => s.sendEvent);
   // The Apprentice's first reward: their initial on the helmet.
@@ -120,6 +123,9 @@ export function Player({ pallets, workers, visitors, radioAt, reduceMotion, body
     // The radio set: it takes the E key only when it is nearer than any pallet or visitor.
     const radioD = Math.hypot(radioAt[0] - pos.x, radioAt[1] - pos.z);
     setNearRadio(radioD < NEAR_DISTANCE && radioD < Math.min(bestD, talkD));
+    // The office's door, the same way: nearer than any pallet, visitor or the radio.
+    const officeD = Math.hypot(officeAt[0] - pos.x, officeAt[1] - pos.z);
+    setNearOffice(officeD < NEAR_DISTANCE && officeD < Math.min(bestD, talkD, radioD));
   });
 
   return (
