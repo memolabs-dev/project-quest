@@ -14,6 +14,7 @@ import { useQuest } from "../store.ts";
 import { WarmPicker } from "../ui/Warm.tsx";
 import { GLYPH } from "../ui/warm-gesture.ts";
 import { headTurn } from "./head.ts";
+import { tinted } from "./tint.ts";
 import { toonOf } from "./toon.ts";
 import { type ClipPlan, greeting, headYaw, nextClip } from "./people.ts";
 import { badgeInitial, idleOffset, jacketColor, type WorkerSpot } from "./show.ts";
@@ -52,7 +53,7 @@ export function Worker({ spot, lively, reduceMotion, visitor }: {
   const [named, setNamed] = useState(false);
   const picking = useQuest((s) => s.picker?.login === spot.login);
 
-  // Each worker needs its own skeleton, and its own jacket material.
+  // Each worker needs its own skeleton; the jacket is shared by every worker of the same trade (one toon material).
   const { body, scale } = useMemo(() => {
     const body = clone(scene);
     body.traverse((o) => {
@@ -60,16 +61,15 @@ export function Worker({ spot, lively, reduceMotion, visitor }: {
       if (!m.isMesh) return;
       m.castShadow = true;
       const mat = m.material as THREE.MeshStandardMaterial;
-      if (mat.name === "jacket") {
-        const jacket = mat.clone();
-        jacket.color = new THREE.Color(color);
-        m.material = toonOf(jacket);
-      } else m.material = toonOf(mat);
+      m.material = toonOf(mat.name === "jacket" && mat.isMeshStandardMaterial ? tinted(mat, color) : mat);
     });
     const box = new THREE.Box3().setFromObject(body);
     const h = box.max.y - box.min.y;
     return { body, scale: h > 0 ? HEIGHT / h : 1 };
   }, [scene, color]);
+
+  // The cloned skeleton keeps its bones in a texture on the GPU: freed when the worker leaves the site.
+  useEffect(() => () => body.traverse((o) => { (o as THREE.SkinnedMesh).skeleton?.dispose(); }), [body]);
 
   // The mixer's root is the body, which lives as long as the worker: the group is remade when their crate moves.
   const { actions } = useAnimations(animations, body);
@@ -133,6 +133,8 @@ export function Worker({ spot, lively, reduceMotion, visitor }: {
     const target = lively ? headYaw({ x: spot.x, z: spot.z, facing: FACING }, playerPosition, reduceMotion) : 0;
     easing.damp(plan.current, "yaw", target, 0.25, delta);
     head.current.apply(plan.current.yaw);
+    // Read by the browser tests: how far the head turns, and whether a wave is playing.
+    if (group.current) Object.assign(group.current.userData, { yaw: plan.current.yaw, waving: clips.current.wave > 0 });
   });
 
   return (
@@ -146,9 +148,14 @@ export function Worker({ spot, lively, reduceMotion, visitor }: {
       <Html position={[0, HEIGHT + 0.45, 0]} center distanceFactor={14} zIndexRange={[5, 0]}>
         {visitor && <div className="talk-bubbles"><div className="talk-bubble"><b aria-hidden="true">👋</b> {spot.login}</div></div>}
         <Badge key={spot.avatarUrl} login={spot.login} avatarUrl={spot.avatarUrl} color={color} named={named} />
-        {picking && <WarmPicker pallet={spot.pallet} login={spot.login} />}
         {shown && <span key={shown.at} className={reduceMotion ? "greet-emoji" : "greet-emoji rising"} aria-hidden="true">{shown.emoji}</span>}
       </Html>
+      {/* The signs keep their size whatever the distance: buttons stay 44 px, even at the edge of the reach. */}
+      {picking && (
+        <Html position={[0, HEIGHT + 1.1, 0]} center zIndexRange={[6, 0]}>
+          <WarmPicker pallet={spot.pallet} login={spot.login} />
+        </Html>
+      )}
     </RigidBody>
   );
 }

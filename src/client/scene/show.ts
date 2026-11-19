@@ -63,7 +63,7 @@ export function workerSpots(site: Site, pallets: { number: number; x: number; z:
     standing.set(first, k + 1);
     spots.push({
       login: w.login, avatarUrl: w.avatarUrl, trade: byNumber.get(first)?.trade ?? null, x: p.x + 0.7 - k * 0.6, z: p.z - 0.8,
-      busy: workerBusy(site, w.carrying), pallet: first,
+      busy: workerBusy(site, first), pallet: first,
     });
   }
   return spots;
@@ -134,9 +134,14 @@ export function solidPallets<P extends { number: number }>(site: { pallets: { nu
   return pallets.filter((p) => !gone.has(p.number));
 }
 
-/** A worker is at work while an open pallet they carry stands in a middle zone (not the stock, not done). */
-export function workerBusy(site: Site, carrying: number[]): boolean {
-  const first = site.zones[0]?.name;
-  const last = site.zones[site.zones.length - 1]?.name;
-  return site.pallets.some((p) => carrying.includes(p.number) && !p.closed && p.zone !== first && p.zone !== last);
+/**
+ * A worker is at work while the pallet they stand by is open and being laid (the board's "In progress" column, whatever
+ * its case). A board without that column counts any middle zone (neither the stock nor done).
+ */
+export function workerBusy(site: Site, pallet: number): boolean {
+  const p = site.pallets.find((x) => x.number === pallet);
+  if (!p || p.closed) return false;
+  const laying = site.zones.find((z) => z.name.toLowerCase() === "in progress");
+  if (laying) return p.zone === laying.name;
+  return p.zone !== site.zones[0]?.name && p.zone !== site.zones[site.zones.length - 1]?.name;
 }

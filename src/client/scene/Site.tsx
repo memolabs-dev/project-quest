@@ -110,7 +110,7 @@ function Yard({ name, index, x, z, count }: { name: string; index: number; x: nu
       {[[0, 0.5, w, 0], [0, -YARD_DEPTH + 0.5, w, 0], [-w / 2, cz, YARD_DEPTH, Math.PI / 2], [w / 2, cz, YARD_DEPTH, Math.PI / 2]].map(([tx, tz, len, rot], i) => (
         <mesh key={`t${i}`} position={[tx, 0.8, tz]} rotation-y={rot}>
           <boxGeometry args={[len, 0.07, 0.012]} />
-          <meshStandardMaterial ref={(m) => { if (m) withWind(m); }} color={i % 2 ? "#F7F2E8" : "#E8483B"} />
+          <meshStandardMaterial ref={(m) => { if (m) withWind(m, len / 2); }} color={i % 2 ? "#F7F2E8" : "#E8483B"} />
         </mesh>
       ))}
       <Piece name="zone_sign" position={[0, 0, 0.9]} />
@@ -146,7 +146,8 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
   const truckAt: [number, number, number] = [-width / 2 + 5, 0, YARD_Z - 5];
   const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
   const fence = useMemo(() => fenceAt(width), [width]);
-  // The twelve workers nearest the foreman live fully; refreshed every second, not every frame.
+  // The twelve workers nearest the foreman live fully; refreshed four times a second (a running foreman passes a
+  // worker in about a second), not every frame.
   const [lively, setLively] = useState(() => livelyWorkers(spots, playerPosition));
   useEffect(() => {
     const update = () => setLively((was) => {
@@ -154,7 +155,7 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
       return sameMembers(was, now) ? was : now;
     });
     update();
-    const every = setInterval(update, 1000);
+    const every = setInterval(update, 250);
     return () => clearInterval(every);
   }, [spots]);
   const termites = useMemo(() => termiteSpots(site, layout.pallets), [site, layout]);
@@ -174,7 +175,7 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
     <>
       <color attach="background" args={["#F3D9B5"]} />
       <fog attach="fog" args={["#F3D9B5", 45, 110]} />
-      <SiteLight />
+      <SiteLight arrival={arrival} look={look} />
       <Weather reduceMotion={reduceMotion} />
       <Physics>
         <Ground width={width} />
@@ -237,7 +238,7 @@ export function SiteCanvas({ site }: { site: SiteModel }) {
   const miniature = useQuest((s) => s.settings.miniature);
   // A weak machine lowers the quality one step per drop of the frame rate, and raises it back when it holds.
   const [level, setLevel] = useState(QUALITY_START);
-  const q = quality(level.level, miniature);
+  const q = quality(level.level, miniature, window.devicePixelRatio);
   // A visit's photo reads the canvas after the frame: it must keep its last frame (#16).
   const keepFrame = useQuest((s) => s.siteKind === "visit");
   return (

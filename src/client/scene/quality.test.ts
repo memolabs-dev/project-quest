@@ -15,6 +15,12 @@ describe("quality", () => {
     expect(stepQuality(0, "incline")).toBe(0);
   });
 
+  it("on a screen of one pixel per point, the first step still draws fewer pixels", () => {
+    expect(quality(0, true, 1).dpr).toEqual([1, 2]);
+    expect(quality(1, true, 1).dpr).toEqual([0.75, 0.75]);
+    expect(quality(1, true, 2).dpr).toEqual([1, 1]);
+  });
+
   it("the miniature setting turns the effect off at every level", () => {
     for (let level = 0; level < 4; level++) expect(quality(level, false).tiltShift).toBe(false);
   });

@@ -7,6 +7,8 @@ export const GESTURES = ["Idle", "PickUp", "Interact"] as const;
 export type Gesture = (typeof GESTURES)[number];
 
 const NEAR = 4;
+/** Past 4 m the head turns back over half a metre: a foreman standing at the edge never makes it jump. */
+const LOOK_FADE = 0.5;
 const MAX_YAW = Math.PI / 3;
 const REST_SECONDS = 12;
 
@@ -16,13 +18,10 @@ const seeded = (login: string, n: number) => {
   return x - Math.floor(x);
 };
 
-/** The worker's n-th gesture and how long it lasts: 4 to 9 seconds, never the same clip twice in a row. */
-export function gestureAt(login: string, n: number): { clip: Gesture; seconds: number } {
-  let i = -1;
-  for (let k = 0; k <= n; k++) {
-    const next = Math.floor(seeded(login, k) * GESTURES.length);
-    i = next === i ? (next + 1) % GESTURES.length : next;
-  }
+/** The worker's n-th gesture after `previous` and how long it lasts: 4 to 9 seconds, never the same clip twice in a row. */
+export function gestureAt(login: string, n: number, previous: Gesture | null): { clip: Gesture; seconds: number } {
+  const next = Math.floor(seeded(login, n) * GESTURES.length);
+  const i = GESTURES[next] === previous ? (next + 1) % GESTURES.length : next;
   return { clip: GESTURES[i], seconds: 4 + seeded(login, n + 1000) * 5 };
 }
 
@@ -47,7 +46,7 @@ export function nextClip(p: ClipPlan, o: { busy: boolean; lively: boolean; login
   if (!o.lively) return "Unarmed_Idle";
   p.left -= o.delta;
   if (p.left <= 0 || !p.gesture) {
-    const g = gestureAt(o.login, p.step++);
+    const g = gestureAt(o.login, p.step++, p.gesture);
     p.gesture = g.clip;
     p.left = g.seconds;
   }
@@ -57,14 +56,16 @@ export function nextClip(p: ClipPlan, o: { busy: boolean; lively: boolean; login
 /** Whether two sets hold the same logins: the scene re-renders only when the twelve change. */
 export const sameMembers = (a: Set<string>, b: Set<string>) => a.size === b.size && [...a].every((x) => b.has(x));
 
-/** How far a worker's head turns toward the player: within 4 m, clamped to 60°, none with reduced motion. */
+/** How far a worker's head turns toward the player: within 4 m, clamped to 60°, back to 0 over the next half metre; none with reduced motion. */
 export function headYaw(worker: { x: number; z: number; facing: number }, player: { x: number; z: number }, reduced: boolean): number {
   const dx = player.x - worker.x;
   const dz = player.z - worker.z;
-  if (reduced || Math.hypot(dx, dz) > NEAR) return 0;
+  const d = Math.hypot(dx, dz);
+  if (reduced || d >= NEAR + LOOK_FADE) return 0;
   let a = Math.atan2(dx, dz) - worker.facing;
   a = Math.atan2(Math.sin(a), Math.cos(a));
-  return Math.max(-MAX_YAW, Math.min(MAX_YAW, a));
+  const fade = d <= NEAR ? 1 : (NEAR + LOOK_FADE - d) / LOOK_FADE;
+  return Math.max(-MAX_YAW, Math.min(MAX_YAW, a)) * fade;
 }
 
 /** Near the player: a wave the first time in the visit (the name only with reduced motion), then the name. */

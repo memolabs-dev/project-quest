@@ -149,9 +149,12 @@ export function Weather({ reduceMotion }: { reduceMotion: boolean }) {
     if (!m) return;
     const birds = reduceMotion ? null : flockAt(clock.elapsedTime, BIRD_SEED);
     m.count = birds ? birds.length : 0;
-    birds?.forEach((b, i) => {
+    // No bird in the sky: nothing to send to the GPU.
+    if (!birds?.length) return;
+    birds.forEach((b, i) => {
       tmp.position.set(b.x, b.y, b.z);
-      tmp.rotation.set(0, 0, b.flap * 0.5);
+      // Wings across the flight (along z), flapping about the flight axis (x).
+      tmp.rotation.set(b.flap * 0.5, 0, 0);
       tmp.scale.set(1, 1, 1);
       tmp.updateMatrix();
       m.setMatrixAt(i, tmp.matrix);
@@ -160,7 +163,7 @@ export function Weather({ reduceMotion }: { reduceMotion: boolean }) {
   });
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, FLOCK]} frustumCulled={false} name="birds">
-      <boxGeometry args={[0.6, 0.04, 0.16]} />
+      <boxGeometry args={[0.16, 0.04, 0.6]} />
       <meshBasicMaterial color="#3A2A1F" />
     </instancedMesh>
   );

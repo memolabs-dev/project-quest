@@ -2,7 +2,7 @@
 // shadows stay sharp near them with a smaller box. Updated each frame through refs: nothing re-renders.
 import { Sky } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { type ComponentRef, useRef } from "react";
+import { type ComponentRef, type RefObject, useRef } from "react";
 import * as THREE from "three";
 import { playerPosition } from "../moments/player.ts";
 import { DAY_SECONDS, daylight, lightAt, shadowBox } from "./daylight.ts";
@@ -11,24 +11,34 @@ const HALF = 30;
 const MAP = 2048;
 /** The site opens mid-morning: the first view has short, readable shadows. */
 const START = DAY_SECONDS * 0.25;
+/** A frame counts for a tenth of a second at most: a tab left hidden does not jump the light forward on return. */
+const MAX_STEP = 0.1;
 
-export function SiteLight() {
+export function SiteLight({ arrival, look }: {
+  /** Seconds left of the drone's fly-over, and where it looks: the shadow box follows that point meanwhile. */
+  arrival: RefObject<number>;
+  look: RefObject<THREE.Vector3>;
+}) {
   const sun = useRef<THREE.DirectionalLight>(null);
   const sky = useRef<ComponentRef<typeof Sky>>(null);
   const hemi = useRef<THREE.HemisphereLight>(null);
-  useFrame(({ clock }) => {
-    const d = daylight(clock.elapsedTime + START);
+  const time = useRef(START);
+  useFrame((_, delta) => {
+    time.current += Math.min(delta, MAX_STEP);
+    const d = daylight(time.current);
     const light = sun.current;
     if (light) {
-      const box = shadowBox(playerPosition, d.sun, HALF, MAP);
+      // During the fly-over the drone looks across the whole site: the box stands where it looks, not on the foreman.
+      const focus = arrival.current > 0 ? look.current : playerPosition;
+      const box = shadowBox(focus, d.sun, HALF, MAP);
       light.target.position.set(box.x, box.y, box.z);
       light.target.updateMatrixWorld();
       light.position.set(...lightAt(box, d.sun));
-      light.color.set(d.color);
+      light.color.copy(d.color);
       light.intensity = d.intensity;
     }
     (sky.current?.material as THREE.ShaderMaterial | undefined)?.uniforms.sunPosition.value.set(...d.sun);
-    hemi.current?.color.set(d.color);
+    hemi.current?.color.copy(d.color);
   });
   return (
     <>

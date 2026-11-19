@@ -216,6 +216,10 @@ const PRACTICE_MISSING = { error: "practice-missing" as const, message: "Your pr
 export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settleMs?: number } = {}) {
   // A page marked demo is the demo, whatever the value: "?demo=" too (the client reads it the same way).
   const pick = (c: { req: { query(name: string): string | undefined } }) => (demo && c.req.query("demo") !== undefined ? demo : live);
+  /** A page marked demo on a server without the demo: it must never reach the live project. */
+  const demoMissing = (c: { req: { query(name: string): string | undefined } }) => !demo && c.req.query("demo") !== undefined;
+  /** The thank-yous on their way, by pallet: two tabs never post two (a later one finds the first already sent). */
+  const thanking = new Set<string>();
   // Levels always belong to the real player, even while they play the tutorial on the demo site.
   const levels = async () => checkLevels(live, (await live.viewer()).login);
   // The mayor changes main once, for level 13, while the branch has not seen main move yet.
@@ -393,6 +397,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       kind: z.enum(["cheer", "uncheer", "thank"]), repo: z.string(), issueNumber: z.number().int(), content: z.string(),
       words: z.string().max(65_536).nullable(), mutations,
     })), async (c) => {
+      if (demoMissing(c)) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       const deps = pick(c);
       const claim = c.req.valid("json") as unknown as PreparedWarm;
       const home = `${deps.config.owner}/${deps.config.repo}`;
@@ -406,12 +411,19 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       }
       const { login } = await deps.viewer();
       const entry = { playerLogin: login, gesture: rebuilt.kind, target: `${home}#${rebuilt.issueNumber}`, payload: rebuilt.mutations };
+      const lock = `${deps.mode}:${home.toLowerCase()}#${rebuilt.issueNumber}`;
+      if (rebuilt.kind === "thank" && thanking.has(lock)) {
+        return c.json({ error: "gesture" as const, message: "A thank-you for this pallet is already on its way: nothing was sent" }, 409);
+      }
       let result: Awaited<ReturnType<Deps["applyWarm"]>>;
+      if (rebuilt.kind === "thank") thanking.add(lock);
       try {
         result = await deps.applyWarm(rebuilt);
       } catch (e) {
         await record(deps, { ...entry, result: "failed", githubResponse: { message: e instanceof Error ? e.message : String(e) } });
         throw e;
+      } finally {
+        thanking.delete(lock);
       }
       await record(deps, { ...entry, result: result.ok ? "applied" : "failed", githubResponse: result.ok ? null : result });
       if (!result.ok) return c.json(result);
@@ -445,6 +457,7 @@ export function createApp(live: Deps, demo?: Deps, { settleMs = 1500 }: { settle
       kind: z.enum(["answer", "welcome"]), repo: z.string(), to: z.string(), words: z.string().max(65_536),
       target: z.looseObject({ number: z.number().int() }), mutations,
     })), async (c) => {
+      if (demoMissing(c)) return c.json({ error: "gesture" as const, message: "The demo site sends nothing" }, 409);
       const deps = pick(c);
       const claim = c.req.valid("json") as unknown as PreparedTalk;
       const { login } = await deps.viewer();

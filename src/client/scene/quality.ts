@@ -2,8 +2,13 @@
 // order, the pixel ratio, then ambient occlusion at half resolution, then the miniature effect; back up when it holds.
 export const QUALITY_LEVELS = 4;
 
-export function quality(level: number, miniature: boolean): { dpr: [number, number]; aoHalf: boolean; tiltShift: boolean } {
-  return { dpr: level >= 1 ? [1, 1] : [1, 2], aoHalf: level >= 2, tiltShift: miniature && level < 3 };
+/**
+ * The quality at a level. `screen` is the screen's own pixel ratio: lowering to one pixel per point changes nothing on
+ * a screen that already has one, so there the first step draws three pixels for four.
+ */
+export function quality(level: number, miniature: boolean, screen = 2): { dpr: [number, number]; aoHalf: boolean; tiltShift: boolean } {
+  const low: [number, number] = screen > 1 ? [1, 1] : [0.75, 0.75];
+  return { dpr: level >= 1 ? low : [1, 2], aoHalf: level >= 2, tiltShift: miniature && level < 3 };
 }
 
 export const stepQuality = (level: number, change: "decline" | "incline"): number =>

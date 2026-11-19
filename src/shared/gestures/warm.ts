@@ -37,8 +37,8 @@ const emojiOf = (content: string): WarmEmoji => {
   return content;
 };
 
-/** `@login` at the start or after a space or punctuation, never inside an address. */
-const MENTION = /(^|[^\w@.])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))/g;
+/** `@login` (or `@org/team`) at the start or after a space or punctuation, never inside an address. */
+const MENTION = /(^|[^\w@.])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,38})(?:\/[A-Za-z0-9][A-Za-z0-9_.-]*[A-Za-z0-9_-])?)/g;
 /**
  * Code, where GitHub notifies nobody: a run of backticks up to the same run, within a paragraph (a fenced block too,
  * when it holds no empty line). Anything else is read as words, so a doubt warns rather than stays quiet.

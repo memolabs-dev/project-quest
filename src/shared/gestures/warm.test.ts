@@ -66,6 +66,8 @@ describe("warm gestures", () => {
 
   it("a mention written as code notifies nobody, so it is not warned about", () => {
     expect(mentionsIn("`@tom` and @ana")).toEqual(["ana"]);
+    // A team notifies all its members: it shows whole.
+    expect(mentionsIn("ping @dataforgood/tech-leads.")).toEqual(["dataforgood/tech-leads"]);
     expect(mentionsIn("see ``x @tom y`` then")).toEqual([]);
     expect(mentionsIn("```\n@tom\n```\nand @jo")).toEqual(["jo"]);
     // A lone backtick opens no code: the mention still notifies.

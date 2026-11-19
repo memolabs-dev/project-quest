@@ -62,3 +62,44 @@ test("the foreman sits after a while and stands at a key", async ({ page }) => {
   await expect.poll(() => foremanClip(page), { timeout: 3000 }).not.toBe("Sit_Floor_Idle");
   await page.keyboard.up("KeyW");
 });
+
+/** A worker's head turn and wave, read from the scene (the worker's animated group, not its body). */
+const workerLife = (page: Page, login: string) => page.evaluate(async (who) => {
+  const urls = performance.getEntriesByType("resource").map((e) => e.name);
+  const fiber = await import(urls.find((u) => /\/deps\/@react-three_fiber\.js/.test(u))!);
+  const state = [...fiber._roots.values()][0].store.getState();
+  const group = state.scene.getObjectsByProperty("name", `worker-${who}`).find((o: { userData: { clip?: string } }) => o.userData.clip !== undefined);
+  return group ? { yaw: group.userData.yaw as number, waving: group.userData.waving as boolean } : null;
+}, login);
+
+/** Walks forward until a worker's name shows; returns their login. */
+const walkToAWorker = async (page: Page) => {
+  await page.keyboard.down("KeyW");
+  await expect(page.locator(".worker-name").first()).toBeVisible({ timeout: 8000 });
+  await page.keyboard.up("KeyW");
+  return (await page.locator(".worker-name").first().textContent())!;
+};
+
+test("near a worker, their head turns toward the foreman and they wave once, then go back to work", async ({ page }) => {
+  await ready(page);
+  const login = await walkToAWorker(page);
+  // The wave starts with the name and lasts one clip: seen while it plays, then over.
+  await expect.poll(async () => (await workerLife(page, login))?.waving, { timeout: 2000, intervals: [50] }).toBe(true);
+  await expect.poll(async () => Math.abs((await workerLife(page, login))?.yaw ?? 0), { timeout: 5000 }).toBeGreaterThan(0.05);
+  await expect.poll(async () => (await workerLife(page, login))?.waving, { timeout: 8000 }).toBe(false);
+});
+
+test("with reduced motion a worker shows their name only: no wave, no head turn", async ({ page }) => {
+  await ready(page);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /^Reduced$/ }).check();
+  // Closed by its button: the focus leaves the radio input, where keys are words and never walk the foreman.
+  await page.getByRole("button", { name: "Settings" }).click();
+  const login = await walkToAWorker(page);
+  for (let i = 0; i < 6; i++) {
+    expect(await workerLife(page, login)).toEqual({ yaw: 0, waving: false });
+    await page.waitForTimeout(250);
+  }
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /Follow my system/ }).check();
+});

@@ -44,8 +44,10 @@
   display: grid; place-items: center; overflow: hidden; box-shadow: var(--shadow); pointer-events: none;
 }
 .worker-badge img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.worker-tag { display: grid; justify-items: center; gap: 4px; pointer-events: none; }
+.worker-tag { display: grid; justify-items: center; gap: 4px; pointer-events: none; position: relative; }
+/* Under the badge, out of the flow: the badge stays where it is when the name appears. */
 .worker-name {
+  position: absolute; top: calc(100% + 4px);
   background: var(--paper); border: var(--line); border-radius: 999px; padding: 1px 8px;
   font-weight: 800; font-size: 13px; white-space: nowrap; box-shadow: var(--shadow);
 }

@@ -8,15 +8,18 @@ const MORNING = new THREE.Color("#FFC98F");
 const NOON = new THREE.Color("#FFE9C7");
 const tmp = new THREE.Color();
 
-/** The sun's position, the light's colour and strength, and the time of day (0 morning, 1 evening) at `seconds`. */
-export function daylight(seconds: number): { sun: [number, number, number]; color: string; intensity: number; sky: number } {
+/**
+ * The sun's position, the light's colour and strength, and the time of day (0 morning, 1 evening) at `seconds`.
+ * The colour is one shared object, rewritten on each call (read every frame, it builds nothing): copy it to keep it.
+ */
+export function daylight(seconds: number): { sun: [number, number, number]; color: THREE.Color; intensity: number; sky: number } {
   const t = (((seconds % (2 * DAY_SECONDS)) + 2 * DAY_SECONDS) % (2 * DAY_SECONDS)) / DAY_SECONDS;
   const sky = t <= 1 ? t : 2 - t;
   const high = Math.sin(Math.PI * sky);
   const turn = Math.PI * (0.15 + 0.7 * sky);
   return {
     sun: [-Math.cos(turn) * 30, 6 + 18 * high, 18],
-    color: `#${tmp.copy(MORNING).lerp(NOON, high).getHexString()}`,
+    color: tmp.copy(MORNING).lerp(NOON, high),
     intensity: 2.0 + 0.8 * high,
     sky,
   };

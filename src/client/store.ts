@@ -76,6 +76,8 @@ interface QuestState {
   setWarm(p: PreparedWarm | null): void;
   /** The one notice over the site (a gesture's outcome); it clears by itself. */
   notice: string | null;
+  /** Grows with each notice said, so the same words said again show their full time again. */
+  noticeAt: number;
   say(text: string | null): void;
   /** Pallets just laid, waiting for the player's thank-you or "not now"; each is offered once. */
   toThank: number[];
@@ -289,7 +291,8 @@ export const useQuest = create<QuestState>((set, get) => ({
   warm: null,
   setWarm: (warm) => set({ warm }),
   notice: null,
-  say: (notice) => set({ notice }),
+  noticeAt: 0,
+  say: (notice) => set((s) => ({ notice, noticeAt: s.noticeAt + 1 })),
   toThank: [],
   dismissThank: (n) => set((s) => ({ toThank: s.toThank.filter((x) => x !== n) })),
   thanking: null,

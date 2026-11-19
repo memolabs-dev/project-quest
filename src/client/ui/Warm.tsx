@@ -21,7 +21,9 @@ export function WarmPicker({ pallet, login }: { pallet: number; login: string | 
   // Above a worker the signs open at R: the first one takes the focus, so the keys go on.
   useEffect(() => { if (login) first.current?.focus(); }, [login]);
   return (
-    <div className="warm-picker" role="group" aria-label={login ? t("warm.cheerWho", { login }) : t("warm.cheer")}>
+    // Space presses the focused sign; it must not also reach the keys that make the foreman jump (they listen on the window).
+    <div className="warm-picker" role="group" aria-label={login ? t("warm.cheerWho", { login }) : t("warm.cheer")}
+      onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") e.stopPropagation(); }}>
       {WARM_EMOJIS.map((e, i) => {
         const pressed = given.includes(e);
         return (
@@ -48,6 +50,7 @@ export function ConfirmWarm() {
   const say = useQuest((s) => s.say);
   const greetWith = useQuest((s) => s.greetWith);
   const openThank = useQuest((s) => s.openThank);
+  const refresh = useQuest((s) => s.refresh);
   const busy = useRef(false);
   const [sending, setSending] = useState(false);
   const sendRef = useRef<HTMLButtonElement>(null);
@@ -79,12 +82,15 @@ export function ConfirmWarm() {
         announce({ kind: "refused", pallet: warm.issueNumber });
         say(t("confirm.github", { message: r.message }));
         setWarm(null);
+        // A sign given or taken back outside the game is why, often: the site is read again, the signs come right.
+        void refresh();
       }
     } catch (e) {
       // Refused before GitHub (no access, no scope, GitHub unreachable): the same soft refusal as GitHub's own.
       announce({ kind: "refused", pallet: warm.issueNumber });
       say(e instanceof ApiFailure ? e.message : t("errors.generic"));
       setWarm(null);
+      void refresh();
     } finally {
       setSending(false);
       busy.current = false;
@@ -116,12 +122,14 @@ export function ConfirmWarm() {
 /** The one notice over the site: a gesture's outcome, cleared after a few seconds. */
 export function Notice() {
   const notice = useQuest((s) => s.notice);
+  const at = useQuest((s) => s.noticeAt);
   const say = useQuest((s) => s.say);
+  // Keyed by the count: the same words said again restart their time.
   useEffect(() => {
     if (!notice) return;
     const clear = setTimeout(() => say(null), 6000);
     return () => clearTimeout(clear);
-  }, [notice, say]);
+  }, [notice, at, say]);
   return <div className="toast" role="status" aria-live="polite">{notice}</div>;
 }
 
@@ -134,9 +142,11 @@ export function ThankOffer() {
   const dismiss = useQuest((s) => s.dismissThank);
   const openThank = useQuest((s) => s.openThank);
   const warmSite = useQuest((s) => s.siteKind === "main" || s.siteKind === "demo");
+  const me = useQuest((s) => s.viewer?.login.toLowerCase() ?? null);
   const pallet = next === null ? null : site?.pallets.find((p) => p.number === next);
   if (!pallet || busy || !warmSite) return null;
-  const logins = site!.workers.filter((w) => w.carrying.includes(pallet.number)).map((w) => w.login);
+  // The player never thanks themselves: the others who carried it, or the team.
+  const logins = site!.workers.filter((w) => w.carrying.includes(pallet.number) && w.login.toLowerCase() !== me).map((w) => w.login);
   return (
     <section className="thank-offer" aria-label={t("warm.thank")}>
       {/* Who it goes to: the workers who carried the pallet, or the team. */}

@@ -13,22 +13,35 @@ const site = (pallets: Pallet[]): Site => ({
 
 describe("the people of the site", () => {
   it("a gesture lasts 4 to 9 seconds and changes", () => {
+    let previous: (typeof GESTURES)[number] | null = null;
     for (let n = 0; n < 30; n++) {
-      const g = gestureAt("fictif-maria", n);
+      const g = gestureAt("fictif-maria", n, previous);
       expect(g.seconds).toBeGreaterThanOrEqual(4);
       expect(g.seconds).toBeLessThanOrEqual(9);
       expect(GESTURES).toContain(g.clip);
-      if (n > 0) expect(g.clip).not.toBe(gestureAt("fictif-maria", n - 1).clip);
+      expect(g.clip).not.toBe(previous);
+      previous = g.clip;
     }
     // Each worker at their own rhythm.
-    expect([0, 1, 2, 3].map((n) => gestureAt("fictif-maria", n).seconds)).not.toEqual([0, 1, 2, 3].map((n) => gestureAt("fictif-jo", n).seconds));
+    expect([0, 1, 2, 3].map((n) => gestureAt("fictif-maria", n, null).seconds)).not.toEqual([0, 1, 2, 3].map((n) => gestureAt("fictif-jo", n, null).seconds));
   });
-  it("busy workers use their tool", () => {
-    expect(workerBusy(site([pallet(1, "In progress")]), [1])).toBe(true);
-    expect(workerBusy(site([pallet(1, "Ready")]), [1])).toBe(true);
-    expect(workerBusy(site([pallet(1, "Backlog")]), [1])).toBe(false);
-    expect(workerBusy(site([pallet(1, "Done", true)]), [1])).toBe(false);
-    expect(workerBusy(site([pallet(1, "In review", true)]), [1])).toBe(false);
+  it("a worker uses their tool while the pallet they stand by is being laid", () => {
+    expect(workerBusy(site([pallet(1, "In progress")]), 1)).toBe(true);
+    expect(workerBusy(site([pallet(1, "Ready")]), 1)).toBe(false);
+    expect(workerBusy(site([pallet(1, "In review")]), 1)).toBe(false);
+    expect(workerBusy(site([pallet(1, "Backlog")]), 1)).toBe(false);
+    expect(workerBusy(site([pallet(1, "Done", true)]), 1)).toBe(false);
+    // Only the pallet they stand by counts, not another they carry.
+    expect(workerBusy(site([pallet(1, "Backlog"), pallet(2, "In progress")]), 1)).toBe(false);
+  });
+  it("a board without an In progress column counts the middle zones", () => {
+    const board = { ...site([pallet(1, "Doing"), pallet(2, "Todo")]), zones: ["Todo", "Doing", "Shipped"].map((name, index) => ({ name, index })) };
+    expect(workerBusy(board, 1)).toBe(true);
+    expect(workerBusy(board, 2)).toBe(false);
+  });
+  it("the board's own case of In progress counts", () => {
+    const board = { ...site([pallet(1, "In Progress")]), zones: ["Backlog", "In Progress", "Done"].map((name, index) => ({ name, index })) };
+    expect(workerBusy(board, 1)).toBe(true);
   });
   it("the head turn is clamped and damped", () => {
     const worker = { x: 0, z: 0, facing: 0 };
@@ -36,6 +49,14 @@ describe("the people of the site", () => {
     expect(headYaw(worker, { x: 1, z: 1 }, false)).toBeCloseTo(Math.PI / 4);
     expect(headYaw(worker, { x: 3, z: -0.5 }, false)).toBeCloseTo(Math.PI / 3); // clamped to 60°
     expect(headYaw(worker, { x: -3, z: -0.5 }, false)).toBeCloseTo(-Math.PI / 3);
+  });
+  it("at the edge of the 4 m the head turns back smoothly, it never jumps", () => {
+    const worker = { x: 0, z: 0, facing: 0 };
+    expect(headYaw(worker, { x: 0, z: 4 }, false)).toBeCloseTo(0);
+    const full = headYaw(worker, { x: 4, z: 0.001 }, false);
+    const half = headYaw(worker, { x: 4.25, z: 0.001 }, false);
+    expect(half).toBeCloseTo(full / 2, 2);
+    expect(headYaw(worker, { x: 4.5, z: 0.001 }, false)).toBe(0);
   });
   it("one wave per visit", () => {
     const state = { greeted: new Set<string>() };
@@ -89,9 +110,9 @@ describe("nextClip", () => {
   it("changes gesture when its time is up", () => {
     const p = plan({ gesture: null, left: 0 });
     const first = nextClip(p, { ...at, delta: 0.1 });
-    expect(first).toBe(gestureAt("a", 0).clip);
+    expect(first).toBe(gestureAt("a", 0, null).clip);
     p.left = 0;
-    expect(nextClip(p, { ...at, delta: 0.1 })).toBe(gestureAt("a", 1).clip);
+    expect(nextClip(p, { ...at, delta: 0.1 })).toBe(gestureAt("a", 1, first as (typeof GESTURES)[number]).clip);
   });
 });
 

@@ -5,6 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import type { EcctrlHandle } from "ecctrl";
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
+import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { toonOf } from "./toon.ts";
 import { useQuest } from "../store.ts";
 import { lastInput } from "../moments/player.ts";
@@ -13,13 +14,17 @@ import { restState } from "./people.ts";
 const URL = "/models/foreman.glb";
 const HEIGHT = 1.85;
 const FADE = 0.2;
+/** Sitting down and standing up take longer than a step: a slow settle, never a snap. */
+const SIT_FADE = 0.6;
 
 type Clip = "Unarmed_Idle" | "Walking_A" | "Running_A" | "Jump_Full_Short" | "Cheer" | "Interact" | "Sit_Floor_Idle";
 const REACTIONS = { cheer: "Cheer", lean: "Interact" } as const;
 
 export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>; feetY: number }) {
   const group = useRef<THREE.Group>(null);
-  const { scene, animations } = useGLTF(URL);
+  const { scene: shared, animations } = useGLTF(URL);
+  // His own copy of the model: the workers clone the same file, and its shared materials stay as they were loaded.
+  const scene = useMemo(() => clone(shared), [shared]);
   const { actions } = useAnimations(animations, group);
   const current = useRef<Clip | null>(null);
   const reaction = useQuest((s) => s.reaction);
@@ -29,9 +34,10 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
   // Any key, click or touch counts as an input: the foreman wakes at once, and the input is not consumed.
   useEffect(() => {
     const wake = () => { lastInput.at = performance.now(); };
-    addEventListener("keydown", wake);
-    addEventListener("pointerdown", wake);
-    return () => { removeEventListener("keydown", wake); removeEventListener("pointerdown", wake); };
+    // In the capture phase: a key or a click that something stops on its way still wakes him.
+    addEventListener("keydown", wake, { capture: true });
+    addEventListener("pointerdown", wake, { capture: true });
+    return () => { removeEventListener("keydown", wake, { capture: true }); removeEventListener("pointerdown", wake, { capture: true }); };
   }, []);
 
   // Scale the model to a human height and stand it on the capsule's feet.
@@ -54,8 +60,9 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
     // useAnimations stops every action when its effect re-runs (StrictMode does that once at mount),
     // so a clip we started can be stopped behind our back: replay it whenever it is not running.
     if (current.current === clip && next.isRunning()) return;
-    next.reset().fadeIn(FADE).play();
-    if (current.current && current.current !== clip) actions[current.current]?.fadeOut(FADE);
+    const fade = clip === "Sit_Floor_Idle" || current.current === "Sit_Floor_Idle" ? SIT_FADE : FADE;
+    next.reset().fadeIn(fade).play();
+    if (current.current && current.current !== clip) actions[current.current]?.fadeOut(fade);
     current.current = clip;
     // Read by the browser tests: what the foreman is doing now.
     if (group.current) group.current.userData.clip = clip;

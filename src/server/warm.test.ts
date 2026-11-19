@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../shared/config.ts";
-import { prepareCheer, type PreparedWarm } from "../shared/gestures/warm.ts";
+import { prepareCheer, prepareThank, type PreparedWarm } from "../shared/gestures/warm.ts";
 import type { BoardSnapshot } from "../shared/site.ts";
 import { createApp } from "./app.ts";
 import { memoryActionLog } from "./db/log.ts";
@@ -83,5 +83,30 @@ describe("warm gestures through the API", () => {
     expect(body.ok).toBe(true);
     expect(body.site.pallets.find((p) => p.number === open.number)!.myReactions).toEqual(["ROCKET"]);
     expect(await demo.progress.stamps("you")).toEqual([]);
+  });
+
+  it("a page marked demo on a server without the demo sends nothing", async () => {
+    const sent: PreparedWarm[] = [];
+    const res = await createApp(live(sent)).request("/api/warm/cheer/apply?demo=1", post(prepareCheer(fresh(), HOME, open.number, "HOORAY")));
+    expect(res.status).toBe(409);
+    expect(sent).toHaveLength(0);
+  });
+
+  it("two thank-yous for one pallet at once: only the first leaves", async () => {
+    const board = fresh();
+    const laid = board.items.find((i) => i.state === "CLOSED" && !i.isEpic && i.stateReason !== "DUPLICATE" && i.stateReason !== "NOT_PLANNED")!;
+    const sent: PreparedWarm[] = [];
+    let release = () => {};
+    const held = new Promise<void>((r) => { release = r; });
+    const d: Deps = { ...live(sent, board), applyWarm: async (w) => { sent.push(w); await held; return { ok: true }; } };
+    const app = createApp(d);
+    const claim = prepareThank(board, HOME, laid.number, "HEART", null, false);
+    const first = app.request("/api/warm/thank/apply", post(claim));
+    await new Promise((r) => setTimeout(r, 20));
+    const second = await app.request("/api/warm/thank/apply", post(claim));
+    expect(second.status).toBe(409);
+    release();
+    expect(await (await first).json()).toMatchObject({ ok: true });
+    expect(sent).toHaveLength(1);
   });
 });
