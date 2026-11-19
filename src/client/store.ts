@@ -385,8 +385,9 @@ export const useQuest = create<QuestState>((set, get) => ({
     const date = localDate(new Date());
     const variant = variantOf(date, VARIANTS);
     // What moved since the morning, as the radio tells it; then the day's jobs, kindly, whatever their count.
-    const moved = radioLines(day.morning, site, date, "");
     const done = day.done.filter(Boolean).length;
+    // "Dead calm" says nothing moved: never after a day whose jobs moved something.
+    const moved = radioLines(day.morning, site, date, "").filter((l) => !(done > 0 && l.key === "onAir.calm"));
     const evening: RadioLine = day.jobs.length === 0
       ? { key: "onAir.dayEveningFree", values: { variant } }
       : { key: "onAir.dayEvening", values: { done, total: day.jobs.length, variant } };

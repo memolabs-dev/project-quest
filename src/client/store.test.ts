@@ -187,6 +187,8 @@ describe("a day on the site", () => {
     expect(useQuest.getState().closedDay).toBeNull();
     const lines = useQuest.getState().radio!.lines;
     expect(lines[lines.length - 1]).toMatchObject({ key: "onAir.dayEvening", values: { done: 1, total: 1 } });
+    // A move to Ready is no radio news, but the day did something: no "dead calm" before the summing up.
+    expect(lines.map((l) => l.key)).not.toContain("onAir.calm");
     useQuest.getState().skipRadio();
     useQuest.getState().takeMoments();
   });

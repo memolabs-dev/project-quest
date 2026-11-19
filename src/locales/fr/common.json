@@ -654,9 +654,9 @@
     "dayResumedDone_0": "Tout est fait : clôturez la journée à la baraque quand vous voulez !",
     "dayResumedDone_1": "Le tableau est tout coché : la baraque attend pour clore la journée !",
     "dayResumedDone_2": "Plus rien au tableau : la journée peut finir à la baraque !",
-    "dayEvening_0": "Fin de journée ! {{done}} travaux faits sur {{total}}. À demain !",
-    "dayEvening_1": "Coup de sifflet : {{done}} travaux faits sur {{total}} aujourd'hui. Bien joué !",
-    "dayEvening_2": "On éteint le chantier : {{done}} travaux faits sur {{total}}. Reposez-vous bien !",
+    "dayEvening_0": "Fin de journée ! Travaux faits : {{done}} sur {{total}}. À demain !",
+    "dayEvening_1": "Coup de sifflet ! Bilan du jour : {{done}} sur {{total}}. Bien joué !",
+    "dayEvening_2": "On éteint le chantier. Travaux du jour : {{done}} sur {{total}}. Reposez-vous bien !",
     "dayEveningFree_0": "Fin de journée sur un chantier en ordre. À demain !",
     "dayEveningFree_1": "Une journée calme s'achève, le chantier est en ordre. Reposez-vous bien !",
     "dayEveningFree_2": "Coup de sifflet sur une journée tranquille. À demain !"
