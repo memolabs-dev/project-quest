@@ -81,6 +81,8 @@ export function ConfirmWarm() {
         setWarm(null);
       }
     } catch (e) {
+      // Refused before GitHub (no access, no scope, GitHub unreachable): the same soft refusal as GitHub's own.
+      announce({ kind: "refused", pallet: warm.issueNumber });
       say(e instanceof ApiFailure ? e.message : t("errors.generic"));
       setWarm(null);
     } finally {

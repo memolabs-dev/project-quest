@@ -208,7 +208,7 @@
   display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: 50%;
   border: 2.5px dashed #9a9a9a; color: #fff; font-weight: 900; font-size: 14px;
 }
-.mentor-cheer .stamp, .skill-panel .earned .stamp { background: var(--ok); border: 2.5px solid var(--ink); animation: stamp 0.35s var(--ease); }
+.mentor-cheer .stamp, .skill-panel .earned .stamp { background: var(--ok); border: 2.5px solid var(--ink); animation: stamp 0.2s var(--ease); }
 
 /* The skill book */
 .skillbook { position: relative; }

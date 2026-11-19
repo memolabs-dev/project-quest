@@ -1,7 +1,8 @@
 // A pallet: crate in its zone's colour, sized by the task, with the issue number painted on two sides. Its body sits
 // where the board says; its visible crate travels there (living site spec, 3.2): the pallet that moved hops on an arc
 // and lands, a neighbour that only shifted a slot slides, a new parcel falls, a cleared duplicate folds away for good,
-// a refusal shakes. The thud and the dust come when the crate touches the ground. With reduced motion it is placed.
+// a refusal shakes. The thud and the dust come when the crate touches the ground. With reduced motion it slides to its
+// place, a cleared one fades, and the thud plays at once.
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { RigidBody } from "@react-three/rapier";
@@ -10,15 +11,37 @@ import { useTranslation } from "react-i18next";
 import type * as THREE from "three";
 import type { Pallet as PalletModel } from "../../shared/site.ts";
 import { arc, shake, squash } from "../moments/curves.ts";
-import { palletAnim, type PalletAnim } from "../moments/pallet.ts";
+import { REFUSAL_SECONDS, palletAnim, type PalletAnim } from "../moments/pallet.ts";
 import { useQuest } from "../store.ts";
 import { waitedDays } from "../talk.ts";
 import { Piece } from "./kit.tsx";
 import { crateScale } from "./show.ts";
 import { paintedNumber } from "./textures.ts";
 
-const SECONDS: Record<PalletAnim, number> = { arc: 0.42, slide: 0.22, fall: 0.55, fold: 0.25, shake: 0.3 };
-type Anim = { kind: PalletAnim; t: number; dx: number; dz: number; landing: "pallet-moved" | "parcel" | null };
+const SECONDS: Record<PalletAnim, number> = { arc: 0.42, slide: 0.22, fall: 0.55, fold: 0.25, fade: 0.4, shake: REFUSAL_SECONDS };
+type Anim = {
+  kind: PalletAnim; t: number; dx: number; dz: number; landing: "pallet-moved" | "parcel" | null;
+  /** A fade's own see-through copies of the crate's materials (the originals are shared by every crate of a colour). */
+  faded?: THREE.Material[];
+};
+
+/** Gives every mesh of the crate a see-through copy of its material, for a fade; returns the copies. */
+function fadingCopies(g: THREE.Object3D): THREE.Material[] {
+  const copies: THREE.Material[] = [];
+  g.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh || Array.isArray(m.material)) return;
+    const copy = m.material.clone();
+    copy.transparent = true;
+    m.material = copy;
+    copies.push(copy);
+  });
+  return copies;
+}
+
+const setOpacity = (materials: THREE.Material[], opacity: number) => {
+  for (const m of materials) m.opacity = opacity;
+};
 
 export function Pallet({ pallet, x, z, color, near, reduceMotion, openedAt }: {
   pallet: PalletModel; x: number; z: number; color: string; near: boolean; reduceMotion: boolean;
@@ -52,13 +75,10 @@ export function Pallet({ pallet, x, z, color, near, reduceMotion, openedAt }: {
     const kind = palletAnim({ moved, motion, seen: seen.current, reduced: reduceMotion });
     const fresh = motion && motion.at > seen.current ? motion.kind : null;
     if (motion) seen.current = Math.max(seen.current, motion.at);
-    if (kind) {
-      const landing = kind === "arc" ? "pallet-moved" : kind === "fall" ? "parcel" : null;
-      anim.current = { kind, t: 0, dx: kind === "arc" || kind === "slide" ? dx : 0, dz: kind === "arc" || kind === "slide" ? dz : 0, landing };
-    } else if (fresh === "pallet-moved" || fresh === "parcel") {
-      // Placed at once (reduced motion): it lands at once, with its sound.
-      announce({ kind: fresh, pallet: pallet.number, spot: [x, z], landed: true });
-    }
+    const landing = kind === "arc" ? "pallet-moved" : kind === "fall" ? "parcel" : null;
+    if (kind) anim.current = { kind, t: 0, dx: kind === "arc" || kind === "slide" ? dx : 0, dz: kind === "arc" || kind === "slide" ? dz : 0, landing };
+    // No hop or fall to land (reduced motion: placed, or sliding): it lands at once, with its sound.
+    if (!landing && (fresh === "pallet-moved" || fresh === "parcel")) announce({ kind: fresh, pallet: pallet.number, spot: [x, z], landed: true });
     if (fresh === "cleared" && !kind) setFolded(true);
   }, [x, z, motion, reduceMotion, announce, pallet.number]);
 
@@ -82,6 +102,10 @@ export function Pallet({ pallet, x, z, color, near, reduceMotion, openedAt }: {
       if (a.t >= 0.7) g.scale.y = squash((a.t - 0.7) / 0.3);
     }
     if (a.kind === "fold") g.scale.setScalar(1 - a.t);
+    if (a.kind === "fade") {
+      a.faded ??= fadingCopies(g);
+      setOpacity(a.faded, 1 - a.t);
+    }
     if (a.kind === "shake") g.position.x = shake(a.t) * 0.12;
     // Touching the ground: now the thud and the dust, where it landed.
     const touched = (a.kind === "arc" && a.t > 0.85) || (a.kind === "fall" && a.t >= 0.7);
@@ -91,7 +115,8 @@ export function Pallet({ pallet, x, z, color, near, reduceMotion, openedAt }: {
     }
     if (a.t >= 1) {
       anim.current = null;
-      if (a.kind === "fold") setFolded(true);
+      if (a.kind === "fold" || a.kind === "fade") setFolded(true);
+      for (const m of a.faded ?? []) m.dispose();
     }
   });
 

@@ -2,7 +2,7 @@
 import { Html, KeyboardControls, PerformanceMonitor } from "@react-three/drei";
 import { QUALITY_START, nextQuality, quality } from "./quality.ts";
 import { SiteLight } from "./Light.tsx";
-import { TeamRewards } from "./Rewards.tsx";
+import { TeamRewards, TruckHop } from "./Rewards.tsx";
 import { RadioSet } from "./RadioSet.tsx";
 import { Director } from "./Director.tsx";
 import { useReducedMotion } from "./motion.ts";
@@ -143,6 +143,7 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
   const near = useQuest((s) => s.nearPallet);
   const zoneIndex = new Map(site.zones.map((z) => [z.name, z.index]));
   const width = site.zones.length * ZONE_SPACING + 10;
+  const truckAt: [number, number, number] = [-width / 2 + 5, 0, YARD_Z - 5];
   const spots = useMemo(() => workerSpots(site, layout.pallets), [site, layout]);
   const fence = useMemo(() => fenceAt(width), [width]);
   // The twelve workers nearest the foreman live fully; refreshed every second, not every frame.
@@ -219,7 +220,10 @@ function Scene({ site, reduceMotion, aoHalf, tiltShift }: { site: SiteModel; red
           <RadioSet position={[0, 0, 0]} reduceMotion={reduceMotion} />
         </RigidBody>
         <GateSign at={gateSignAt(width)} />
-        <TeamRewards truckAt={[-width / 2 + 5, 0, YARD_Z - 5]} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
+        <TeamRewards truckAt={truckAt} ribbonAt={[width / 2 - 4, 0, YARD_Z - 5]} mastAt={[-width / 2 + 0.2, 0, YARD_Z - 4.8]} />
+        <TruckHop truckAt={truckAt} reduceMotion={reduceMotion}
+          fromOf={(n) => { const p = layout.pallets.find((x) => x.number === n); return p ? [p.x, p.z] : null; }}
+          colorOf={(n) => zoneColor(zoneIndex.get(site.pallets.find((x) => x.number === n)?.zone ?? "") ?? 0)} />
         <Player pallets={solid} workers={spots} visitors={visitors} radioAt={RADIO_AT} reduceMotion={reduceMotion} body={body} arrival={arrival} look={look} />
       </Physics>
       <Arrival leftRef={arrival} lookRef={look} siteWidth={width} end={FOLLOW_START} />

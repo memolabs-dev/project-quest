@@ -70,8 +70,10 @@ export function Foreman({ body, feetY }: { body: RefObject<EcctrlHandle | null>;
       const clip = REACTIONS[reaction.kind];
       const action = actions[clip];
       if (action) {
+        // Played once; locomotion fades back in during its last FADE seconds, so the fade ends as the clip does. Waiting
+        // for the clip's end would fade from a finished action, which drops to the bind pose for a frame.
         action.setLoop(THREE.LoopOnce, 1);
-        reacting.current = { clip, left: action.getClip().duration };
+        reacting.current = { clip, left: Math.max(0, action.getClip().duration - FADE) };
       }
     }
     const r = reacting.current;

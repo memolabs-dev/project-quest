@@ -15,8 +15,11 @@ describe("which animation a pallet plays", () => {
     expect(palletAnim({ moved: false, motion: { kind: "refused", at: 2 }, seen: 1, reduced: false })).toBe("shake");
     expect(palletAnim({ moved: false, motion: { kind: "cleared", at: 2 }, seen: 1, reduced: false })).toBe("fold");
   });
-  it("with reduced motion, nothing moves", () => {
-    expect(palletAnim({ moved: true, motion: { kind: "pallet-moved", at: 9 }, seen: 8, reduced: true })).toBeNull();
+  it("with reduced motion, a moved crate slides and a cleared one fades; nothing hops, falls or shakes", () => {
+    expect(palletAnim({ moved: true, motion: { kind: "pallet-moved", at: 9 }, seen: 8, reduced: true })).toBe("slide");
+    expect(palletAnim({ moved: false, motion: { kind: "cleared", at: 9 }, seen: 8, reduced: true })).toBe("fade");
+    expect(palletAnim({ moved: false, motion: { kind: "cleared", at: 9 }, seen: 9, reduced: true })).toBeNull();
     expect(palletAnim({ moved: false, motion: { kind: "parcel", at: 9 }, seen: 8, reduced: true })).toBeNull();
+    expect(palletAnim({ moved: false, motion: { kind: "refused", at: 9 }, seen: 8, reduced: true })).toBeNull();
   });
 });

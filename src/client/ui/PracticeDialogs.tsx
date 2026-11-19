@@ -97,6 +97,8 @@ function Preview({ prepared, note, onBack }: { prepared: PreparedPractice | Prep
         setError([t("confirm.github", { message: r.message }), r.applied.length ? t("practice.applied", { list: r.applied.join(", ") }) : ""].join(" "));
       }
     } catch (e) {
+      // Refused before GitHub (no access, no scope, GitHub unreachable): the same soft refusal as GitHub's own.
+      announce({ kind: "refused", pallet: "args" in prepared ? prepared.args.issueNumber : undefined });
       setError(e instanceof ApiFailure ? ("hint" in e.body ? `${e.message} (${e.body.hint})` : e.message) : t("errors.generic"));
     } finally {
       setState("idle");

@@ -6,6 +6,7 @@ import { ApiFailure, api } from "../api.ts";
 import { zoneLabel } from "../i18n.ts";
 import { cardGestures } from "../levels.ts";
 import { momentsAfterMove } from "../moments/diff.ts";
+import { REFUSAL_SECONDS } from "../moments/pallet.ts";
 import { zoneColor } from "../scene/colors.ts";
 import { useQuest } from "../store.ts";
 import { Mentor } from "./Mentor.tsx";
@@ -151,6 +152,8 @@ function ConfirmMove() {
       } else if (r.reason === "stale") {
         announce(...momentsAfterMove(r, pending.issueNumber));
         setPending(null);
+        // The shake first: the refreshed site may move the pallet to where it really is, and that hop would cut it short.
+        await new Promise((done) => setTimeout(done, REFUSAL_SECONDS * 1000));
         await refresh();
         setNotice(r.current.change === "moved" ? t("confirm.stale", { zone: zoneLabel(r.current.status ?? "") })
           : t(r.current.change === "gone" ? "confirm.staleGone" : "confirm.staleChanged"));
@@ -159,6 +162,8 @@ function ConfirmMove() {
         setNotice(t("confirm.github", { message: r.message }));
       }
     } catch (e) {
+      // Refused before GitHub (no access, no scope, GitHub unreachable): the same soft refusal as GitHub's own.
+      announce(...momentsAfterMove({ ok: false }, pending.issueNumber));
       setNotice(e instanceof ApiFailure ? e.message : t("errors.generic"));
     } finally {
       setState("idle");

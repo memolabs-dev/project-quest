@@ -131,6 +131,8 @@ export function ConfirmTalk() {
         setPrepared(null);
       }
     } catch (e) {
+      // Refused before GitHub (no access, no scope, GitHub unreachable): the same soft refusal as GitHub's own.
+      announce({ kind: "refused", pallet: p.kind === "answer" ? p.target.number : undefined });
       say(e instanceof ApiFailure ? e.message : t("errors.generic"));
       // Back to the words either way; a network error or a server in trouble keeps them, to send again.
       setPrepared(null);

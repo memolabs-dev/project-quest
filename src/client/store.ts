@@ -60,6 +60,8 @@ interface QuestState {
   takeMoments(): Moment[];
   /** Each pallet's latest moment, for its own animation; `at` grows each time, so a repeat replays. */
   motions: Record<number, { kind: Moment["kind"]; at: number }>;
+  /** The latest crate loaded onto the sprint truck, for its hop; `at` grows each time, so a repeat replays. */
+  hop: { kind: "loaded" | "overloaded"; pallet: number; at: number } | null;
   /** The foreman's latest reaction to a moment; `at` changes each time, so the same reaction can repeat. */
   reaction: { kind: "cheer" | "lean"; at: number } | null;
   react(kind: "cheer" | "lean"): void;
@@ -159,6 +161,12 @@ const offerThanks = (kind: SiteKind, waiting: number[], laid: Pallet[]) => {
   return [...waiting, ...fresh.map((p) => p.number)];
 };
 
+/** A dialog opened from a card closes the card: it rustles as any card that closes. */
+const closeCardFor = (get: () => QuestState) => {
+  const was = get().openCard;
+  if (was !== null) get().announce({ kind: "card-close", pallet: was });
+};
+
 export const useQuest = create<QuestState>((set, get) => ({
   load: { status: "loading" },
   site: null,
@@ -175,13 +183,18 @@ export const useQuest = create<QuestState>((set, get) => ({
   reaction: null,
   react: (kind) => set((s) => ({ reaction: { kind, at: (s.reaction?.at ?? 0) + 1 } })),
   motions: {},
+  hop: null,
   announce(...m) {
     if (!m.length) return;
     set((s) => {
       const motions = { ...s.motions };
       let at = Object.values(s.motions).reduce((n, x) => Math.max(n, x.at), 0);
-      for (const x of m) if (x.pallet !== undefined && !x.landed && MOVES_A_PALLET.has(x.kind)) motions[x.pallet] = { kind: x.kind, at: ++at };
-      return { moments: [...s.moments, ...m].slice(-QUEUE), motions };
+      let hop = s.hop;
+      for (const x of m) {
+        if (x.pallet !== undefined && !x.landed && MOVES_A_PALLET.has(x.kind)) motions[x.pallet] = { kind: x.kind, at: ++at };
+        if (x.pallet !== undefined && !x.landed && (x.kind === "loaded" || x.kind === "overloaded")) hop = { kind: x.kind, pallet: x.pallet, at: (hop?.at ?? 0) + 1 };
+      }
+      return { moments: [...s.moments, ...m].slice(-QUEUE), motions, hop };
     });
   },
   takeMoments() {
@@ -199,9 +212,15 @@ export const useQuest = create<QuestState>((set, get) => ({
   practiceDialog: null,
   openPractice: (practiceDialog) => set({ practiceDialog }),
   teamDialog: null,
-  openTeam: (teamDialog) => set({ teamDialog, openCard: null }),
+  openTeam(teamDialog) {
+    closeCardFor(get);
+    set({ teamDialog, openCard: null });
+  },
   askIssue: null,
-  ask: (askIssue) => set({ askIssue, practiceDialog: "ask", openCard: null }),
+  ask(askIssue) {
+    closeCardFor(get);
+    set({ askIssue, practiceDialog: "ask", openCard: null });
+  },
   async refreshLevels(check = false) {
     // A visitor has no levels: the visit reads a stranger's repository.
     if (get().siteKind === "visit") return;
@@ -275,7 +294,10 @@ export const useQuest = create<QuestState>((set, get) => ({
   dismissThank: (n) => set((s) => ({ toThank: s.toThank.filter((x) => x !== n) })),
   thanking: null,
   talk: null,
-  openTalk: (talk) => set({ talk, openCard: null }),
+  openTalk(talk) {
+    closeCardFor(get);
+    set({ talk, openCard: null });
+  },
   talkPrepared: null,
   setTalkPrepared: (talkPrepared) => set({ talkPrepared }),
   nearTalk: null,

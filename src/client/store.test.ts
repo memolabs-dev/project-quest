@@ -58,6 +58,34 @@ describe("the store's moments", () => {
     useQuest.getState().open(null);
     expect(useQuest.getState().takeMoments()).toEqual([{ kind: "card-open", pallet: 3 }, { kind: "card-close", pallet: 3 }]);
   });
+  it("loading the truck starts a hop, its landing does not start another", () => {
+    const before = useQuest.getState().hop?.at ?? 0;
+    useQuest.getState().announce({ kind: "loaded", pallet: 5 });
+    expect(useQuest.getState().hop).toEqual({ kind: "loaded", pallet: 5, at: before + 1 });
+    useQuest.getState().announce({ kind: "loaded", pallet: 5, landed: true, spot: [0, 0] });
+    expect(useQuest.getState().hop?.at).toBe(before + 1);
+    // The pallet itself does not move: the hop is a copy of the crate.
+    expect(useQuest.getState().motions[5]).toBeUndefined();
+    useQuest.getState().takeMoments();
+  });
+  it("a dialog opened from the card closes it with its rustle (the lead's gesture, an ask, a talk)", () => {
+    const opens = [
+      () => useQuest.getState().openTeam({ kind: "rope", issue: 4 }),
+      () => useQuest.getState().ask(4),
+      () => useQuest.getState().openTalk({ kind: "answer", number: 4 }),
+    ];
+    for (const openDialog of opens) {
+      useQuest.getState().open(4);
+      useQuest.getState().takeMoments();
+      openDialog();
+      expect(useQuest.getState().openCard).toBeNull();
+      expect(useQuest.getState().takeMoments()).toEqual([{ kind: "card-close", pallet: 4 }]);
+    }
+    useQuest.setState({ teamDialog: null, practiceDialog: null, askIssue: null, talk: null });
+    useQuest.getState().openTeam({ kind: "rope" });
+    expect(useQuest.getState().takeMoments()).toEqual([]);
+    useQuest.setState({ teamDialog: null });
+  });
 });
 
 describe("the thank offer", () => {
